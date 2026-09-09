@@ -1,0 +1,2 @@
+# Deny all web access — CLI tools must never be web-runnable.
+Require all denied

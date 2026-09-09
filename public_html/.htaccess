@@ -1,0 +1,37 @@
+# Khamis Computers — Apache / cPanel configuration
+
+# Basic hardening
+Options -Indexes
+ServerSignature Off
+
+# Deny dotfiles (.env, .git, …) if the whole project is ever uploaded inside
+# the web root. Apache does not hide .env by default.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Enable the rewrite engine (available on virtually all cPanel hosts)
+RewriteEngine On
+
+# Do not rewrite requests for real files or directories
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Route everything else through the front controller
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# ---- Security headers ----
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    # Honoured by browsers only over HTTPS, so it is safe to send always.
+    Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+# ---- PHP hardening (mod_php hosts; ignored on PHP-FPM) ----
+<IfModule mod_php.c>
+    php_flag display_errors off
+</IfModule>

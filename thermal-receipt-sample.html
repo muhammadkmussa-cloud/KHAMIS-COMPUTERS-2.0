@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S-20260908-0001</title>
+<style>
+  @page { size: 80mm auto; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body { width: 80mm; padding: 4mm 3mm; font-family: "Courier New", ui-monospace, Menlo, Consolas, monospace;
+         font-size: 11px; line-height: 1.4; color: #000; }
+  .center { text-align: center; }
+  .b { font-weight: 700; }
+  h1 { font-size: 15px; margin: 0 0 1px; letter-spacing: .4px; }
+  .sub { font-size: 10px; margin: 0; }
+  hr.d { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+  .row { display: flex; justify-content: space-between; gap: 6px; }
+  .row span:last-child { text-align: right; white-space: nowrap; }
+  .item { margin: 3px 0; }
+  .sn { font-size: 9.5px; }
+  .totals .row { margin: 1px 0; }
+  .grand { font-size: 14px; font-weight: 700; border-top: 1px solid #000; margin-top: 3px; padding-top: 2px; }
+  .footer { text-align: center; font-size: 10px; margin-top: 4px; }
+  .footer p { margin: 1px 0; }
+  .voided { text-align: center; font-weight: 700; font-size: 13px; letter-spacing: 2px; margin: 4px 0; }
+  .toolbar { text-align: center; margin-top: 8px; }
+  .toolbar button { font-family: system-ui, sans-serif; font-size: 13px; padding: 8px 18px; border: 1px solid #000; background: #fff; border-radius: 6px; cursor: pointer; }
+  @media print { .toolbar { display: none; } }
+</style>
+</head>
+<body>
+  <div class="center">
+    <h1 class="b">Khamis Computers</h1>
+          </div>
+  <hr class="d">
+  <div class="row"><span>Receipt</span><span class="b">S-20260908-0001</span></div>
+  <div class="row"><span>Date</span><span>08 Sep 2026  07:17 PM</span></div>
+  <div class="row"><span>Cashier</span><span>Khamis Admin</span></div>
+  <div class="row"><span>Customer</span><span>Amina Hassan</span></div>  <div class="row"><span>Phone</span><span>0712345678</span></div>  <hr class="d">
+      <div class="item">
+      <div class="row"><span class="b">MacBook Air M3</span></div>
+      <div class="sn">SN: M3-SN-001</div>      <div class="row"><span>1 x 120,000.00</span><span>120,000.00</span></div>
+    </div>
+      <div class="item">
+      <div class="row"><span class="b">Logitech Wireless Mouse M221</span></div>
+            <div class="row"><span>2 x 2,200.00</span><span>4,400.00</span></div>
+    </div>
+    <hr class="d">
+  <div class="totals">
+    <div class="row"><span>Subtotal</span><span>124,400.00</span></div>
+    <div class="row"><span>Discount</span><span>-1,000.00</span></div>    <div class="row"><span>VAT (16%)</span><span>19,744.00</span></div>
+        <div class="row grand"><span>TOTAL</span><span>KSh 143,144.00</span></div>
+  </div>
+  <hr class="d">
+  <div class="row"><span>Payment</span><span>MPESA · SJD7K2M</span></div>
+      <hr class="d">
+  <div class="footer">
+    <p>Thank you for shopping with us.</p>
+    <p>Prices include VAT unless stated. Warranty claims require this receipt.</p>
+    <p>Thank you for shopping with us!</p>
+  </div>
+  <div class="toolbar"><button type="button" onclick="window.print()">🖨 Print receipt</button></div>
+  <script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 150); });</script>
+</body>
+</html>

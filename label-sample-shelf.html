@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Labels — Logitech Wireless Mouse M221</title>
+<style>
+  /* ==== Label geometry — adjust these two blocks to match your label stock ==== */
+  @page { size: A4 portrait; margin: 6mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color: #000; }
+
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+             padding: 12px 14px; background: #f5f5f7; border-bottom: 1px solid #d2d2d7; }
+  .toolbar h1 { font-size: 16px; margin: 0; font-weight: 600; }
+  .toolbar .grow { flex: 1; }
+  .toolbar a, .toolbar button { font-size: 13px; padding: 7px 14px; border-radius: 8px;
+             border: 1px solid #d2d2d7; background: #fff; cursor: pointer; text-decoration: none; color: #1d1d1f; }
+  .toolbar button.primary { background: #0071e3; border-color: #0071e3; color: #fff; }
+  .toolbar input[type=number] { width: 70px; font-size: 13px; padding: 7px; border-radius: 8px; border: 1px solid #d2d2d7; }
+  .hint { padding: 8px 14px; font-size: 12px; color: #6e6e73; }
+
+  .sheet { display: grid; gap: 2mm; padding: 2mm;
+           grid-template-columns: repeat(3, 63mm); }
+
+  .label { background: #fff; border: 1px solid #000; border-radius: 4px; padding: 3px 5px;
+           display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+           break-inside: avoid; page-break-inside: avoid; }
+  .label.shelf { width: 63mm; height: 33mm; }
+  .label.serial { width: 46mm; height: 22mm; }
+  .label.thermal { width: 60mm; height: 40mm; border-radius: 0; border: 1px solid #000; margin: 0 auto; }
+
+  .ltop { display: flex; justify-content: space-between; align-items: baseline; gap: 4px; }
+  .lname { font-weight: 700; font-size: 11px; line-height: 1.1; overflow: hidden;
+           text-overflow: ellipsis; white-space: nowrap; }
+  .lsku  { font-size: 8px; color: #333; letter-spacing: .4px; }
+  .lprice { font-size: 15px; font-weight: 800; }
+  .serial .lname { font-size: 9px; }
+  .serial .lprice { font-size: 11px; }
+
+  .lbc { display: flex; flex-direction: column; }
+  .lbc svg { width: 100%; height: auto; max-height: 15mm; display: block; }
+  .serial .lbc svg { max-height: 10mm; }
+  .ltext { font-family: "Courier New", ui-monospace, Menlo, Consolas, monospace; font-size: 8px;
+           letter-spacing: .5px; text-align: center; margin-top: 1px; white-space: nowrap; overflow: hidden; }
+
+  .serialnum { font-weight: 800; font-size: 10px; letter-spacing: .3px; }
+
+  @media print { .toolbar, .hint { display: none !important; } .sheet { padding: 0; } }
+</style>
+</head>
+<body>
+<div class="toolbar">
+    <h1>Shelf labels — Logitech Wireless Mouse M221</h1>
+    <span class="grow"></span>
+            <form method="get" action="http://localhost:8081/products/6/labels" style="display:flex;gap:6px;align-items:center">
+            <label>Qty <input type="number" name="qty" min="1" max="500" value="24"></label>
+            <button type="submit">Update</button>
+        </form>
+        <a href="http://localhost:8081/products/6/labels?kind=serials&amp;autoprint=1">Serial labels</a>
+    <a href="http://localhost:8081/products/6/labels?thermal=1">Thermal 60×40</a>
+    <button class="primary" type="button" onclick="window.print()">Print</button>
+    <a href="http://localhost:8081/products/6">Back</a>
+</div>
+<div class="hint">
+    A4 sheet of 63×33mm shelf labels (3 per row). If your label sheet differs, adjust the “repeat(3, 63mm)” and .shelf sizes at the top of this page.</div>
+
+<div class="sheet">
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+            <div class="label shelf">
+            <div class="ltop">
+                <span class="lname">Logitech Wireless Mouse M221</span>
+                <span class="lsku">KC-ACC-001</span>
+            </div>
+            <div class="lprice">KSh 2,200.00</div>
+            <div class="lbc">
+                <svg xmlns="http://www.w3.org/2000/svg" width="308" height="46" viewBox="0 0 308 46" style="background:#fff;display:block" shape-rendering="crispEdges"><rect x="20" y="0" width="4" height="46"/><rect x="26" y="0" width="2" height="46"/><rect x="32" y="0" width="2" height="46"/><rect x="42" y="0" width="2" height="46"/><rect x="46" y="0" width="4" height="46"/><rect x="56" y="0" width="6" height="46"/><rect x="64" y="0" width="2" height="46"/><rect x="72" y="0" width="2" height="46"/><rect x="80" y="0" width="4" height="46"/><rect x="86" y="0" width="2" height="46"/><rect x="92" y="0" width="4" height="46"/><rect x="98" y="0" width="6" height="46"/><rect x="108" y="0" width="2" height="46"/><rect x="112" y="0" width="2" height="46"/><rect x="120" y="0" width="4" height="46"/><rect x="130" y="0" width="2" height="46"/><rect x="138" y="0" width="2" height="46"/><rect x="146" y="0" width="4" height="46"/><rect x="152" y="0" width="2" height="46"/><rect x="160" y="0" width="2" height="46"/><rect x="168" y="0" width="4" height="46"/><rect x="174" y="0" width="2" height="46"/><rect x="180" y="0" width="4" height="46"/><rect x="186" y="0" width="6" height="46"/><rect x="196" y="0" width="2" height="46"/><rect x="202" y="0" width="6" height="46"/><rect x="210" y="0" width="4" height="46"/><rect x="218" y="0" width="2" height="46"/><rect x="224" y="0" width="6" height="46"/><rect x="232" y="0" width="4" height="46"/><rect x="240" y="0" width="2" height="46"/><rect x="246" y="0" width="6" height="46"/><rect x="256" y="0" width="4" height="46"/><rect x="262" y="0" width="2" height="46"/><rect x="266" y="0" width="4" height="46"/><rect x="278" y="0" width="2" height="46"/><rect x="284" y="0" width="4" height="46"/></svg>                <div class="ltext">KC-ACC-001</div>
+            </div>
+        </div>
+    </div>
+
+<script>
+  // Only auto-open the print dialog when arriving from a "Print" click.
+  if (new URLSearchParams(location.search).get('autoprint') === '1') {
+    window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 200); });
+  }
+</script>
+</body>
+</html>

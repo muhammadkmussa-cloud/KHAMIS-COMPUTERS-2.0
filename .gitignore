@@ -1,0 +1,15 @@
+# Environment / secrets
+.env
+
+# SQLite dev database
+storage/*.sqlite
+storage/*.sqlite-*
+
+# Logs & uploads (keep the .htaccess deny file)
+storage/logs/*
+storage/uploads/*
+!storage/.htaccess
+
+# OS noise
+.DS_Store
+Thumbs.db

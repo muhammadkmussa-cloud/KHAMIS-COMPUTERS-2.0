@@ -1,0 +1,2 @@
+# Deny all web access — the SQL schema must never be downloadable.
+Require all denied

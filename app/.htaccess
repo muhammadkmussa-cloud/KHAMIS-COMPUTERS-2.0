@@ -1,0 +1,3 @@
+# Deny all web access — application code must never be downloadable.
+# (Safety net for setups where the whole project is uploaded inside the web root.)
+Require all denied
