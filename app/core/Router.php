@@ -48,9 +48,14 @@ class Router
                 flash('error', 'Please sign in to continue.');
                 redirect('login');
             }
-            if ($route['admin'] && !Auth::isAdmin()) {
-                flash('error', 'You do not have permission to access that page.');
-                redirect('dashboard');
+            if ($route['admin'] && !Auth::check()) {
+                flash('error', 'Please sign in to continue.');
+                redirect('login');
+            }
+            if ($route['admin'] && Auth::check() && !Auth::isAdmin()) {
+                http_response_code(403);
+                View::render('errors/403', ['title' => 'Access denied'], 'app');
+                return;
             }
 
             $handler = $route['handler'];

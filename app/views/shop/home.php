@@ -58,6 +58,14 @@
 </div>
 <?php endif; ?>
 
+<?php if (empty($featured) && empty($categories)): ?>
+<div class="empty-state">
+    <h2>No products or categories yet</h2>
+    <p class="muted">Our catalogue is being set up. Check back soon or browse the full shop.</p>
+    <a class="btn btn-primary" href="<?= e(url('shop/products')) ?>">Browse products</a>
+</div>
+<?php endif; ?>
+
 <div class="promo">
     <div class="promo-inner">
         <div class="section-kicker light">Simple fulfilment</div>

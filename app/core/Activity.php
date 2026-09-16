@@ -22,4 +22,16 @@ class Activity
             // Silently degrade — an audit write must never fail a request.
         }
     }
+
+    public static function recent(int $limit = 20): array
+    {
+        try {
+            return Database::fetchAll(
+                'SELECT al.*, u.name AS user_name FROM activity_log al LEFT JOIN users u ON u.id = al.user_id ORDER BY al.created_at DESC LIMIT ?',
+                [$limit]
+            );
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
 }

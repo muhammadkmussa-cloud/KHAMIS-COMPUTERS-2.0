@@ -1,0 +1,15 @@
+{
+  "name": "@khamis-computers/khamis-computers-2.0",
+  "version": "1.0.0",
+  "description": "Khamis Computers POS + Online Shop",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
+  },
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

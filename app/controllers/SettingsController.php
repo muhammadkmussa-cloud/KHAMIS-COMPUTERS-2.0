@@ -11,6 +11,7 @@ class SettingsController
             'settings' => Setting::all(),
             'zones' => DeliveryZone::all(),
             'vat'      => vat_rate(),
+            'activity' => Activity::recent(20),
         ]);
     }
 
@@ -19,28 +20,47 @@ class SettingsController
         Auth::requireLogin();
         Csrf::checkOrFail();
 
+        $errors = [];
+
         $shopEmail = strtolower(trim((string) ($_POST['shop_email'] ?? '')));
         $mailFrom = strtolower(trim((string) ($_POST['mail_from'] ?? '')));
         $alertRecipient = strtolower(trim((string) ($_POST['low_stock_recipient'] ?? '')));
-        $emailErrors = [];
         foreach ([['Shop email', $shopEmail], ['Sender email', $mailFrom], ['Low-stock recipient', $alertRecipient]] as [$label, $value]) {
             if ($value !== '' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                $emailErrors[] = $label . ' must be a valid email address.';
+                $errors[] = $label . ' must be a valid email address.';
             }
         }
+
         $rawVat = trim((string) ($_POST['vat_rate'] ?? ''));
         $pin = (string) ($_POST['discount_pin'] ?? '');
         if ($pin !== '' && strlen($pin) < 4) {
-            $emailErrors[] = 'Discount PIN must be at least 4 characters.';
+            $errors[] = 'Discount PIN must be at least 4 characters.';
         }
         if (!preg_match('/^\d+(?:\.\d{1,2})?$/', $rawVat) || (float) $rawVat > 100) {
-            $emailErrors[] = 'VAT rate must be a number from 0 to 100 with at most two decimal places.';
-        }
-        if ($emailErrors) {
-            flash('error', implode(' ', $emailErrors));
-            redirect('settings');
+            $errors[] = 'VAT rate must be a number from 0 to 100 with at most two decimal places.';
         }
 
+        $phone = trim((string) ($_POST['shop_phone'] ?? ''));
+        if ($phone !== '' && !preg_match('/^\+?[0-9\s\-\(\)]{7,20}$/', $phone)) {
+            $errors[] = 'Phone number format is invalid.';
+        }
+
+        $mpesaShortcode = trim((string) ($_POST['mpesa_shortcode'] ?? ''));
+        if ($mpesaShortcode !== '' && !preg_match('/^\d{1,10}$/', $mpesaShortcode)) {
+            $errors[] = 'M-PESA shortcode must be a number (e.g. 174379).';
+        }
+        $mpesaPasskey = trim((string) ($_POST['mpesa_passkey'] ?? ''));
+        if ($mpesaPasskey !== '' && strlen($mpesaPasskey) < 8) {
+            $errors[] = 'M-PESA passkey must be at least 8 characters.';
+        }
+
+        if ($errors) {
+            flash('error', implode(' ', $errors));
+            redirect('settings');
+            return;
+        }
+
+        // Business profile.
         foreach (['shop_name', 'shop_tagline', 'shop_phone', 'shop_email', 'shop_address', 'receipt_footer'] as $f) {
             Setting::set($f, trim((string) ($_POST[$f] ?? '')));
         }
@@ -52,7 +72,6 @@ class SettingsController
         foreach (['mail_from_name', 'mail_from', 'low_stock_recipient'] as $f) {
             Setting::set($f, trim((string) ($_POST[$f] ?? '')));
         }
-        Setting::set('mail_from', $mailFrom);
         Setting::set('smtp_host', trim((string) ($_POST['smtp_host'] ?? '')));
         Setting::set('smtp_port', (string) max(1, min(65535, (int) ($_POST['smtp_port'] ?? 587))));
         Setting::set('smtp_username', trim((string) ($_POST['smtp_username'] ?? '')));
@@ -72,6 +91,7 @@ class SettingsController
             Setting::set('mpesa_consumer_secret', (string) $_POST['mpesa_consumer_secret']);
         }
 
+        // VAT rate.
         $vat = (float) $rawVat;
         $vat = max(0.0, min(100.0, $vat));
         Setting::set('vat_rate', (string) round($vat, 2));
@@ -90,5 +110,63 @@ class SettingsController
         Activity::log('settings.updated', 'vat=' . round($vat, 2));
         flash('success', 'Settings saved. They apply to new sales and receipts immediately.');
         redirect('settings');
+    }
+
+    public function testEmail(): void
+    {
+        Auth::requireLogin();
+        Csrf::checkOrFail();
+
+        $settings = Setting::all();
+        $mailFrom = $settings['mail_from'] ?? '';
+        $mailFromName = $settings['mail_from_name'] ?? config('app.name');
+
+        $body = '<h2>Test Email</h2><p>This is a test email from ' . e($settings['shop_name'] ?? config('app.name')) . '.</p><p>If you are receiving this, your email settings are working correctly.</p>';
+
+        $sent = mail($mailFrom, 'Email configuration test — ' . e($settings['shop_name'] ?? config('app.name')), $body, [
+            'From' => $mailFromName . ' <' . $mailFrom . '>',
+            'Content-Type' => 'text/html; charset=UTF-8',
+        ]);
+
+        if ($sent) {
+            flash('success', 'Test email sent successfully. Check your inbox at ' . e($mailFrom));
+        } else {
+            flash('error', 'Failed to send test email. Check your SMTP or PHP mail configuration.');
+        }
+        redirect('settings#tab-notifications');
+    }
+
+    public function testMpesa(): void
+    {
+        Auth::requireLogin();
+        Csrf::checkOrFail();
+
+        $settings = Setting::all();
+        if (!isset($settings['mpesa_enabled']) || $settings['mpesa_enabled'] !== '1') {
+            flash('error', 'M-PESA is not enabled. Enable it first in the M-PESA tab.');
+            redirect('settings#tab-mpesa');
+            return;
+        }
+        if (empty($settings['mpesa_shortcode']) || empty($settings['mpesa_passkey']) || empty($settings['mpesa_consumer_key']) || empty($settings['mpesa_consumer_secret'])) {
+            flash('error', 'Complete all M-PESA fields (shortcode, passkey, consumer key, consumer secret) before testing.');
+            redirect('settings#tab-mpesa');
+            return;
+        }
+
+        try {
+            $result = MpesaService::stkPush([
+                'phone' => '254700000000',
+                'amount' => 1,
+                'reference' => 'TEST-' . date('YmdHis'),
+            ]);
+            if ($result['success']) {
+                flash('success', 'M-PESA connection test successful. STK push initiated (test transaction will not complete).');
+            } else {
+                flash('error', 'M-PESA test failed: ' . ($result['message'] ?? 'Unknown error'));
+            }
+        } catch (\Exception $e) {
+            flash('error', 'M-PESA test failed: ' . $e->getMessage());
+        }
+        redirect('settings#tab-mpesa');
     }
 }

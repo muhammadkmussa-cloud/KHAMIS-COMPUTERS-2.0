@@ -30,7 +30,7 @@
             <thead><tr><th>Category</th><th class="num">Products</th><th></th></tr></thead>
             <tbody>
             <?php if (!$categories): ?>
-                <tr><td colspan="3" class="muted" style="text-align:center;padding:20px">No categories yet.</td></tr>
+                <tr><td colspan="3"><div class="empty-state"><h2>No categories yet</h2></div></td></tr>
             <?php endif; ?>
             <?php foreach ($categories as $c): ?>
                 <tr>

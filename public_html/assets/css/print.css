@@ -1,0 +1,131 @@
+@page {
+  size: A4;
+  margin: 15mm;
+}
+@page thermal {
+  size: 80mm auto;
+  margin: 0;
+}
+
+body.printing {
+  background: #fff;
+  color: #000;
+  font-size: 12px;
+  line-height: 1.4;
+}
+body.printing .global-nav,
+body.printing .nav-backdrop,
+body.printing .nav-toggle,
+body.printing .tabs,
+body.printing .receipt-actions,
+body.printing .no-print,
+body.printing .flash-region,
+body.printing .mobile-buy-bar,
+body.printing .pos-status,
+body.printing .pos-cart-head .pos-actions {
+  display: none !important;
+}
+body.printing .content,
+body.printing .layout-app .content,
+body.printing .layout-shop {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+body.printing .card,
+body.printing .btn,
+body.printing .btn-outline,
+body.printing .btn-ghost,
+body.printing .btn-primary {
+  box-shadow: none;
+  border-color: #ccc;
+  background: transparent;
+  color: #000;
+}
+body.printing .card {
+  border: 1px solid #ccc;
+  background: #fff;
+}
+body.printing h1,
+body.printing h2,
+body.printing h3 {
+  color: #000;
+  page-break-after: avoid;
+}
+body.printing p,
+body.printing td,
+body.printing th,
+body.printing dd,
+body.printing dt,
+body.printing li {
+  color: #000;
+  page-break-inside: avoid;
+}
+body.printing table {
+  border-collapse: collapse;
+  width: 100%;
+}
+body.printing table th,
+body.printing table td {
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+}
+body.printing .product-detail,
+body.printing .product-gallery,
+body.printing .cart-layout,
+body.printing .cart-grid,
+body.printing .cart-line-row,
+body.printing .order-summary,
+body.printing .checkout-card,
+body.printing .shop-section {
+  max-width: none;
+  padding: 0;
+}
+body.printing .product-image-frame img,
+body.printing .cart-line-thumb {
+  display: none;
+}
+body.printing .grn-document,
+body.printing .receipt {
+  box-shadow: none;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+body.printing .label-choice-card,
+body.printing .label-choice-preview {
+  border: 1px solid #ccc;
+  background: #fff;
+}
+@media print {
+  .product-detail { page-break-inside: auto; }
+  .product-detail > * { page-break-inside: avoid; }
+  .cart-line-row { page-break-inside: avoid; }
+  .checkout-progress-step { page-break-inside: avoid; }
+}
+@media print {
+  body.printing .pos-layout {
+    display: block;
+    height: auto;
+  }
+  body.printing .pos-workspace-head {
+    display: none;
+  }
+  body.printing .pos-searchbar {
+    display: none;
+  }
+  body.printing .pos-results {
+    display: none;
+  }
+}
+@media thermal {
+  body.printing .grn-document,
+  body.printing .offline-receipt {
+    font-family: "Courier New", Courier, monospace;
+    font-size: 11px;
+    line-height: 1.3;
+    border: none;
+    border-radius: 0;
+    padding: 4px;
+    page: thermal;
+  }
+}

@@ -137,6 +137,8 @@ $router->get('reports/purchases/export', [ReportController::class, 'purchasesExp
 /* ---- Settings (admins) ---- */
 $router->get('settings', [SettingsController::class, 'index'], ['auth' => true, 'admin' => true]);
 $router->post('settings', [SettingsController::class, 'update'], ['auth' => true, 'admin' => true]);
+$router->post('settings/test-email', [SettingsController::class, 'testEmail'], ['auth' => true, 'admin' => true]);
+$router->post('settings/test-mpesa', [SettingsController::class, 'testMpesa'], ['auth' => true, 'admin' => true]);
 
 /* ---- Staff management (admins) ---- */
 $router->get('staff', [StaffController::class, 'index'], ['auth' => true, 'admin' => true]);

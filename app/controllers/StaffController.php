@@ -15,6 +15,7 @@ class StaffController
         View::render('staff/index', [
             'title' => 'Staff',
             'users' => $users,
+            'activity' => Activity::recent(10),
         ]);
     }
 
