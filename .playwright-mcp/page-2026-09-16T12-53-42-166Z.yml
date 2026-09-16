@@ -1,0 +1,119 @@
+- generic [ref=f75e1]:
+  - link "Skip to main content" [ref=f75e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f75e3]:
+    - generic [ref=f75e4]:
+      - link "Khamis Computers dashboard" [ref=f75e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f75e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f75e10]:
+        - link "Dashboard" [ref=f75e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f75e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f75e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f75e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f75e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f75e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Reports" [ref=f75e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports
+        - link "Staff" [ref=f75e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/staff
+        - link "Settings" [ref=f75e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/settings
+      - generic [ref=f75e21]:
+        - link "Shop ↗" [ref=f75e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Admin, admin" [ref=f75e23]: K
+        - button "Sign out" [ref=f75e26] [cursor=pointer]
+  - main [ref=f75e27]:
+    - generic [ref=f75e28]:
+      - generic [ref=f75e29]:
+        - generic [ref=f75e30]:
+          - generic [ref=f75e31]: After-sales workflow
+          - heading "Start a return" [level=1] [ref=f75e32]
+          - paragraph [ref=f75e33]: Find the original sale by receipt, order number, customer, or phone.
+        - link "← Return history" [ref=f75e34] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+      - list "Return progress" [ref=f75e35]:
+        - listitem [ref=f75e36]:
+          - generic [ref=f75e37]: "1"
+          - generic [ref=f75e38]: Select sale
+        - listitem [ref=f75e39]:
+          - generic [ref=f75e40]: "2"
+          - generic [ref=f75e41]: Select items
+        - listitem [ref=f75e42]:
+          - generic [ref=f75e43]: "3"
+          - generic [ref=f75e44]: Refund and reason
+        - listitem [ref=f75e45]:
+          - generic [ref=f75e46]: "4"
+          - generic [ref=f75e47]: Review
+      - generic [ref=f75e48]:
+        - generic [ref=f75e50]:
+          - generic [ref=f75e51]: Step 1
+          - heading "Find the original sale" [level=2] [ref=f75e52]
+          - paragraph [ref=f75e53]: Search completed sales using the customer’s receipt, order number, name, or phone.
+        - generic [ref=f75e54]:
+          - generic [ref=f75e55]:
+            - generic [ref=f75e56]: Receipt, order number, customer, or phone
+            - searchbox "Receipt, order number, customer, or phone" [active] [ref=f75e57]
+          - button "Search sales" [ref=f75e58] [cursor=pointer]
+        - generic [ref=f75e59]:
+          - link "S-20260915-0066 Walk-in customer · No phone 15 Sep 2026 · 04:44 PM KSh 140,360.00" [ref=f75e60] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/returns/new?sale=66
+            - generic [ref=f75e61]:
+              - generic [ref=f75e62]: S-20260915-0066
+              - generic [ref=f75e63]: Walk-in customer · No phone
+            - generic [ref=f75e64]:
+              - generic [ref=f75e65]: 15 Sep 2026 · 04:44 PM
+              - generic [ref=f75e66]: KSh 140,360.00
+            - generic [aria-hidden] [ref=f75e67]: Select →
+          - link "S-20260909-0064 Walk-in customer · No phone 09 Sep 2026 · 11:51 AM KSh 141,752.00" [ref=f75e68] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/returns/new?sale=65
+            - generic [ref=f75e69]:
+              - generic [ref=f75e70]: S-20260909-0064
+              - generic [ref=f75e71]: Walk-in customer · No phone
+            - generic [ref=f75e72]:
+              - generic [ref=f75e73]: 09 Sep 2026 · 11:51 AM
+              - generic [ref=f75e74]: KSh 141,752.00
+            - generic [aria-hidden] [ref=f75e75]: Select →
+          - link "S-20260909-0024 Walk-in customer · No phone 09 Sep 2026 · 03:21 AM KSh 236,640.00" [ref=f75e76] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/returns/new?sale=63
+            - generic [ref=f75e77]:
+              - generic [ref=f75e78]: S-20260909-0024
+              - generic [ref=f75e79]: Walk-in customer · No phone
+            - generic [ref=f75e80]:
+              - generic [ref=f75e81]: 09 Sep 2026 · 03:21 AM
+              - generic [ref=f75e82]: KSh 236,640.00
+            - generic [aria-hidden] [ref=f75e83]: Select →
+          - link "S-20260908-0003 Offline Tester · 0700000000 08 Sep 2026 · 02:30 PM KSh 141,752.00" [ref=f75e84] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/returns/new?sale=3
+            - generic [ref=f75e85]:
+              - generic [ref=f75e86]: S-20260908-0003
+              - generic [ref=f75e87]: Offline Tester · 0700000000
+            - generic [ref=f75e88]:
+              - generic [ref=f75e89]: 08 Sep 2026 · 02:30 PM
+              - generic [ref=f75e90]: KSh 141,752.00
+            - generic [aria-hidden] [ref=f75e91]: Select →
+          - link "S-20260908-0002 Brian Otieno · 0722000111 08 Sep 2026 · 07:35 PM KSh 144,304.00" [ref=f75e92] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/returns/new?sale=2
+            - generic [ref=f75e93]:
+              - generic [ref=f75e94]: S-20260908-0002
+              - generic [ref=f75e95]: Brian Otieno · 0722000111
+            - generic [ref=f75e96]:
+              - generic [ref=f75e97]: 08 Sep 2026 · 07:35 PM
+              - generic [ref=f75e98]: KSh 144,304.00
+            - generic [aria-hidden] [ref=f75e99]: Select →
+          - link "S-20260908-0001 Amina Hassan · 0712345678 08 Sep 2026 · 07:17 PM KSh 143,144.00" [ref=f75e100] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/returns/new?sale=1
+            - generic [ref=f75e101]:
+              - generic [ref=f75e102]: S-20260908-0001
+              - generic [ref=f75e103]: Amina Hassan · 0712345678
+            - generic [ref=f75e104]:
+              - generic [ref=f75e105]: 08 Sep 2026 · 07:17 PM
+              - generic [ref=f75e106]: KSh 143,144.00
+            - generic [aria-hidden] [ref=f75e107]: Select →

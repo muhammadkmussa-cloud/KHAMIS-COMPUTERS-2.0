@@ -27,7 +27,7 @@ class Sale
         if ($status === 'offline') {
             // Offline sales are stored with status 'completed' + offline_created=1.
             $where[] = 's.offline_created = 1';
-        } elseif (in_array($status, ['completed', 'cancelled'], true)) {
+        } elseif (in_array($status, ['completed', 'pending', 'cancelled'], true)) {
             $where[] = 's.status = :status';
             $params['status'] = $status;
         }
@@ -74,6 +74,17 @@ class Sale
         );
 
         return ['rows' => $rows, 'total' => $total, 'page' => $page, 'pages' => $pages, 'per' => $per];
+    }
+
+    /** Compact operational summary for the sales workspace. */
+    public static function summary(): array
+    {
+        return [
+            'today_count' => (int) Database::fetchValue("SELECT COUNT(*) FROM sales WHERE DATE(created_at) = ?", [Database::today()]),
+            'today_total' => (float) Database::fetchValue("SELECT COALESCE(SUM(total),0) FROM sales WHERE status = 'completed' AND DATE(created_at) = ?", [Database::today()]),
+            'pending'     => (int) Database::fetchValue("SELECT COUNT(*) FROM sales WHERE status = 'pending'"),
+            'online'      => (int) Database::fetchValue("SELECT COUNT(*) FROM sales WHERE channel = 'online' AND DATE(created_at) = ?", [Database::today()]),
+        ];
     }
 
     /** All rows matching the filters (no pagination) — for CSV export. */

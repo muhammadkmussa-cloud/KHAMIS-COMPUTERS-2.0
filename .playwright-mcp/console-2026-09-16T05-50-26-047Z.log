@@ -1,0 +1,59 @@
+[     126ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/login:0
+[  108173ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8102/step5-safe-missing-route:0
+[  159648ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/staff:0
+[  159648ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/staff:0
+[  159648ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "new-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/staff:0
+[  159892ms] [VERBOSE] [DOM] Multiple forms should be contained in their own form elements; break up complex forms into ones that represent a single action: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/settings:0
+[  644393ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/login:0
+[  645760ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1300869ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1300943ms] TypeError: KCPosOffline.queueItems is not a function
+    at updatePending (http://127.0.0.1:8102/pos:872:18)
+    at http://127.0.0.1:8102/pos:1034:5
+[ 1326736ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1326749ms] TypeError: KCPosOffline.queueItems is not a function
+    at updatePending (http://127.0.0.1:8102/pos:872:18)
+    at http://127.0.0.1:8102/pos:1034:5
+[ 1326854ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1359282ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1480954ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1558314ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1585160ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1597489ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1626759ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1627768ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1643159ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1643863ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8102/pos/checkout:0
+[ 1687417ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1688297ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unprocessable Entity) @ http://127.0.0.1:8102/pos/checkout:0
+[ 1688314ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unprocessable Entity) @ http://127.0.0.1:8102/pos/checkout:0
+[ 1792698ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1793179ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1794602ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1795605ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unprocessable Entity) @ http://127.0.0.1:8102/pos/checkout:0
+[ 1795638ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unprocessable Entity) @ http://127.0.0.1:8102/pos/checkout:0
+[ 1820800ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1821263ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1822617ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1823593ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unprocessable Entity) @ http://127.0.0.1:8102/pos/checkout:0
+[ 1823626ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unprocessable Entity) @ http://127.0.0.1:8102/pos/checkout:0
+[ 1834469ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1835591ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8102/pos/search?q=Kingston:0
+[ 1835904ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:8102/pos/search?q=DOES-NOT-EXIST-XYZ:0
+[ 1921038ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1921693ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 1921696ms] [ERROR] Failed to load resource: net::ERR_INTERNET_DISCONNECTED @ http://127.0.0.1:8102/pos/catalog:0
+[ 1922301ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 2120976ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 2135780ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 2136108ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unknown Status Code) @ http://127.0.0.1:8102/pos/checkout:0
+[ 2136137ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unknown Status Code) @ http://127.0.0.1:8102/pos/checkout:0
+[ 2186315ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/pos:0
+[ 5162485ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://127.0.0.1:8102/shop/checkout:0
+[ 5193251ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unknown Status Code) @ http://127.0.0.1:8102/shop/checkout:0
+[ 5193266ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unknown Status Code) @ http://127.0.0.1:8102/shop/checkout:0
+[ 5193274ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unknown Status Code) @ http://127.0.0.1:8102/shop/checkout:0
+[ 5355890ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8102/shop/track:0
+[ 5696741ms] [ERROR] Failed to load resource: the server responded with a status of 422 (Unknown Status Code) @ http://127.0.0.1:8102/shop/checkout:0
+[ 5696755ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8102/mpesa/callback:0
+[ 6125379ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:8102/login:0

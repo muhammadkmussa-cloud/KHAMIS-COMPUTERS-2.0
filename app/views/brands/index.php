@@ -1,4 +1,5 @@
 <?php $editId = (int) ($_GET['edit'] ?? 0); ?>
+<?php include APP_PATH . '/views/partials/inventory-tabs.php'; ?>
 <div class="page-head">
     <div>
         <h1>Brands</h1>
@@ -44,7 +45,7 @@
                         <td>
                             <div class="row-actions">
                                 <a class="btn btn-ghost btn-sm" href="<?= e(url('brands?edit=' . $b['id'])) ?>">Edit</a>
-                                <form method="post" action="<?= e(url('brands/' . $b['id'] . '/delete')) ?>" onsubmit="return confirm('Delete this brand?');">
+                                <form method="post" action="<?= e(url('brands/' . $b['id'] . '/delete')) ?>" data-confirm="Delete this brand?">
                                     <?= csrf_field() ?>
                                     <button class="btn btn-danger-ghost btn-sm" type="submit">Delete</button>
                                 </form>

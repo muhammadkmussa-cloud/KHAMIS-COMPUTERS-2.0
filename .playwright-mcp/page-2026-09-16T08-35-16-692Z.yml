@@ -1,0 +1,93 @@
+- generic [active] [ref=f189e1]:
+  - link "Skip to main content" [ref=f189e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f189e3]:
+    - generic [ref=f189e4]:
+      - link "Khamis Computers dashboard" [ref=f189e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f189e9]: Khamis Computers
+      - button "Open navigation" [ref=f189e10] [cursor=pointer]
+      - button "Sign out" [ref=f189e16] [cursor=pointer]
+  - main [ref=f189e17]:
+    - navigation "Inventory sections" [ref=f189e18]:
+      - link "Products" [ref=f189e19] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/products
+      - link "Categories" [ref=f189e20] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/categories
+      - link "Brands" [ref=f189e21] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/brands
+      - link "Suppliers" [ref=f189e22] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/suppliers
+      - link "Goods received" [ref=f189e23] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/grn
+    - generic [ref=f189e24]:
+      - generic [ref=f189e25]:
+        - generic [ref=f189e26]: Laptops · HP
+        - heading "HP ProBook 450 G10 (i5/16GB/512GB)" [level=1] [ref=f189e27]
+        - generic [ref=f189e28]:
+          - generic [ref=f189e29]: KC-LAP-001
+          - generic [ref=f189e30]: Serial / IMEI
+          - generic [ref=f189e31]: Active
+      - generic [ref=f189e32]:
+        - link "Inventory" [ref=f189e33] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Shop preview ↗" [ref=f189e34] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop/product/1
+        - link "Edit product" [ref=f189e35] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products/1/edit
+    - region "Product summary" [ref=f189e36]:
+      - generic [ref=f189e37]:
+        - generic [ref=f189e38]: Available stock
+        - generic [ref=f189e39]: "2"
+        - generic [ref=f189e40]: Reorder at 2
+      - generic [ref=f189e41]:
+        - generic [ref=f189e42]: Selling price
+        - generic [ref=f189e43]: KSh 75,400.00
+        - generic [ref=f189e44]: KSh 65,000.00 excl. VAT
+      - generic [ref=f189e45]:
+        - generic [ref=f189e46]: Unit cost
+        - generic [ref=f189e47]: KSh 52,000.00
+        - generic [ref=f189e48]: KSh 104,000.00 stock value
+      - generic [ref=f189e49]:
+        - generic [ref=f189e50]: Tracking
+        - generic [ref=f189e51]: Individual
+        - generic [ref=f189e52]: 3 unit records
+    - tablist "Product sections" [ref=f189e53]:
+      - tab "Overview" [selected] [ref=f189e54] [cursor=pointer]
+      - tab "Images 0" [ref=f189e55] [cursor=pointer]
+      - tab "Stock & serials 2" [ref=f189e56] [cursor=pointer]
+      - tab "Movements 2" [ref=f189e57] [cursor=pointer]
+      - tab "Labels" [ref=f189e58] [cursor=pointer]
+    - tabpanel [ref=f189e59]:
+      - generic [ref=f189e60]:
+        - article [ref=f189e61]:
+          - generic [ref=f189e63]:
+            - generic [ref=f189e64]: Catalogue record
+            - heading "Overview" [level=2] [ref=f189e65]
+          - generic [ref=f189e66]:
+            - generic [ref=f189e67]: No description yet
+            - generic [ref=f189e68]: Add customer-facing specifications from Edit product.
+          - generic [ref=f189e69]:
+            - generic [ref=f189e70]:
+              - term [ref=f189e71]: Category
+              - definition [ref=f189e72]: Laptops
+            - generic [ref=f189e73]:
+              - term [ref=f189e74]: Brand
+              - definition [ref=f189e75]: HP
+            - generic [ref=f189e76]:
+              - term [ref=f189e77]: Warranty
+              - definition [ref=f189e78]: 12 months
+            - generic [ref=f189e79]:
+              - term [ref=f189e80]: Created
+              - definition [ref=f189e81]: 08 Sep 2026
+        - complementary [ref=f189e82]:
+          - generic [ref=f189e84]:
+            - generic [ref=f189e85]: Next actions
+            - heading "Keep stock moving" [level=2] [ref=f189e86]
+          - link "Receive from supplier" [ref=f189e87] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/grn/new?product=1
+          - button "Manage serials" [ref=f189e88] [cursor=pointer]
+          - button "Manage shop images" [ref=f189e89] [cursor=pointer]
+          - link "Open label workspace" [ref=f189e90] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/products/1/labels
+    - text: Select Serial / IMEI Status Received Warranty Note Update Select Serial / IMEI Status Received Warranty Note Update Select Serial / IMEI Status Received Warranty Note Update Type Quantity Date and time Reference Recorded by Type Quantity Date and time Reference Recorded by

@@ -26,6 +26,10 @@ shoppers are always **guests**.
 
 ## 2. Sign-in / sign-out
 
+**Staff sign-in URL: `/login`** (full URL `https://<your-domain>/login`).
+There is deliberately **no "Staff sign in" button** on the customer storefront —
+staff reach the console by going to that URL directly.
+
 - `GET /login` → sign-in form. `POST /login` → verifies email + password
   against `users`, rejects inactive accounts, regenerates the session id.
 - `POST /logout` → ends the session (CSRF-protected; there is no GET logout).
@@ -180,9 +184,10 @@ marked **completed** immediately and cash is collected at delivery/pickup.
 `GET /sales` — list with search, status filter, date range; `GET /sales/{id}`
 detail with items, serials, payment, and any linked return.
 
-- **Export CSV** (`/sales/export`).
+- **Export CSV** (`/sales/export`, admin only).
 - **PDF receipt** `/sales/{id}/pdf` and **thermal print** `/sales/{id}/print`.
 - **Void** (admin) and **M-PESA actions** (admin) as above.
+- Returns are created by any staff but **approve / reject is admin only** (§ 9).
 
 ---
 
@@ -194,9 +199,10 @@ shows items not already returned and filters to completed sales).
 1. **Create return** — items + quantities + refund amounts + reason (warranty,
    wrong item, defective…). A return number is generated. Ghost returns against
    non-completed sales are blocked.
-2. **Approve** — restores stock (bulk qty returned; serialized units set back to
-   `in_stock` with a note) and marks the return `completed` with refund recorded.
-3. **Reject** — no stock change; status `rejected`.
+2. **Approve** (admin only) — restores stock (bulk qty returned; serialized
+   units set back to `in_stock` with a note) and marks the return `completed`
+   with refund recorded.
+3. **Reject** (admin only) — no stock change; status `rejected`.
 
 Returns appear on the sale detail and feed the **refunds** line in reports.
 
@@ -222,10 +228,11 @@ low-stock. Exportable to CSV (`/reports/export`).
 
 ### Z-report (close of day) — `/reports/z`
 - Per-cashier daily summary: sales count, revenue, voids, returns, payment
-  breakdown, opening/closing amounts.
+  breakdown and **expected cash** in the till.
 - **Close day** locks that cashier's day into a saved `z_reports` record.
 - **Admins** can close any staff member's day and view all history.
-- **Cashiers** can only see and close **their own** day.
+- **Cashiers** can only see and close **their own** day (summary, close form
+  and the recent-snapshots list are all scoped to their own id).
 
 ---
 
@@ -249,9 +256,10 @@ low-stock. Exportable to CSV (`/reports/export`).
 | GRN (goods received) | ❌ | ✅ |
 | Categories, brands, suppliers | ❌ | ✅ |
 | Barcode/label generation & printing | ❌ | ✅ |
-| Sales list/detail, PDF, thermal print, export | ✅ | ✅ |
+| Sales list/detail, PDF, thermal print | ✅ | ✅ |
+| Sales CSV export | ❌ | ✅ |
 | Create returns | ✅ | ✅ |
-| Approve/reject returns | ✅ | ✅ |
+| Approve/reject returns | ❌ | ✅ |
 | Expenses record | ✅ | ✅ |
 | Expenses delete | ❌ | ✅ |
 | Void sale | ❌ | ✅ |

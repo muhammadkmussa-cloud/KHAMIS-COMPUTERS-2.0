@@ -19,7 +19,7 @@ class SaleService
 
     /**
      * @param array $lines [ ['product_id'=>int, 'quantity'=>int, 'unit_ids'=>int[]], ... ]
-     * @param array $opts  channel, discount, payment_method, payment_ref,
+     * @param array $opts  channel, discount, payment_method, payment_ref, cash_received,
      *                     customer_name/email/phone, user_id, offline_created,
      *                     device_id, client_ref, status
      * @return array ['id'=>int, 'number'=>string]
@@ -49,7 +49,22 @@ class SaleService
             try {
                 return self::commit($lines, $o);
             } catch (Throwable $e) {
-                if ($attempt === 4 || !Database::isDuplicateKey($e)) {
+                if (!Database::isDuplicateKey($e)) {
+                    throw $e;
+                }
+                // A concurrent retry may have committed this same register
+                // reference after the preflight check above. Return that sale
+                // instead of retrying the unique key and surfacing an error.
+                if ($o['device_id'] && $o['client_ref']) {
+                    $existing = Database::fetch(
+                        'SELECT id, sale_number FROM sales WHERE device_id = ? AND client_ref = ? LIMIT 1',
+                        [$o['device_id'], $o['client_ref']]
+                    );
+                    if ($existing) {
+                        return ['id' => (int) $existing['id'], 'number' => $existing['sale_number'], 'duplicate' => true];
+                    }
+                }
+                if ($attempt === 4) {
                     throw $e;
                 }
             }
@@ -78,6 +93,7 @@ class SaleService
             'channel'             => $channel,
             'discount'            => max(0.0, round((float) ($opts['discount'] ?? 0), 2)),
             'payment_method'      => $paymentMethod,
+            'cash_received'       => max(0.0, round((float) ($opts['cash_received'] ?? 0), 2)),
             'customer_name'       => trim((string) ($opts['customer_name'] ?? '')),
             'customer_email'      => trim((string) ($opts['customer_email'] ?? '')),
             'customer_phone'      => trim((string) ($opts['customer_phone'] ?? '')),
@@ -102,6 +118,7 @@ class SaleService
         $channel       = $o['channel'];
         $discount      = $o['discount'];
         $paymentMethod = $o['payment_method'];
+        $cashReceived  = $o['cash_received'];
         $customerName  = $o['customer_name'];
         $customerEmail = $o['customer_email'];
         $customerPhone = $o['customer_phone'];
@@ -144,6 +161,7 @@ class SaleService
                 }
                 $serialized = (int) $product['is_serialized'] === 1;
                 $price      = (float) $product['sell_price'];
+                $cost       = (float) $product['cost_price'];
 
                 if ($serialized) {
                     // Offline syncs send serial *numbers* (not unit ids) — ids can go stale.
@@ -195,7 +213,7 @@ class SaleService
                             'product_id' => $pid, 'unit_id' => $uid, 'type' => 'sold', 'quantity' => -1,
                             'reference' => $number, 'user_id' => $userId, 'created_at' => $now,
                         ]);
-                        $items[] = ['product_id' => $pid, 'unit_id' => $uid, 'quantity' => 1, 'unit_price' => $price, 'line_total' => $price];
+                        $items[] = ['product_id' => $pid, 'unit_id' => $uid, 'quantity' => 1, 'unit_cost' => $cost, 'unit_price' => $price, 'line_total' => $price];
                         $soldProductIds[] = $pid;
                     }
                 } else {
@@ -210,7 +228,7 @@ class SaleService
                         'product_id' => $pid, 'unit_id' => null, 'type' => 'sold', 'quantity' => -$qty,
                         'reference' => $number, 'user_id' => $userId, 'created_at' => $now,
                     ]);
-                    $items[] = ['product_id' => $pid, 'unit_id' => null, 'quantity' => $qty, 'unit_price' => $price, 'line_total' => round($price * $qty, 2)];
+                    $items[] = ['product_id' => $pid, 'unit_id' => null, 'quantity' => $qty, 'unit_cost' => $cost, 'unit_price' => $price, 'line_total' => round($price * $qty, 2)];
                     $soldProductIds[] = $pid;
                 }
 
@@ -241,7 +259,21 @@ class SaleService
 
             $tax   = round(($subtotal - $discount) * vat_rate() / 100, 2);
             // Delivery is a flat charge on top of the VAT-inclusive goods total.
-            $total = round($subtotal - $discount + $tax + $deliveryFee, 2);
+            $total = $paymentMethod === 'mpesa'
+                ? round($subtotal - $discount + $tax + $deliveryFee, 0)
+                : round($subtotal - $discount + $tax + $deliveryFee, 2);
+
+            // POS payment evidence is validated at the transaction boundary,
+            // including queued offline sales. Online shop M-PESA orders use a
+            // separate pending-payment flow and are intentionally unaffected.
+            if ($channel === 'pos') {
+                if ($paymentMethod === 'cash' && $cashReceived < $total) {
+                    throw new Exception('Cash received must cover the sale total.');
+                }
+                if ($paymentMethod !== 'cash' && strlen($paymentRef) < 3) {
+                    throw new Exception('Enter a valid payment reference.');
+                }
+            }
 
             $saleId = Database::insert('sales', [
                 'sale_number'     => $number,
@@ -313,26 +345,47 @@ class SaleService
      * 'voided' movement. Blocked when the sale has returns — a return is the
      * correct tool once any item has been returned/refunded.
      */
-    public static function void(int $id, ?int $userId): void
+    public static function void(int $id, ?int $userId, array $allowedStatuses = ['completed', 'pending']): void
     {
         $sale = self::find($id);
         if (!$sale) {
             throw new Exception('Sale not found.');
         }
-        if (!in_array($sale['status'], ['completed', 'pending'], true)) {
+        $allowedStatuses = array_values(array_intersect(['completed', 'pending'], array_unique($allowedStatuses)));
+        if ($allowedStatuses === [] || !in_array($sale['status'], $allowedStatuses, true)) {
             throw new Exception('Only completed or pending sales can be voided.');
-        }
-        $hasReturn = (int) Database::fetchValue(
-            "SELECT COUNT(*) FROM returns WHERE sale_id = ? AND status != 'rejected'",
-            [$id]
-        );
-        if ($hasReturn > 0) {
-            throw new Exception('This sale already has returns — process a return instead of voiding.');
         }
 
         $pdo = Database::pdo();
         $pdo->beginTransaction();
         try {
+            // Claim the sale before restoring anything. The conditional update
+            // makes duplicate requests and callback/manual-payment races safe.
+            $statusParams = [];
+            $statusSlots = [];
+            foreach ($allowedStatuses as $index => $status) {
+                $key = 'status_' . $index;
+                $statusSlots[] = ':' . $key;
+                $statusParams[$key] = $status;
+            }
+            $claimed = Database::update(
+                'sales',
+                ['status' => 'cancelled'],
+                'id = :id AND status IN (' . implode(', ', $statusSlots) . ')',
+                array_merge(['id' => $id], $statusParams)
+            );
+            if ($claimed !== 1) {
+                throw new Exception('This sale is no longer eligible to be voided. Refresh and check its status.');
+            }
+
+            $hasReturn = (int) Database::fetchValue(
+                "SELECT COUNT(*) FROM returns WHERE sale_id = ? AND status != 'rejected'",
+                [$id]
+            );
+            if ($hasReturn > 0) {
+                throw new Exception('This sale already has returns — process a return instead of voiding.');
+            }
+
             foreach (self::items($id) as $it) {
                 if ($it['unit_id']) {
                     $updated = Database::update('inventory_units',
@@ -353,7 +406,6 @@ class SaleService
                     'created_at' => Database::now(),
                 ]);
             }
-            Database::update('sales', ['status' => 'cancelled'], 'id = :id', ['id' => $id]);
             $pdo->commit();
         } catch (Throwable $e) {
             $pdo->rollBack();

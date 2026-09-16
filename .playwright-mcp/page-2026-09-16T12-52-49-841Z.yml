@@ -1,0 +1,120 @@
+- generic [active] [ref=f71e1]:
+  - link "Skip to main content" [ref=f71e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f71e3]:
+    - generic [ref=f71e4]:
+      - link "Khamis Computers dashboard" [ref=f71e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f71e9]: Khamis Computers
+      - button "Open navigation" [ref=f71e10] [cursor=pointer]
+      - button "Sign out" [ref=f71e16] [cursor=pointer]
+  - main [ref=f71e17]:
+    - generic [ref=f71e18]:
+      - generic [ref=f71e19]:
+        - generic [ref=f71e20]:
+          - generic [ref=f71e21]: After-sales workflow
+          - heading "Start a return" [level=1] [ref=f71e22]
+          - paragraph [ref=f71e23]: Select eligible items and prepare the refund request.
+        - link "← Return history" [ref=f71e24] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+      - list "Return progress" [ref=f71e25]:
+        - listitem [ref=f71e26]:
+          - generic [ref=f71e27]: "1"
+        - listitem [ref=f71e28]:
+          - generic [ref=f71e29]: "2"
+        - listitem [ref=f71e30]:
+          - generic [ref=f71e31]: "3"
+        - listitem [ref=f71e32]:
+          - generic [ref=f71e33]: "4"
+      - generic [ref=f71e34]:
+        - generic [ref=f71e35]:
+          - generic [ref=f71e36]: Selected sale
+          - generic [ref=f71e37]: S-20260908-0001
+        - generic [ref=f71e38]:
+          - generic [ref=f71e39]: Customer
+          - generic [ref=f71e40]: Amina Hassan
+        - generic [ref=f71e41]:
+          - generic [ref=f71e42]: Order total
+          - generic [ref=f71e43]: KSh 143,144.00
+        - link "Change sale" [ref=f71e44] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns/new
+      - generic [ref=f71e45]:
+        - generic [ref=f71e46]:
+          - generic [ref=f71e47]:
+            - generic [ref=f71e48]:
+              - generic [ref=f71e49]: Step 2
+              - heading "Select returned items" [level=2] [ref=f71e50]
+              - paragraph [ref=f71e51]: Refund limits follow the quantity selected and the price paid on this sale.
+            - generic [ref=f71e52]:
+              - generic [ref=f71e53]: Refund total
+              - strong [ref=f71e54]: KSh 120,000.00
+              - generic [ref=f71e55]: 1 item selected
+          - generic [ref=f71e56]:
+            - article [ref=f71e57]:
+              - generic [ref=f71e58] [cursor=pointer]:
+                - checkbox "Return MacBook Air M3" [checked] [ref=f71e59]
+                - generic [ref=f71e60]: Return MacBook Air M3
+              - generic [ref=f71e61]:
+                - generic [ref=f71e62]: MacBook Air M3
+                - generic [ref=f71e63]: KC-LAP-004 · Serial M3-SN-001
+                - generic [ref=f71e64]: KSh 120,000.00 each · 1 of 1 returnable
+              - generic [ref=f71e65]:
+                - generic [ref=f71e66]: Quantity
+                - spinbutton "Quantity" [ref=f71e67]: "1"
+              - generic [ref=f71e68]:
+                - generic [ref=f71e69]: Refund amount
+                - generic [ref=f71e70]:
+                  - generic [ref=f71e71]: KSh
+                  - spinbutton "Refund amount KSh Maximum KSh 120,000.00" [ref=f71e72]: "120000.00"
+                - generic [ref=f71e73]: Maximum KSh 120,000.00
+            - article [ref=f71e74]:
+              - generic [ref=f71e75] [cursor=pointer]:
+                - checkbox "Return Logitech Wireless Mouse M221" [ref=f71e76]
+                - generic [ref=f71e77]: Return Logitech Wireless Mouse M221
+              - generic [ref=f71e78]:
+                - generic [ref=f71e79]: Logitech Wireless Mouse M221
+                - generic [ref=f71e80]: KC-ACC-001
+                - generic [ref=f71e81]: KSh 2,200.00 each · 2 of 2 returnable
+              - generic [ref=f71e82]:
+                - generic [ref=f71e83]: Quantity
+                - spinbutton "Quantity" [disabled] [ref=f71e84]: "1"
+              - generic [ref=f71e85]:
+                - generic [ref=f71e86]: Refund amount
+                - generic [ref=f71e87]:
+                  - generic [ref=f71e88]: KSh
+                  - spinbutton "Refund amount KSh Maximum KSh 2,200.00" [disabled] [ref=f71e89]: "2200.00"
+                - generic [ref=f71e90]: Maximum KSh 2,200.00
+        - generic [ref=f71e91]:
+          - generic [ref=f71e93]:
+            - generic [ref=f71e94]: Step 3
+            - heading "Refund and reason" [level=2] [ref=f71e95]
+            - paragraph [ref=f71e96]: Record enough context for a manager to make a clear decision.
+          - generic [ref=f71e97]:
+            - generic [ref=f71e98]:
+              - generic [ref=f71e99]: Refund method
+              - combobox "Refund method This records the intended refund channel." [ref=f71e100]:
+                - option "Original payment method" [selected]
+                - option "Cash"
+                - option "M-PESA"
+                - option "Bank transfer"
+                - option "Store credit"
+              - generic [ref=f71e101]: This records the intended refund channel.
+            - generic [ref=f71e102]:
+              - generic [ref=f71e103]: Reason for return
+              - textbox "Reason for return" [ref=f71e104]:
+                - /placeholder: Describe the fault, mismatch, or customer request.
+                - text: Intermittent display fault confirmed at the service counter.
+            - generic [ref=f71e105]:
+              - generic [ref=f71e106]:
+                - text: Evidence or inspection note
+                - emphasis [ref=f71e107]: Optional
+              - textbox "Evidence or inspection note Optional" [ref=f71e108]:
+                - /placeholder: Packaging condition, diagnostic result, accessories received…
+                - text: Original charger and packaging received. Screen flickers after warm-up.
+        - generic [ref=f71e109]:
+          - generic [ref=f71e110]:
+            - generic [ref=f71e111]: Next step
+            - generic [ref=f71e112]: No stock or refund is changed until approval
+          - link "Cancel" [ref=f71e113] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/sales/1
+          - button "Review return →" [ref=f71e114] [cursor=pointer]

@@ -29,7 +29,7 @@ class StaffController
         $role  = ($_POST['role'] ?? 'cashier') === 'admin' ? 'admin' : 'cashier';
 
         $errors = [];
-        if ($name === '') {
+        if ($name === '' || mb_strlen($name) > 190) {
             $errors[] = 'Name is required.';
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -76,8 +76,14 @@ class StaffController
 
         $name   = trim((string) ($_POST['name'] ?? $u['name']));
         $role   = ($_POST['role'] ?? $u['role']) === 'admin' ? 'admin' : 'cashier';
-        $active = isset($_POST['is_active']) ? 1 : 0;
+        // Role-save forms do not include the status checkbox. Preserve the
+        // current state unless the dedicated status form explicitly posts it.
+        $active = self::activeValue($u, $_POST);
 
+        if ($name === '' || mb_strlen($name) > 190) {
+            flash('error', 'Name is required and must be 190 characters or fewer.');
+            redirect('staff');
+        }
         if ($id === Auth::id()) {
             if ($role !== 'admin') {
                 flash('error', 'You cannot demote yourself.');
@@ -115,6 +121,10 @@ class StaffController
         Csrf::checkOrFail();
 
         $pass = (string) ($_POST['password'] ?? '');
+        if (!Database::fetchValue('SELECT COUNT(*) FROM users WHERE id = ?', [$id])) {
+            flash('error', 'Staff member not found.');
+            redirect('staff');
+        }
         if (strlen($pass) < 8) {
             flash('error', 'Password must be at least 8 characters.');
             redirect('staff');
@@ -144,6 +154,10 @@ class StaffController
             redirect('staff');
         }
 
+        if (!$u) {
+            flash('error', 'Staff member not found.');
+            redirect('staff');
+        }
         Database::delete('users', 'id = ?', [$id]);
         Activity::log('staff.deleted', 'user #' . $id);
         flash('success', 'Staff member deleted.');
@@ -153,5 +167,12 @@ class StaffController
     private static function adminCount(): int
     {
         return (int) Database::fetchValue("SELECT COUNT(*) FROM users WHERE role = 'admin'");
+    }
+
+    public static function activeValue(array $user, array $posted): int
+    {
+        return array_key_exists('is_active', $posted)
+            ? ((int) $posted['is_active'] === 1 ? 1 : 0)
+            : (int) ($user['is_active'] ?? 0);
     }
 }

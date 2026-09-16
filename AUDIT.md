@@ -83,7 +83,7 @@ Settings checklist, but the missing POST guard makes it urgent).
 | D9 ✅ | **CSV export** | No export for sales, reports, products, or expenses. |
 | D10 ✅ | **Customer order lookup** | Public `/shop/track` page — a customer enters their order number + phone (matched on the last 9 digits) to re-fetch their order summary. Online orders only; session rate-limited (10 tries / 10 min) to slow enumeration. |
 | D11 ✅ | **Delivery/shipping fee** | `delivery_zones` table + admin CRUD (Settings → Delivery zones). Shop checkout shows a zone picker, the fee is resolved **server-side** (client can't set its own price) and snapshotted (name + fee) onto the sale; shown on order confirmation, sales detail, receipts and the confirmation email. |
-| D12 | **Dead files** | `app/views/coming-soon.php` and `app/views/partials/sidebar.php` have **0 references** (leftover from the redesign); `app.js` header still says "added in later pieces". |
+| D12 | **Dead files** | `app/views/partials/sidebar.php` **deleted** (0 references). Remaining: `app/views/coming-soon.php` unreferenced; `app.js` header still says "added in later pieces". |
 
 ---
 
@@ -95,7 +95,7 @@ Settings checklist, but the missing POST guard makes it urgent).
 | E2 | **Cashier can't look up a *sold* serial** — search only matches `in_stock` units, so warranty/status checks by serial are impossible. | `PosController::search()` |
 | E3 | **Shop: serialized quantity can exceed stock** in the cart (no cap applied for serialized lines; server rejects at checkout with a generic message). | `public_html/assets/js/shop.js` |
 | E4 | **No print button on the customer order confirmation** (and no customer-facing PDF, though admin/POS have one). | `app/views/shop/order.php` |
-| E5 | **Cashier sees admin-only buttons** (Return *Approve/Reject*, Expense *Delete*) that then error "Only admins…" — views should hide them by role, like the nav already does. | `returns/show.php`, `expenses/index.php` |
+| E5 ✅ | **Cashier sees admin-only buttons** (Return *Approve/Reject*, Expense *Delete*) that then error "Only admins…" — views should hide them by role, like the nav already does. | Reject/Approve and Expense Delete are now role-hidden in `returns/show.php` + `expenses/index.php`; server-side admin guards unchanged. |
 | E6 | **Broken link** on Settings → "Full guide: docs/cpanel-deployment.md" (docs/ is outside the web root → 404). | `app/views/settings/index.php` |
 | E7 ✅ | **No timezone config** — all timestamps use the server's PHP timezone (likely not `Africa/Nairobi`), so "today" stats and receipt times can be wrong. | `app.timezone` config + `date_default_timezone_set()` in bootstrap; defaults to `Africa/Nairobi`, overridable via `APP_TIMEZONE`. |
 | E8 | **Sales list has no totals row** for the filtered set; Returns/Expenses lists have **no pagination**. | `sales/index.php`, `returns/index.php` |

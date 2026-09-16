@@ -1,0 +1,91 @@
+- generic [active] [ref=f65e1]:
+  - link "Skip to main content" [ref=f65e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f65e3]:
+    - generic [ref=f65e4]:
+      - link "Khamis Computers dashboard" [ref=f65e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f65e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f65e10]:
+        - link "Dashboard" [ref=f65e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f65e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f65e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f65e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f65e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f65e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Reports" [ref=f65e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports
+        - link "Staff" [ref=f65e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/staff
+        - link "Settings" [ref=f65e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/settings
+      - generic [ref=f65e21]:
+        - link "Shop ↗" [ref=f65e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Admin, admin" [ref=f65e23]:
+          - generic [ref=f65e24]: K
+          - generic [ref=f65e25]:
+            - text: Khamis
+            - generic [ref=f65e26]: admin
+        - button "Sign out" [ref=f65e28] [cursor=pointer]
+  - main [ref=f65e29]:
+    - generic [ref=f65e30]:
+      - generic [ref=f65e32]:
+        - generic [ref=f65e33]: Final request check
+        - heading "Review return" [level=1] [ref=f65e34]
+        - paragraph [ref=f65e35]: Confirm the selected units and refund request before sending it for manager approval.
+      - list "Return progress" [ref=f65e36]:
+        - listitem [ref=f65e37]:
+          - generic [ref=f65e38]: "1"
+          - generic [ref=f65e39]: Select sale
+        - listitem [ref=f65e40]:
+          - generic [ref=f65e41]: "2"
+          - generic [ref=f65e42]: Select items
+        - listitem [ref=f65e43]:
+          - generic [ref=f65e44]: "3"
+          - generic [ref=f65e45]: Refund and reason
+        - listitem [ref=f65e46]:
+          - generic [ref=f65e47]: "4"
+          - generic [ref=f65e48]: Review
+      - generic [ref=f65e49]: This creates a pending request. Stock remains unchanged and no external refund is sent until an administrator records a decision.
+      - generic [ref=f65e50]:
+        - generic [ref=f65e51]:
+          - generic [ref=f65e52]:
+            - generic [ref=f65e53]:
+              - generic [ref=f65e54]: Original sale
+              - heading "S-20260908-0001" [level=2] [ref=f65e55]
+              - paragraph [ref=f65e56]: Amina Hassan · 0712345678
+            - link "View sale" [ref=f65e57] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/1
+          - article [ref=f65e59]:
+            - generic [ref=f65e60]:
+              - generic [ref=f65e61]: MacBook Air M3
+              - generic [ref=f65e62]: KC-LAP-004 · Serial M3-SN-001
+            - generic [ref=f65e63]:
+              - generic [ref=f65e64]: 1 × KSh 120,000.00
+              - generic [ref=f65e65]: KSh 120,000.00
+          - generic [ref=f65e66]:
+            - generic [ref=f65e67]: Requested refund
+            - strong [ref=f65e68]: KSh 120,000.00
+        - complementary [ref=f65e69]:
+          - generic [ref=f65e70]: Request details
+          - generic [ref=f65e71]:
+            - term [ref=f65e72]: Refund method
+            - definition [ref=f65e73]: Original payment method
+            - term [ref=f65e74]: Reason
+            - definition [ref=f65e75]: Intermittent display fault confirmed at the service counter.
+            - term [ref=f65e76]: Evidence note
+            - definition [ref=f65e77]: Original charger and packaging received. Screen flickers after warm-up.
+      - generic [ref=f65e78]:
+        - link "← Back and edit" [ref=f65e79] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns/new?sale=1
+        - generic [ref=f65e80]:
+          - checkbox "I checked the selected units, refund amount, and customer reason." [ref=f65e81]
+          - generic [ref=f65e82]: I checked the selected units, refund amount, and customer reason.
+        - button "Send for approval" [ref=f65e83] [cursor=pointer]

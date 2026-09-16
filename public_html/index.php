@@ -30,8 +30,9 @@ $router->get('dashboard', [DashboardController::class, 'index'], ['auth' => true
 
 /* ---- Inventory: products (create/edit/stock = admin; viewing = any staff) ---- */
 $router->get('products', [ProductController::class, 'index'], ['auth' => true]);
-$router->get('products/export', [ProductController::class, 'export'], ['auth' => true]);
+$router->get('products/export', [ProductController::class, 'export'], ['auth' => true, 'admin' => true]);
 $router->get('products/barcode/generate', [ProductController::class, 'generateBarcode'], ['auth' => true, 'admin' => true]);
+$router->get('products/check-unique', [ProductController::class, 'checkUnique'], ['auth' => true, 'admin' => true]);
 $router->get('products/new', [ProductController::class, 'create'], ['auth' => true, 'admin' => true]);
 $router->post('products', [ProductController::class, 'store'], ['auth' => true, 'admin' => true]);
 $router->get('products/{id}', [ProductController::class, 'show'], ['auth' => true]);
@@ -39,10 +40,12 @@ $router->get('products/{id}/edit', [ProductController::class, 'edit'], ['auth' =
 $router->post('products/{id}', [ProductController::class, 'update'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/delete', [ProductController::class, 'delete'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/units', [ProductController::class, 'addUnits'], ['auth' => true, 'admin' => true]);
+$router->post('products/{id}/units/bulk', [ProductController::class, 'bulkUnits'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/units/{unitId}/status', [ProductController::class, 'setUnitStatus'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/units/{unitId}/delete', [ProductController::class, 'deleteUnit'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/adjust', [ProductController::class, 'adjust'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/images', [ProductController::class, 'uploadImages'], ['auth' => true, 'admin' => true]);
+$router->post('products/{id}/images/{imageId}/update', [ProductController::class, 'updateImage'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/images/{imageId}/primary', [ProductController::class, 'setPrimaryImage'], ['auth' => true, 'admin' => true]);
 $router->post('products/{id}/images/{imageId}/delete', [ProductController::class, 'deleteImage'], ['auth' => true, 'admin' => true]);
 $router->get('products/{id}/labels', [ProductController::class, 'labels'], ['auth' => true, 'admin' => true]);
@@ -62,6 +65,7 @@ $router->post('brands/{id}/delete', [BrandController::class, 'delete'], ['auth' 
 $router->get('suppliers', [SupplierController::class, 'index'], ['auth' => true, 'admin' => true]);
 $router->post('suppliers', [SupplierController::class, 'store'], ['auth' => true, 'admin' => true]);
 $router->post('suppliers/{id}', [SupplierController::class, 'update'], ['auth' => true, 'admin' => true]);
+$router->post('suppliers/{id}/status', [SupplierController::class, 'setStatus'], ['auth' => true, 'admin' => true]);
 $router->post('suppliers/{id}/delete', [SupplierController::class, 'delete'], ['auth' => true, 'admin' => true]);
 $router->post('delivery-zones', [DeliveryZoneController::class, 'store'], ['auth' => true, 'admin' => true]);
 $router->post('delivery-zones/{id}', [DeliveryZoneController::class, 'update'], ['auth' => true, 'admin' => true]);
@@ -70,6 +74,8 @@ $router->post('delivery-zones/{id}/delete', [DeliveryZoneController::class, 'del
 /* ---- Inventory: goods received (GRN) — admin only (stock-in) ---- */
 $router->get('grn', [GrnController::class, 'index'], ['auth' => true, 'admin' => true]);
 $router->get('grn/new', [GrnController::class, 'create'], ['auth' => true, 'admin' => true]);
+$router->get('grn/export', [GrnController::class, 'export'], ['auth' => true, 'admin' => true]);
+$router->post('grn/review', [GrnController::class, 'review'], ['auth' => true, 'admin' => true]);
 $router->post('grn', [GrnController::class, 'store'], ['auth' => true, 'admin' => true]);
 $router->get('grn/{id}', [GrnController::class, 'show'], ['auth' => true, 'admin' => true]);
 
@@ -96,7 +102,7 @@ $router->post('mpesa/callback', [ShopController::class, 'mpesaCallback']); // pu
 
 /* ---- Sales, returns, orders ---- */
 $router->get('sales', [SaleController::class, 'index'], ['auth' => true]);
-$router->get('sales/export', [SaleController::class, 'export'], ['auth' => true]);
+$router->get('sales/export', [SaleController::class, 'export'], ['auth' => true, 'admin' => true]);
 $router->get('sales/{id}', [SaleController::class, 'show'], ['auth' => true]);
 $router->get('sales/{id}/pdf', [SaleController::class, 'pdf'], ['auth' => true]);
 $router->get('sales/{id}/print', [SaleController::class, 'printThermal'], ['auth' => true]);
@@ -106,14 +112,16 @@ $router->post('sales/{id}/mpesa-retry', [SaleController::class, 'mpesaRetry'], [
 
 $router->get('returns', [ReturnController::class, 'index'], ['auth' => true]);
 $router->get('returns/new', [ReturnController::class, 'create'], ['auth' => true]);
+$router->post('returns/review', [ReturnController::class, 'review'], ['auth' => true]);
 $router->post('returns', [ReturnController::class, 'store'], ['auth' => true]);
 $router->get('returns/{id}', [ReturnController::class, 'show'], ['auth' => true]);
-$router->post('returns/{id}/approve', [ReturnController::class, 'approve'], ['auth' => true]);
-$router->post('returns/{id}/reject', [ReturnController::class, 'reject'], ['auth' => true]);
+$router->post('returns/{id}/approve', [ReturnController::class, 'approve'], ['auth' => true, 'admin' => true]);
+$router->post('returns/{id}/reject', [ReturnController::class, 'reject'], ['auth' => true, 'admin' => true]);
 
 /* ---- Expenses ---- */
 $router->get('expenses', [ExpenseController::class, 'index'], ['auth' => true]);
 $router->post('expenses', [ExpenseController::class, 'store'], ['auth' => true]);
+$router->get('expenses/{id}/receipt', [ExpenseController::class, 'receipt'], ['auth' => true]);
 $router->post('expenses/{id}/delete', [ExpenseController::class, 'delete'], ['auth' => true]);
 
 /* ---- Reports (admins) ---- */

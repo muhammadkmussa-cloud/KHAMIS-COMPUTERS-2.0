@@ -1,0 +1,96 @@
+- generic [active] [ref=f80e1]:
+  - link "Skip to main content" [ref=f80e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f80e3]:
+    - generic [ref=f80e4]:
+      - link "Khamis Computers dashboard" [ref=f80e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f80e9]: Khamis Computers
+      - button "Open navigation" [ref=f80e10] [cursor=pointer]
+      - button "Sign out" [ref=f80e16] [cursor=pointer]
+  - main [ref=f80e17]:
+    - generic [ref=f80e18]:
+      - generic [ref=f80e19]:
+        - generic [ref=f80e20]:
+          - generic [ref=f80e21]: Return case
+          - heading "R-20260908-001" [level=1] [ref=f80e22]
+          - paragraph [ref=f80e23]:
+            - generic [ref=f80e24]: Completed
+            - text: for
+            - link "S-20260908-0003" [ref=f80e25] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/3
+        - link "← Returns" [ref=f80e27] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+      - region "Return status timeline" [ref=f80e28]:
+        - generic [ref=f80e29]:
+          - generic [ref=f80e30]: ✓
+          - paragraph [ref=f80e31]:
+            - generic [ref=f80e32]: Request created
+            - generic [ref=f80e33]: 08 Sep 2026 · 07:50 PM by Khamis Admin
+        - generic [ref=f80e35]:
+          - generic [ref=f80e36]: ✓
+          - paragraph [ref=f80e37]:
+            - generic [ref=f80e38]: Request approved
+            - generic [ref=f80e39]: Historical decision time unavailable
+        - generic [ref=f80e41]:
+          - generic [ref=f80e42]: ✓
+          - paragraph [ref=f80e43]:
+            - generic [ref=f80e44]: Stock outcomes recorded
+            - generic [ref=f80e45]: Inventory updated item by item
+      - generic [ref=f80e46]:
+        - main [ref=f80e47]:
+          - generic [ref=f80e48]:
+            - generic [ref=f80e49]:
+              - generic [ref=f80e50]:
+                - generic [ref=f80e51]: Returned items
+                - heading "2 lines" [level=2] [ref=f80e52]
+              - strong [ref=f80e53]: KSh 122,200.00
+            - generic [ref=f80e54]:
+              - article [ref=f80e55]:
+                - generic [ref=f80e56]:
+                  - link "MacBook Air M3" [ref=f80e57] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8102/products/9
+                  - generic [ref=f80e58]: KC-LAP-004 · Serial MAC-AIR-0001
+                - generic [ref=f80e59]:
+                  - generic [ref=f80e60]: 1 unit · sold at KSh 120,000.00
+                  - generic [ref=f80e61]: KSh 120,000.00
+                - emphasis [ref=f80e62]: Returned to sellable stock
+              - article [ref=f80e63]:
+                - generic [ref=f80e64]:
+                  - link "Logitech Wireless Mouse M221" [ref=f80e65] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8102/products/6
+                  - generic [ref=f80e66]: KC-ACC-001
+                - generic [ref=f80e67]:
+                  - generic [ref=f80e68]: 1 unit · sold at KSh 2,200.00
+                  - generic [ref=f80e69]: KSh 2,200.00
+                - emphasis [ref=f80e70]: Returned to sellable stock
+          - generic [ref=f80e71]:
+            - generic [ref=f80e72]: Reason and inspection evidence
+            - heading "Customer context" [level=2] [ref=f80e73]
+            - generic [ref=f80e74]:
+              - generic [ref=f80e75]:
+                - term [ref=f80e76]: Reason
+                - definition [ref=f80e77]: Changed mind
+              - generic [ref=f80e78]:
+                - term [ref=f80e79]: Evidence or inspection note
+                - definition [ref=f80e80]: Not provided
+              - generic [ref=f80e81]:
+                - term [ref=f80e82]: Decision note
+                - definition [ref=f80e83]: Historical approval; decision details were not recorded.
+        - complementary [ref=f80e84]:
+          - generic [ref=f80e85]: Case summary
+          - heading "KSh 122,200.00" [level=2] [ref=f80e86]
+          - paragraph [ref=f80e87]: Requested through Original payment method.
+          - generic [ref=f80e88]:
+            - term [ref=f80e89]: Original sale
+            - definition [ref=f80e90]:
+              - link "S-20260908-0003" [ref=f80e91] [cursor=pointer]:
+                - /url: http://127.0.0.1:8102/sales/3
+            - term [ref=f80e92]: Customer
+            - definition [ref=f80e93]: Offline Tester
+            - term [ref=f80e94]: Phone
+            - definition [ref=f80e95]: "0700000000"
+            - term [ref=f80e96]: Sales channel
+            - definition [ref=f80e97]: POS
+            - term [ref=f80e98]: Requested by
+            - definition [ref=f80e99]: Khamis Admin

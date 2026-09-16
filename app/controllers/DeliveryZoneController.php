@@ -17,8 +17,9 @@ class DeliveryZoneController
         Csrf::checkOrFail();
 
         $name      = trim((string) ($_POST['name'] ?? ''));
-        $fee       = (float) ($_POST['fee'] ?? -1);
-        $sortOrder = (int) ($_POST['sort_order'] ?? 0);
+        $rawFee    = trim((string) ($_POST['fee'] ?? ''));
+        $fee       = preg_match('/^\d+(?:\.\d{1,2})?$/', $rawFee) ? (float) $rawFee : -1;
+        $sortOrder = max(0, min(9999, (int) ($_POST['sort_order'] ?? 0)));
         $isActive  = isset($_POST['is_active']) ? ((int) $_POST['is_active'] === 1) : true;
 
         $errors = DeliveryZone::validate($name, $fee);
@@ -46,9 +47,10 @@ class DeliveryZoneController
         }
 
         $name      = trim((string) ($_POST['name'] ?? ''));
-        $fee       = (float) ($_POST['fee'] ?? -1);
-        $sortOrder = (int) ($_POST['sort_order'] ?? $zone['sort_order']);
-        $isActive  = isset($_POST['is_active']) ? ((int) $_POST['is_active'] === 1) : ((int) $zone['is_active'] === 1);
+        $rawFee    = trim((string) ($_POST['fee'] ?? ''));
+        $fee       = preg_match('/^\d+(?:\.\d{1,2})?$/', $rawFee) ? (float) $rawFee : -1;
+        $sortOrder = max(0, min(9999, (int) ($_POST['sort_order'] ?? $zone['sort_order'])));
+        $isActive  = (int) ($_POST['is_active'] ?? 0) === 1;
 
         $errors = DeliveryZone::validate($name, $fee, $id);
         if ($errors) {

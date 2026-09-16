@@ -1,0 +1,17 @@
+- generic [active] [ref=f184e1]:
+  - link "Skip to main content" [ref=f184e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f184e3]:
+    - generic [ref=f184e4]:
+      - link "Khamis Computers dashboard" [ref=f184e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f184e9]: Khamis Computers
+      - button "Open navigation" [ref=f184e10] [cursor=pointer]
+      - button "Sign out" [ref=f184e16] [cursor=pointer]
+  - main [ref=f184e17]:
+    - generic [ref=f184e18]:
+      - generic [ref=f184e19]: "404"
+      - heading "Page not found" [level=2] [ref=f184e20]
+      - paragraph [ref=f184e21]: The page you're looking for doesn't exist.
+      - link "Back to dashboard" [ref=f184e22] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard

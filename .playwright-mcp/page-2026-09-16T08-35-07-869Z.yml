@@ -1,0 +1,382 @@
+- generic [active] [ref=f188e1]:
+  - link "Skip to main content" [ref=f188e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f188e3]:
+    - generic [ref=f188e4]:
+      - link "Khamis Computers dashboard" [ref=f188e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f188e9]: Khamis Computers
+      - button "Open navigation" [ref=f188e10] [cursor=pointer]
+      - button "Sign out" [ref=f188e16] [cursor=pointer]
+  - main [ref=f188e17]:
+    - navigation "Inventory sections" [ref=f188e18]:
+      - link "Products" [ref=f188e19] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/products
+      - link "Categories" [ref=f188e20] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/categories
+      - link "Brands" [ref=f188e21] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/brands
+      - link "Suppliers" [ref=f188e22] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/suppliers
+      - link "Goods received" [ref=f188e23] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/grn
+    - generic [ref=f188e24]:
+      - generic [ref=f188e25]:
+        - generic [ref=f188e26]: Stock control
+        - heading "Inventory" [level=1] [ref=f188e27]
+        - paragraph [ref=f188e28]: Search the catalogue, monitor stock risk, and manage individually tracked units.
+      - generic [ref=f188e29]:
+        - link "Receive stock" [ref=f188e30] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/grn/new
+        - link "Add product" [ref=f188e31] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products/new
+        - group [ref=f188e32]:
+          - generic "More" [ref=f188e33] [cursor=pointer]
+    - region "Inventory summary" [ref=f188e34]:
+      - link "Catalogue 9 9 active products" [ref=f188e35] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/products
+        - generic [ref=f188e36]: Catalogue
+        - generic [ref=f188e37]: "9"
+        - generic [ref=f188e38]: 9 active products
+      - link "Low stock 4 At or below reorder level" [ref=f188e39] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/products?q=&category=&tracking=&status=&stock=low
+        - generic [ref=f188e40]: Low stock
+        - generic [ref=f188e41]: "4"
+        - generic [ref=f188e42]: At or below reorder level
+      - link "Out of stock 1 Unavailable for sale" [ref=f188e43] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/products?q=&category=&tracking=&status=&stock=out
+        - generic [ref=f188e44]: Out of stock
+        - generic [ref=f188e45]: "1"
+        - generic [ref=f188e46]: Unavailable for sale
+      - generic [ref=f188e47]:
+        - generic [ref=f188e48]: Stock value
+        - generic [ref=f188e49]: KSh 747,600.00
+        - generic [ref=f188e50]: At recorded cost
+    - group [ref=f188e51]:
+      - generic "Search and filters" [ref=f188e52] [cursor=pointer]:
+        - generic [aria-hidden] [ref=f188e54]: ⌄
+      - option "All categories" [selected]
+      - option "Accessories"
+      - option "Components"
+      - option "Desktops"
+      - option "Laptops"
+      - option "Monitors"
+      - option "Networking"
+      - option "Phones & Tablets"
+      - option "Printers"
+      - option "Any stock level" [selected]
+      - option "Available"
+      - option "Low stock"
+      - option "Out of stock"
+      - option "Any tracking" [selected]
+      - option "Serial / IMEI"
+      - option "Quantity"
+      - option "Active and inactive" [selected]
+      - option "Active"
+      - option "Inactive"
+    - generic [ref=f188e56]:
+      - heading "Product catalogue" [level=2] [ref=f188e57]
+      - paragraph [ref=f188e58]: 9 results
+    - table [ref=f188e60]:
+      - rowgroup [ref=f188e61]:
+        - row [ref=f188e62]:
+          - columnheader "Product" [ref=f188e63]
+          - columnheader "Category / brand" [ref=f188e64]
+          - columnheader "Tracking" [ref=f188e65]
+          - columnheader "In stock" [ref=f188e66]
+          - columnheader "Sell excl. VAT" [ref=f188e67]
+          - columnheader "Status" [ref=f188e68]
+          - columnheader "Action" [ref=f188e69]
+      - rowgroup [ref=f188e71]:
+        - row [ref=f188e72]:
+          - cell "Product Dell Latitude 5440 (i7/16GB/512GB) KC-LAP-002" [ref=f188e73]:
+            - text: Product
+            - generic [ref=f188e74]:
+              - img [ref=f188e75]:
+                - generic [ref=f188e77]: DL
+                - generic [ref=f188e78]: LAPTOPS
+              - generic [ref=f188e79]:
+                - link "Dell Latitude 5440 (i7/16GB/512GB)" [ref=f188e80] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/2
+                - generic [ref=f188e81]: KC-LAP-002
+          - cell "Category / brand Laptops Dell" [ref=f188e82]:
+            - text: Category / brand
+            - generic [ref=f188e83]: Laptops
+            - generic [ref=f188e84]: Dell
+          - cell "Tracking Serial / IMEI" [ref=f188e85]:
+            - text: Tracking
+            - generic [ref=f188e86]: Serial / IMEI
+          - cell "In stock 2 Reorder at 2" [ref=f188e87]:
+            - text: In stock
+            - strong [ref=f188e88]: "2"
+            - generic [ref=f188e89]: Reorder at 2
+          - cell "Sell excl. VAT KSh 84,000.00 KSh 97,440.00 incl." [ref=f188e90]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e91]: KSh 84,000.00
+            - generic [ref=f188e92]: KSh 97,440.00 incl.
+          - cell "Status Active" [ref=f188e93]:
+            - text: Status
+            - generic [ref=f188e94]: Active
+          - cell [ref=f188e95]:
+            - text: Action
+            - link "Open" [ref=f188e96] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/2
+        - row [ref=f188e97]:
+          - cell "Product HP ProBook 450 G10 (i5/16GB/512GB) KC-LAP-001" [ref=f188e98]:
+            - text: Product
+            - generic [ref=f188e99]:
+              - img [ref=f188e100]:
+                - generic [ref=f188e102]: HP
+                - generic [ref=f188e103]: LAPTOPS
+              - generic [ref=f188e104]:
+                - link "HP ProBook 450 G10 (i5/16GB/512GB)" [ref=f188e105] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/1
+                - generic [ref=f188e106]: KC-LAP-001
+          - cell "Category / brand Laptops HP" [ref=f188e107]:
+            - text: Category / brand
+            - generic [ref=f188e108]: Laptops
+            - generic [ref=f188e109]: HP
+          - cell "Tracking Serial / IMEI" [ref=f188e110]:
+            - text: Tracking
+            - generic [ref=f188e111]: Serial / IMEI
+          - cell "In stock 2 Reorder at 2" [ref=f188e112]:
+            - text: In stock
+            - strong [ref=f188e113]: "2"
+            - generic [ref=f188e114]: Reorder at 2
+          - cell "Sell excl. VAT KSh 65,000.00 KSh 75,400.00 incl." [ref=f188e115]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e116]: KSh 65,000.00
+            - generic [ref=f188e117]: KSh 75,400.00 incl.
+          - cell "Status Active" [ref=f188e118]:
+            - text: Status
+            - generic [ref=f188e119]: Active
+          - cell [ref=f188e120]:
+            - text: Action
+            - link "Open" [ref=f188e121] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/1
+        - row [ref=f188e122]:
+          - cell "Product Kingston 512GB NVMe SSD KC-COM-001" [ref=f188e123]:
+            - text: Product
+            - generic [ref=f188e124]:
+              - img [ref=f188e125]:
+                - generic [ref=f188e127]: K5
+                - generic [ref=f188e128]: COMPONENTS
+              - generic [ref=f188e129]:
+                - link "Kingston 512GB NVMe SSD" [ref=f188e130] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/7
+                - generic [ref=f188e131]: KC-COM-001
+          - cell "Category / brand Components No brand" [ref=f188e132]:
+            - text: Category / brand
+            - generic [ref=f188e133]: Components
+            - generic [ref=f188e134]: No brand
+          - cell "Tracking Quantity" [ref=f188e135]:
+            - text: Tracking
+            - generic [ref=f188e136]: Quantity
+          - cell [ref=f188e137]:
+            - text: In stock
+            - strong [ref=f188e138]: "10"
+          - cell "Sell excl. VAT KSh 7,500.00 KSh 8,700.00 incl." [ref=f188e139]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e140]: KSh 7,500.00
+            - generic [ref=f188e141]: KSh 8,700.00 incl.
+          - cell "Status Active" [ref=f188e142]:
+            - text: Status
+            - generic [ref=f188e143]: Active
+          - cell [ref=f188e144]:
+            - text: Action
+            - link "Open" [ref=f188e145] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/7
+        - row [ref=f188e146]:
+          - cell "Product Lenovo ThinkPad E14 (i5/8GB/256GB) KC-LAP-003" [ref=f188e147]:
+            - text: Product
+            - generic [ref=f188e148]:
+              - img [ref=f188e149]:
+                - generic [ref=f188e151]: LT
+                - generic [ref=f188e152]: LAPTOPS
+              - generic [ref=f188e153]:
+                - link "Lenovo ThinkPad E14 (i5/8GB/256GB)" [ref=f188e154] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/3
+                - generic [ref=f188e155]: KC-LAP-003
+          - cell "Category / brand Laptops Lenovo" [ref=f188e156]:
+            - text: Category / brand
+            - generic [ref=f188e157]: Laptops
+            - generic [ref=f188e158]: Lenovo
+          - cell "Tracking Serial / IMEI" [ref=f188e159]:
+            - text: Tracking
+            - generic [ref=f188e160]: Serial / IMEI
+          - cell "In stock 2 Reorder at 2" [ref=f188e161]:
+            - text: In stock
+            - strong [ref=f188e162]: "2"
+            - generic [ref=f188e163]: Reorder at 2
+          - cell "Sell excl. VAT KSh 56,000.00 KSh 64,960.00 incl." [ref=f188e164]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e165]: KSh 56,000.00
+            - generic [ref=f188e166]: KSh 64,960.00 incl.
+          - cell "Status Active" [ref=f188e167]:
+            - text: Status
+            - generic [ref=f188e168]: Active
+          - cell [ref=f188e169]:
+            - text: Action
+            - link "Open" [ref=f188e170] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/3
+        - row [ref=f188e171]:
+          - cell "Product Logitech Wireless Mouse M221 KC-ACC-001" [ref=f188e172]:
+            - text: Product
+            - generic [ref=f188e173]:
+              - img [ref=f188e174]:
+                - generic [ref=f188e176]: LW
+                - generic [ref=f188e177]: ACCESSORIES
+              - generic [ref=f188e178]:
+                - link "Logitech Wireless Mouse M221" [ref=f188e179] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/6
+                - generic [ref=f188e180]: KC-ACC-001
+          - cell "Category / brand Accessories No brand" [ref=f188e181]:
+            - text: Category / brand
+            - generic [ref=f188e182]: Accessories
+            - generic [ref=f188e183]: No brand
+          - cell "Tracking Quantity" [ref=f188e184]:
+            - text: Tracking
+            - generic [ref=f188e185]: Quantity
+          - cell [ref=f188e186]:
+            - text: In stock
+            - strong [ref=f188e187]: "8"
+          - cell "Sell excl. VAT KSh 2,200.00 KSh 2,552.00 incl." [ref=f188e188]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e189]: KSh 2,200.00
+            - generic [ref=f188e190]: KSh 2,552.00 incl.
+          - cell "Status Active" [ref=f188e191]:
+            - text: Status
+            - generic [ref=f188e192]: Active
+          - cell [ref=f188e193]:
+            - text: Action
+            - link "Open" [ref=f188e194] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/6
+        - row [ref=f188e195]:
+          - cell "Product MacBook Air M3 KC-LAP-004" [ref=f188e196]:
+            - text: Product
+            - generic [ref=f188e197]:
+              - img [ref=f188e198]:
+                - generic [ref=f188e200]: MA
+                - generic [ref=f188e201]: LAPTOPS
+              - generic [ref=f188e202]:
+                - link "MacBook Air M3" [ref=f188e203] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/9
+                - generic [ref=f188e204]: KC-LAP-004
+          - cell "Category / brand Laptops Apple" [ref=f188e205]:
+            - text: Category / brand
+            - generic [ref=f188e206]: Laptops
+            - generic [ref=f188e207]: Apple
+          - cell "Tracking Serial / IMEI" [ref=f188e208]:
+            - text: Tracking
+            - generic [ref=f188e209]: Serial / IMEI
+          - cell "In stock 0 Reorder at 1" [ref=f188e210]:
+            - text: In stock
+            - strong [ref=f188e211]: "0"
+            - generic [ref=f188e212]: Reorder at 1
+          - cell "Sell excl. VAT KSh 120,000.00 KSh 139,200.00 incl." [ref=f188e213]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e214]: KSh 120,000.00
+            - generic [ref=f188e215]: KSh 139,200.00 incl.
+          - cell "Status Active" [ref=f188e216]:
+            - text: Status
+            - generic [ref=f188e217]: Active
+          - cell [ref=f188e218]:
+            - text: Action
+            - link "Open" [ref=f188e219] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/9
+        - row [ref=f188e220]:
+          - cell "Product Samsung Galaxy A55 5G 256GB KC-PHN-001" [ref=f188e221]:
+            - text: Product
+            - generic [ref=f188e222]:
+              - img [ref=f188e223]:
+                - generic [ref=f188e225]: SG
+                - generic [ref=f188e226]: PHONES & TABLETS
+              - generic [ref=f188e227]:
+                - link "Samsung Galaxy A55 5G 256GB" [ref=f188e228] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/4
+                - generic [ref=f188e229]: KC-PHN-001
+          - cell "Category / brand Phones & Tablets Samsung" [ref=f188e230]:
+            - text: Category / brand
+            - generic [ref=f188e231]: Phones & Tablets
+            - generic [ref=f188e232]: Samsung
+          - cell "Tracking Serial / IMEI" [ref=f188e233]:
+            - text: Tracking
+            - generic [ref=f188e234]: Serial / IMEI
+          - cell [ref=f188e235]:
+            - text: In stock
+            - strong [ref=f188e236]: "3"
+          - cell "Sell excl. VAT KSh 41,000.00 KSh 47,560.00 incl." [ref=f188e237]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e238]: KSh 41,000.00
+            - generic [ref=f188e239]: KSh 47,560.00 incl.
+          - cell "Status Active" [ref=f188e240]:
+            - text: Status
+            - generic [ref=f188e241]: Active
+          - cell [ref=f188e242]:
+            - text: Action
+            - link "Open" [ref=f188e243] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/4
+        - row [ref=f188e244]:
+          - cell "Product Samsung Galaxy S24 256GB KC-PHN-002" [ref=f188e245]:
+            - text: Product
+            - generic [ref=f188e246]:
+              - img [ref=f188e247]:
+                - generic [ref=f188e249]: SG
+                - generic [ref=f188e250]: PHONES & TABLETS
+              - generic [ref=f188e251]:
+                - link "Samsung Galaxy S24 256GB" [ref=f188e252] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/5
+                - generic [ref=f188e253]: KC-PHN-002
+          - cell "Category / brand Phones & Tablets Samsung" [ref=f188e254]:
+            - text: Category / brand
+            - generic [ref=f188e255]: Phones & Tablets
+            - generic [ref=f188e256]: Samsung
+          - cell "Tracking Serial / IMEI" [ref=f188e257]:
+            - text: Tracking
+            - generic [ref=f188e258]: Serial / IMEI
+          - cell [ref=f188e259]:
+            - text: In stock
+            - strong [ref=f188e260]: "3"
+          - cell "Sell excl. VAT KSh 95,000.00 KSh 110,200.00 incl." [ref=f188e261]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e262]: KSh 95,000.00
+            - generic [ref=f188e263]: KSh 110,200.00 incl.
+          - cell "Status Active" [ref=f188e264]:
+            - text: Status
+            - generic [ref=f188e265]: Active
+          - cell [ref=f188e266]:
+            - text: Action
+            - link "Open" [ref=f188e267] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/5
+        - row [ref=f188e268]:
+          - cell "Product TP-Link AC1200 Router KC-ACC-002" [ref=f188e269]:
+            - text: Product
+            - generic [ref=f188e270]:
+              - img [ref=f188e271]:
+                - generic [ref=f188e273]: TA
+                - generic [ref=f188e274]: ACCESSORIES
+              - generic [ref=f188e275]:
+                - link "TP-Link AC1200 Router" [ref=f188e276] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/8
+                - generic [ref=f188e277]: KC-ACC-002
+          - cell "Category / brand Accessories No brand" [ref=f188e278]:
+            - text: Category / brand
+            - generic [ref=f188e279]: Accessories
+            - generic [ref=f188e280]: No brand
+          - cell "Tracking Quantity" [ref=f188e281]:
+            - text: Tracking
+            - generic [ref=f188e282]: Quantity
+          - cell [ref=f188e283]:
+            - text: In stock
+            - strong [ref=f188e284]: "10"
+          - cell "Sell excl. VAT KSh 4,200.00 KSh 4,872.00 incl." [ref=f188e285]:
+            - text: Sell excl. VAT
+            - strong [ref=f188e286]: KSh 4,200.00
+            - generic [ref=f188e287]: KSh 4,872.00 incl.
+          - cell "Status Active" [ref=f188e288]:
+            - text: Status
+            - generic [ref=f188e289]: Active
+          - cell [ref=f188e290]:
+            - text: Action
+            - link "Open" [ref=f188e291] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/products/8

@@ -1,4 +1,5 @@
 <?php $editId = (int) ($_GET['edit'] ?? 0); ?>
+<?php include APP_PATH . '/views/partials/inventory-tabs.php'; ?>
 <div class="page-head">
     <div>
         <h1>Categories</h1>
@@ -52,7 +53,7 @@
                         <td>
                             <div class="row-actions">
                                 <a class="btn btn-ghost btn-sm" href="<?= e(url('categories?edit=' . $c['id'])) ?>">Edit</a>
-                                <form method="post" action="<?= e(url('categories/' . $c['id'] . '/delete')) ?>" onsubmit="return confirm('Delete this category? Products keep working, they become uncategorised.');">
+                                <form method="post" action="<?= e(url('categories/' . $c['id'] . '/delete')) ?>" data-confirm="Delete this category? Products keep working, they become uncategorised.">
                                     <?= csrf_field() ?>
                                     <button class="btn btn-danger-ghost btn-sm" type="submit">Delete</button>
                                 </form>

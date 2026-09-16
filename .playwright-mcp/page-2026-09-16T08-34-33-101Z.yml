@@ -1,0 +1,74 @@
+- generic [active] [ref=f183e1]:
+  - link "Skip to main content" [ref=f183e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f183e3]:
+    - generic [ref=f183e4]:
+      - link "Khamis Computers dashboard" [ref=f183e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f183e9]: Khamis Computers
+      - button "Open navigation" [ref=f183e10] [cursor=pointer]
+      - button "Sign out" [ref=f183e16] [cursor=pointer]
+  - main [ref=f183e17]:
+    - navigation "Inventory sections" [ref=f183e18]:
+      - link "Products" [ref=f183e19] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/products
+    - generic [ref=f183e20]:
+      - generic [ref=f183e21]:
+        - generic [ref=f183e22]: Laptops · HP
+        - heading "HP ProBook 450 G10 (i5/16GB/512GB)" [level=1] [ref=f183e23]
+        - generic [ref=f183e24]:
+          - generic [ref=f183e25]: KC-LAP-001
+          - generic [ref=f183e26]: Serial / IMEI
+          - generic [ref=f183e27]: Active
+      - generic [ref=f183e28]:
+        - link "Inventory" [ref=f183e29] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Shop preview ↗" [ref=f183e30] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop/product/1
+    - region "Product summary" [ref=f183e31]:
+      - generic [ref=f183e32]:
+        - generic [ref=f183e33]: Available stock
+        - generic [ref=f183e34]: "2"
+        - generic [ref=f183e35]: Reorder at 2
+      - generic [ref=f183e36]:
+        - generic [ref=f183e37]: Selling price
+        - generic [ref=f183e38]: KSh 75,400.00
+        - generic [ref=f183e39]: KSh 65,000.00 excl. VAT
+      - generic [ref=f183e40]:
+        - generic [ref=f183e41]: Tracking
+        - generic [ref=f183e42]: Individual
+        - generic [ref=f183e43]: 3 unit records
+    - tablist "Product sections" [ref=f183e44]:
+      - tab "Overview" [selected] [ref=f183e45] [cursor=pointer]
+      - tab "Images 0" [ref=f183e46] [cursor=pointer]
+      - tab "Stock & serials 2" [ref=f183e47] [cursor=pointer]
+      - tab "Movements 2" [ref=f183e48] [cursor=pointer]
+    - tabpanel [ref=f183e49]:
+      - generic [ref=f183e50]:
+        - article [ref=f183e51]:
+          - generic [ref=f183e53]:
+            - generic [ref=f183e54]: Catalogue record
+            - heading "Overview" [level=2] [ref=f183e55]
+          - generic [ref=f183e56]:
+            - generic [ref=f183e57]: No description yet
+            - generic [ref=f183e58]: Add customer-facing specifications from Edit product.
+          - generic [ref=f183e59]:
+            - generic [ref=f183e60]:
+              - term [ref=f183e61]: Category
+              - definition [ref=f183e62]: Laptops
+            - generic [ref=f183e63]:
+              - term [ref=f183e64]: Brand
+              - definition [ref=f183e65]: HP
+            - generic [ref=f183e66]:
+              - term [ref=f183e67]: Warranty
+              - definition [ref=f183e68]: 12 months
+            - generic [ref=f183e69]:
+              - term [ref=f183e70]: Created
+              - definition [ref=f183e71]: 08 Sep 2026
+        - complementary [ref=f183e72]:
+          - generic [ref=f183e74]:
+            - generic [ref=f183e75]: Next actions
+            - heading "Keep stock moving" [level=2] [ref=f183e76]
+          - paragraph [ref=f183e77]: Open Stock to check availability and unit status.
+          - button "View stock" [ref=f183e78] [cursor=pointer]
+    - text: Serial / IMEI Status Received Warranty Note Serial / IMEI Status Received Warranty Note Serial / IMEI Status Received Warranty Note Type Quantity Date and time Reference Recorded by Type Quantity Date and time Reference Recorded by

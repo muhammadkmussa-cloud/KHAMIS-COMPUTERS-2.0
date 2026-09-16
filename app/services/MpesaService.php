@@ -15,6 +15,23 @@ declare(strict_types=1);
  */
 class MpesaService
 {
+    /** Secret query token included in callback URLs generated for Safaricom. */
+    public static function callbackToken(): string
+    {
+        $token = trim(Setting::get('mpesa_callback_token', ''));
+        if (strlen($token) < 32) {
+            $token = bin2hex(random_bytes(32));
+            Setting::set('mpesa_callback_token', $token);
+        }
+        return $token;
+    }
+
+    public static function validCallbackToken(string $candidate): bool
+    {
+        $stored = trim(Setting::get('mpesa_callback_token', ''));
+        return strlen($stored) >= 32 && $candidate !== '' && hash_equals($stored, $candidate);
+    }
+
     public static function enabled(): bool
     {
         if (Setting::get('mpesa_enabled', '0') !== '1') {
@@ -119,11 +136,11 @@ class MpesaService
             'Password'          => $password,
             'Timestamp'         => $timestamp,
             'TransactionType'   => $txType,
-            'Amount'            => (string) round($amount, 0),
+            'Amount'            => (string) self::chargeAmount($amount),
             'PartyA'            => $normalized,
             'PartyB'            => $shortcode,
             'PhoneNumber'       => $normalized,
-            'CallBackURL'       => url('mpesa/callback'),
+            'CallBackURL'       => url('mpesa/callback?token=' . rawurlencode(self::callbackToken())),
             'AccountReference'  => self::accountReference($saleNumber),
             'TransactionDesc'   => 'Khamis Computers order ' . $saleNumber,
         ];
@@ -146,7 +163,9 @@ class MpesaService
                 'checkout_request_id' => $checkoutRequestId !== '' ? $checkoutRequestId : null,
                 'merchant_request_id' => $merchantRequestId !== '' ? $merchantRequestId : null,
                 'phone'               => $normalized,
-                'amount'              => round($amount, 2),
+                // Daraja receives a whole-shilling amount, so persist exactly
+                // what the callback is expected to return.
+                'amount'              => self::chargeAmount($amount),
                 'status'              => $responseCode === '0' ? 'requested' : 'failed',
                 'result_code'         => $responseCode !== '' ? (int) $responseCode : null,
                 'result_desc'         => $responseDescription !== '' ? $responseDescription : null,
@@ -189,33 +208,108 @@ class MpesaService
             return false;
         }
 
+        // Callback outcomes are terminal. Safaricom may retry delivery, but a
+        // later payload must never downgrade or resurrect the transaction.
+        if (in_array($txn['status'], ['success', 'failed'], true)) {
+            return true;
+        }
+
+        $merchantRequestId = trim((string) ($cb['MerchantRequestID'] ?? ''));
+        $storedMerchantId  = trim((string) ($txn['merchant_request_id'] ?? ''));
+        if ($storedMerchantId !== '' && !hash_equals($storedMerchantId, $merchantRequestId)) {
+            error_log('[mpesa] callback MerchantRequestID mismatch for ' . $checkoutRequestId);
+            return false;
+        }
+
         $receipt = '';
+        $callbackAmount = null;
+        $callbackPhone  = '';
         if ($resultCode === 0) {
             foreach ((array) ($cb['CallbackMetadata']['Item'] ?? []) as $item) {
-                if (($item['Name'] ?? '') === 'MpesaReceiptNumber') {
-                    $receipt = trim((string) ($item['Value'] ?? ''));
-                }
+                $name = (string) ($item['Name'] ?? '');
+                if ($name === 'MpesaReceiptNumber') $receipt = trim((string) ($item['Value'] ?? ''));
+                if ($name === 'Amount' && is_numeric($item['Value'] ?? null)) $callbackAmount = (float) $item['Value'];
+                if ($name === 'PhoneNumber') $callbackPhone = self::normalizePhone((string) ($item['Value'] ?? ''));
+            }
+            $expectedPhone = self::normalizePhone((string) $txn['phone']);
+            $expectedAmount = round((float) $txn['amount'], 0);
+            if ($receipt === '' || $callbackAmount === null || abs($callbackAmount - $expectedAmount) > 0.01 || $callbackPhone === '' || !hash_equals($expectedPhone, $callbackPhone)) {
+                error_log('[mpesa] rejected mismatched success callback for ' . $checkoutRequestId);
+                return false;
             }
         }
 
-        $status = $resultCode === 0 ? 'success' : 'failed';
-        Database::update('mpesa_transactions', [
-            'status'        => $status,
-            'result_code'   => $resultCode,
-            'result_desc'   => mb_substr($resultDesc, 0, 255),
-            'receipt_number' => $receipt !== '' ? $receipt : null,
-            'updated_at'    => Database::now(),
-        ], 'id = :id', ['id' => (int) $txn['id']]);
-
         if ($resultCode === 0) {
-            // Only flip a still-pending sale; never resurrect a voided one.
-            Database::update(
-                'sales',
-                ['status' => 'completed', 'payment_ref' => $receipt !== '' ? $receipt : null],
-                "id = :id AND status = 'pending'",
-                ['id' => (int) $txn['sale_id']]
-            );
+            // Complete the sale and transaction together, locking in the same
+            // sale-then-payment order as manual verification. If cancellation
+            // won first, neither record is changed by this callback.
+            $pdo = Database::pdo();
+            $pdo->beginTransaction();
+            try {
+                $saleClaimed = Database::update(
+                    'sales',
+                    ['status' => 'completed', 'payment_ref' => $receipt],
+                    "id = :id AND status = 'pending'",
+                    ['id' => (int) $txn['sale_id']]
+                );
+                if ($saleClaimed !== 1) {
+                    $pdo->rollBack();
+                    $current = SaleService::find((int) $txn['sale_id']);
+                    return $current && $current['status'] === 'completed';
+                }
+                $transactionClaimed = Database::update('mpesa_transactions', [
+                    'status' => 'success', 'result_code' => $resultCode,
+                    'result_desc' => mb_substr($resultDesc, 0, 255),
+                    'receipt_number' => $receipt, 'updated_at' => Database::now(),
+                ], "id = :id AND status NOT IN ('success', 'failed')", ['id' => (int) $txn['id']]);
+                if ($transactionClaimed !== 1) {
+                    $pdo->rollBack();
+                    return true;
+                }
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                error_log('[mpesa] could not confirm paid order #' . $txn['sale_id'] . ': ' . $e->getMessage());
+                return false;
+            }
             Activity::log('mpesa.paid', 'sale #' . $txn['sale_id'] . ' ' . ($receipt ?: ''));
+        } else {
+            // A retry creates a new transaction for the same sale. An older
+            // prompt may fail after the retry has been sent; that failure must
+            // only close its own transaction and never void the live order.
+            $otherRequested = (int) Database::fetchValue(
+                "SELECT COUNT(*) FROM mpesa_transactions WHERE sale_id = ? AND id != ? AND status = 'requested'",
+                [(int) $txn['sale_id'], (int) $txn['id']]
+            );
+            if ($otherRequested > 0) {
+                Database::update('mpesa_transactions', [
+                    'status' => 'failed', 'result_code' => $resultCode,
+                    'result_desc' => mb_substr($resultDesc, 0, 255), 'updated_at' => Database::now(),
+                ], "id = :id AND status NOT IN ('success', 'failed')", ['id' => (int) $txn['id']]);
+                return true;
+            }
+            // A declined, cancelled or expired STK prompt must release stock.
+            // Claim the still-pending sale before making the transaction
+            // terminal so a manual verification can safely win the race.
+            try {
+                SaleService::void((int) $txn['sale_id'], null, ['pending']);
+            } catch (Throwable $e) {
+                $current = SaleService::find((int) $txn['sale_id']);
+                if ($current && $current['status'] === 'completed') {
+                    // A manual verification won the race; preserve the paid sale.
+                    return true;
+                }
+                if (!$current || $current['status'] !== 'cancelled') {
+                    error_log('[mpesa] could not release stock for failed order #' . $txn['sale_id'] . ': ' . $e->getMessage());
+                    return false;
+                }
+            }
+            Database::update('mpesa_transactions', [
+                'status' => 'failed', 'result_code' => $resultCode,
+                'result_desc' => mb_substr($resultDesc, 0, 255),
+                'receipt_number' => null, 'updated_at' => Database::now(),
+            ], "id = :id AND status NOT IN ('success', 'failed')", ['id' => (int) $txn['id']]);
+            Activity::log('mpesa.failed', 'sale #' . $txn['sale_id'] . ' ' . $resultCode);
         }
         return true;
     }
@@ -227,6 +321,11 @@ class MpesaService
             'SELECT * FROM mpesa_transactions WHERE sale_id = ? ORDER BY id DESC LIMIT 1',
             [$saleId]
         );
+    }
+
+    public static function chargeAmount(float $amount): int
+    {
+        return max(1, (int) round($amount, 0));
     }
 
     /** POST JSON with cURL (falls back to streams when cURL is unavailable). */

@@ -1,89 +1,58 @@
-<div class="page-head">
-    <div>
-        <h1>Inventory</h1>
-        <p class="lede">Products, stock levels and serial-number tracking.</p>
-    </div>
-    <div class="page-actions">
-        <?php if (Auth::isAdmin()): ?>
-            <a class="btn btn-ghost" href="<?= e(url('categories')) ?>">Categories</a>
-            <a class="btn btn-ghost" href="<?= e(url('brands')) ?>">Brands</a>
-            <a class="btn btn-ghost" href="<?= e(url('suppliers')) ?>">Suppliers</a>
-            <a class="btn btn-outline" href="<?= e(url('grn/new')) ?>">Receive stock</a>
-            <a class="btn btn-primary" href="<?= e(url('products/new')) ?>">+ Add product</a>
-        <?php endif; ?>
-        <a class="btn btn-outline" href="<?= e(url('products/export')) ?>">Export CSV</a>
-    </div>
+<?php
+include APP_PATH . '/views/partials/inventory-tabs.php';
+$f = $filters;
+$hasFilters = $f['q'] !== '' || $f['category'] !== '' || $f['tracking'] !== '' || $f['status'] !== '' || $f['stock'] !== '';
+$filterUrl = function (array $changes) use ($f): string { return url('products') . query_string(array_merge($f, $changes)); };
+?>
+<div class="page-head inventory-page-head">
+    <div><div class="section-kicker">Stock control</div><h1>Inventory</h1><p class="lede">Search the catalogue, monitor stock risk, and manage individually tracked units.</p></div>
+    <?php if (Auth::isAdmin()): ?><div class="page-actions"><a class="btn btn-outline" href="<?= e(url('grn/new')) ?>">Receive stock</a><a class="btn btn-primary" href="<?= e(url('products/new')) ?>">Add product</a><details class="action-menu"><summary class="btn btn-ghost">More</summary><div><a href="<?= e(url('products/export')) ?>">Export CSV</a><a href="<?= e(url('categories')) ?>">Manage categories</a><a href="<?= e(url('brands')) ?>">Manage brands</a></div></details></div><?php endif; ?>
 </div>
 
-<?php if ($lowStock): ?>
-<div class="card" style="margin-bottom:18px;border-left:4px solid var(--orange)">
-    <div class="section-kicker" style="color:var(--orange)">Attention</div>
-    <h3>Low stock</h3>
-    <p class="sub">These products are at or below their reorder level.</p>
-    <table class="table" style="margin-top:8px">
-        <thead><tr><th>Product</th><th>SKU</th><th class="num">In stock</th><th class="num">Reorder at</th></tr></thead>
-        <tbody>
-        <?php foreach ($lowStock as $p): ?>
-            <tr>
-                <td class="cell-main"><a href="<?= e(url('products/' . $p['id'])) ?>"><?= e($p['name']) ?></a></td>
-                <td class="cell-sub"><?= e($p['sku']) ?></td>
-                <td class="num" style="color:var(--orange);font-weight:700"><?= (int) Product::stockOf($p) ?></td>
-                <td class="num"><?= (int) $p['reorder_level'] ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
-<?php endif; ?>
+<section class="inventory-kpis" aria-label="Inventory summary">
+    <a href="<?= e(url('products')) ?>"><span>Catalogue</span><b><?= number_format($summary['total']) ?></b><small><?= number_format($summary['active']) ?> active products</small></a>
+    <a href="<?= e($filterUrl(['stock'=>'low'])) ?>"><span>Low stock</span><b><?= number_format($summary['low']) ?></b><small>At or below reorder level</small></a>
+    <a href="<?= e($filterUrl(['stock'=>'out'])) ?>"><span>Out of stock</span><b><?= number_format($summary['out']) ?></b><small>Unavailable for sale</small></a>
+    <?php if (Auth::isAdmin()): ?><div><span>Stock value</span><b><?= money($summary['value']) ?></b><small>At recorded cost</small></div><?php endif; ?>
+</section>
 
-<div class="toolbar">
-    <form method="get" action="<?= e(url('products')) ?>" class="search" style="display:flex;gap:8px;max-width:none;flex:1">
-        <input type="search" name="q" value="<?= e($q) ?>" placeholder="Search name, SKU or barcode…" style="max-width:420px">
-        <button class="btn btn-primary btn-sm" type="submit">Search</button>
-        <?php if ($q !== ''): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('products')) ?>">Clear</a><?php endif; ?>
+<details class="inventory-filter-panel" open>
+    <summary><span>Search and filters<?= $hasFilters ? ' · active' : '' ?></span><span aria-hidden="true">⌄</span></summary>
+    <form method="get" action="<?= e(url('products')) ?>" class="inventory-filter-form">
+        <label class="inventory-filter-search" for="inventory-q"><span>Search products</span><input id="inventory-q" type="search" name="q" value="<?= e($f['q']) ?>" placeholder="Name, SKU or barcode"></label>
+        <label for="inventory-category"><span>Category</span><select id="inventory-category" name="category"><option value="">All categories</option><?php foreach ($categories as $category): ?><option value="<?= (int) $category['id'] ?>" <?= (string) $category['id'] === $f['category'] ? 'selected' : '' ?>><?= e($category['name']) ?></option><?php endforeach; ?></select></label>
+        <label for="inventory-stock"><span>Stock</span><select id="inventory-stock" name="stock"><option value="">Any stock level</option><option value="available" <?= $f['stock']==='available'?'selected':'' ?>>Available</option><option value="low" <?= $f['stock']==='low'?'selected':'' ?>>Low stock</option><option value="out" <?= $f['stock']==='out'?'selected':'' ?>>Out of stock</option></select></label>
+        <label for="inventory-tracking"><span>Tracking</span><select id="inventory-tracking" name="tracking"><option value="">Any tracking</option><option value="serialized" <?= $f['tracking']==='serialized'?'selected':'' ?>>Serial / IMEI</option><option value="quantity" <?= $f['tracking']==='quantity'?'selected':'' ?>>Quantity</option></select></label>
+        <label for="inventory-status"><span>Catalogue status</span><select id="inventory-status" name="status"><option value="">Active and inactive</option><option value="active" <?= $f['status']==='active'?'selected':'' ?>>Active</option><option value="inactive" <?= $f['status']==='inactive'?'selected':'' ?>>Inactive</option></select></label>
+        <div class="inventory-filter-actions"><button class="btn btn-primary" type="submit">Show products</button><?php if ($hasFilters): ?><a class="btn btn-ghost" href="<?= e(url('products')) ?>">Clear all</a><?php endif; ?></div>
     </form>
-    <span class="muted" style="font-size:13px"><?= count($products) ?> product(s)</span>
-</div>
+</details>
 
-<div class="table-wrap">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Category / Brand</th>
-                <th class="num">Stock</th>
-                <th class="num">Sell (excl. VAT)</th>
-                <th>Status</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php if (!$products): ?>
-            <tr><td colspan="6" class="muted" style="padding:26px;text-align:center">No products found.</td></tr>
-        <?php endif; ?>
-        <?php foreach ($products as $p):
-            $stock = Product::stockOf($p); ?>
-            <tr>
-                <td>
-                    <div class="cell-main"><a href="<?= e(url('products/' . $p['id'])) ?>"><?= e($p['name']) ?></a></div>
-                    <div class="cell-sub"><?= e($p['sku']) ?><?= $p['is_serialized'] ? ' · <span class="badge badge-blue">serialized</span>' : '' ?></div>
-                </td>
-                <td class="cell-sub"><?= e($p['category_name'] ?? '—') ?> · <?= e($p['brand_name'] ?? '—') ?></td>
-                <td class="num" style="font-weight:700;<?= $p['reorder_level'] > 0 && $stock <= (int) $p['reorder_level'] ? 'color:var(--orange)' : '' ?>">
-                    <?= $stock ?>
-                </td>
-                <td class="num"><?= money($p['sell_price']) ?></td>
-                <td><?= $p['is_active'] ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Inactive</span>' ?></td>
-                <td>
-                    <div class="row-actions">
-                        <?php if (Auth::isAdmin()): ?>
-                            <a class="btn btn-ghost btn-sm" href="<?= e(url('products/' . $p['id'] . '/edit')) ?>">Edit</a>
-                        <?php endif; ?>
-                        <a class="btn btn-primary btn-sm" href="<?= e(url('products/' . $p['id'])) ?>">Open</a>
-                    </div>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
+<?php if ($hasFilters): ?><div class="sales-active-filters inventory-active-filters" aria-label="Active inventory filters"><span>Active filters</span>
+    <?php if ($f['q'] !== ''): ?><a href="<?= e($filterUrl(['q'=>''])) ?>">Search: “<?= e($f['q']) ?>” <b>×</b></a><?php endif; ?>
+    <?php if ($f['category'] !== ''): $catName='Category'; foreach($categories as $c){if((string)$c['id']===$f['category']){$catName=$c['name'];break;}} ?><a href="<?= e($filterUrl(['category'=>''])) ?>"><?= e($catName) ?> <b>×</b></a><?php endif; ?>
+    <?php if ($f['stock'] !== ''): ?><a href="<?= e($filterUrl(['stock'=>''])) ?>"><?= e(ucwords(str_replace('_',' ',$f['stock']))) ?> <b>×</b></a><?php endif; ?>
+    <?php if ($f['tracking'] !== ''): ?><a href="<?= e($filterUrl(['tracking'=>''])) ?>"><?= e($f['tracking']==='serialized'?'Serial / IMEI':'Quantity') ?> <b>×</b></a><?php endif; ?>
+    <?php if ($f['status'] !== ''): ?><a href="<?= e($filterUrl(['status'=>''])) ?>"><?= e(ucfirst($f['status'])) ?> <b>×</b></a><?php endif; ?>
+</div><?php endif; ?>
+
+<div class="inventory-results-head"><div><h2><?= $hasFilters ? 'Matching products' : 'Product catalogue' ?></h2><p><?= count($products) ?> result<?= count($products)===1?'':'s' ?></p></div></div>
+<?php if (!$products): ?>
+    <div class="empty-state inventory-empty"><h2>No products match these filters</h2><p class="muted">Try a different SKU, barcode, category, or stock level.</p><a class="btn btn-primary" href="<?= e(url('products')) ?>">Show all products</a></div>
+<?php else: ?>
+<div class="table-wrap inventory-table-wrap"><table class="table inventory-table">
+    <thead><tr><th>Product</th><th>Category / brand</th><th>Tracking</th><th class="num">In stock</th><th class="num">Sell excl. VAT</th><th>Status</th><th><span class="sr-only">Action</span></th></tr></thead>
+    <tbody><?php foreach ($products as $p): $stock=(int)($p['live_stock']??Product::stockOf($p)); $risk=(int)$p['reorder_level']>0&&$stock<=(int)$p['reorder_level']; ?>
+        <tr>
+            <td><div class="inventory-product-cell"><?= product_thumb($p, 44) ?><div><a class="cell-main" href="<?= e(url('products/'.$p['id'])) ?>"><?= e($p['name']) ?></a><span class="cell-sub"><?= e($p['sku']) ?><?= $p['barcode']?' · '.e($p['barcode']):'' ?></span></div></div></td>
+            <td><div class="cell-main"><?= e($p['category_name']??'Uncategorised') ?></div><div class="cell-sub"><?= e($p['brand_name']??'No brand') ?></div></td>
+            <td><span class="badge badge-<?= $p['is_serialized']?'blue':'gray' ?>"><?= $p['is_serialized']?'Serial / IMEI':'Quantity' ?></span></td>
+            <td class="num"><strong class="<?= $risk?'stock-risk':'' ?>"><?= $stock ?></strong><?php if($risk): ?><span class="cell-sub">Reorder at <?= (int)$p['reorder_level'] ?></span><?php endif; ?></td>
+            <td class="num"><strong><?= money($p['sell_price']) ?></strong><span class="cell-sub"><?= money(gross_of($p['sell_price'])) ?> incl.</span></td>
+            <td><?= $p['is_active']?'<span class="badge badge-green">Active</span>':'<span class="badge badge-gray">Inactive</span>' ?></td>
+            <td><a class="btn btn-outline btn-sm" href="<?= e(url('products/'.$p['id'])) ?>">Open</a></td>
+        </tr>
+    <?php endforeach; ?></tbody>
+</table></div>
+<?php endif; ?>
+<script>if(matchMedia('(max-width:700px)').matches){var p=document.querySelector('.inventory-filter-panel');if(p)p.removeAttribute('open');}</script>

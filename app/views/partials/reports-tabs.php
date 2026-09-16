@@ -1,7 +1,2 @@
-<?php $current = Router::currentPath(); ?>
-<div class="tabs" style="display:flex;gap:8px;margin:2px 0 20px;flex-wrap:wrap">
-    <a class="btn btn-sm <?= $current === 'reports' ? 'btn-primary' : 'btn-outline' ?>" href="<?= e(url('reports')) ?>">Reports</a>
-    <a class="btn btn-sm <?= $current === 'reports/z' ? 'btn-primary' : 'btn-outline' ?>" href="<?= e(url('reports/z')) ?>">Z-report</a>
-    <a class="btn btn-sm <?= $current === 'reports/vat' ? 'btn-primary' : 'btn-outline' ?>" href="<?= e(url('reports/vat')) ?>">VAT (KRA)</a>
-    <a class="btn btn-sm <?= $current === 'reports/purchases' ? 'btn-primary' : 'btn-outline' ?>" href="<?= e(url('reports/purchases')) ?>">Purchases</a>
-</div>
+<?php $current=Router::currentPath(); ?>
+<nav class="report-tabs" aria-label="Report sections"><?php if(Auth::isAdmin()): ?><a class="<?= $current==='reports'?'active':'' ?>" href="<?= e(url('reports')) ?>" <?= $current==='reports'?'aria-current="page"':'' ?>>Overview</a><?php endif; ?><a class="<?= $current==='reports/z'?'active':'' ?>" href="<?= e(url('reports/z')) ?>" <?= $current==='reports/z'?'aria-current="page"':'' ?>>Close of day</a><?php if(Auth::isAdmin()): ?><a class="<?= $current==='reports/vat'?'active':'' ?>" href="<?= e(url('reports/vat')) ?>" <?= $current==='reports/vat'?'aria-current="page"':'' ?>>VAT</a><a class="<?= $current==='reports/purchases'?'active':'' ?>" href="<?= e(url('reports/purchases')) ?>" <?= $current==='reports/purchases'?'aria-current="page"':'' ?>>Purchases</a><?php endif; ?></nav>

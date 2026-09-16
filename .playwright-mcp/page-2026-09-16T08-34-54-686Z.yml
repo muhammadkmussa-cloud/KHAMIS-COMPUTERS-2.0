@@ -1,0 +1,25 @@
+- generic [ref=f186e1]:
+  - link "Skip to main content" [ref=f186e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - main [ref=f186e3]:
+    - generic [ref=f186e4]:
+      - generic [ref=f186e5]:
+        - heading "Khamis Computers" [level=1] [ref=f186e9]
+        - paragraph [ref=f186e10]: POS & Online Shop
+      - heading "Staff sign in" [level=2] [ref=f186e11]
+      - paragraph [ref=f186e12]: Access the POS and admin console.
+      - generic [ref=f186e13]:
+        - generic [ref=f186e14]:
+          - generic [ref=f186e15]: Email
+          - textbox "Email" [active] [ref=f186e16]:
+            - /placeholder: you@khamiscomputers.com
+        - generic [ref=f186e17]:
+          - generic [ref=f186e18]: Password
+          - textbox "Password" [ref=f186e19]:
+            - /placeholder: ••••••••
+        - button "Sign in" [ref=f186e20] [cursor=pointer]
+      - paragraph [ref=f186e21]:
+        - text: "Demo account:"
+        - code [ref=f186e22]: admin@khamis.local
+        - text: /
+        - code [ref=f186e23]: admin1234

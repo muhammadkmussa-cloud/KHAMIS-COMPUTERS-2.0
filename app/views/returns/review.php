@@ -1,0 +1,14 @@
+<?php $sale=$draft['sale']; $methodLabels=['original'=>'Original payment method','cash'=>'Cash','mpesa'=>'M-PESA','bank'=>'Bank transfer','store_credit'=>'Store credit']; ?>
+<div class="return-workspace return-review-page">
+    <div class="page-head"><div><div class="section-kicker">Final request check</div><h1>Review return</h1><p class="lede">Confirm the selected units and refund request before sending it for manager approval.</p></div></div>
+    <ol class="workflow-steps" aria-label="Return progress"><li class="complete"><span>1</span><b>Select sale</b></li><li class="complete"><span>2</span><b>Select items</b></li><li class="complete"><span>3</span><b>Refund and reason</b></li><li class="active"><span>4</span><b>Review</b></li></ol>
+    <div class="alert alert-info"><b>This creates a pending request.</b> Stock remains unchanged and no external refund is sent until an administrator records a decision.</div>
+    <div class="return-review-grid">
+        <section class="card"><div class="return-section-head"><div><div class="section-kicker">Original sale</div><h2><?= e($sale['sale_number']) ?></h2><p><?= e($sale['customer_name']?:'Walk-in customer') ?><?= $sale['customer_phone']?' · '.e($sale['customer_phone']):'' ?></p></div><a href="<?= e(url('sales/'.$sale['id'])) ?>">View sale</a></div>
+            <div class="return-review-items"><?php foreach($draft['items'] as $item): ?><article><span><b><?= e($item['product_name']) ?></b><small><?= e($item['sku']) ?><?= $item['serial_number']?' · Serial '.e($item['serial_number']):'' ?></small></span><span><small><?= (int)$item['quantity'] ?> × <?= money($item['unit_price']) ?></small><b><?= money($item['refund_amount']) ?></b></span></article><?php endforeach; ?></div>
+            <div class="return-review-total"><span>Requested refund</span><strong><?= money($draft['refund_total']) ?></strong></div>
+        </section>
+        <aside class="card return-review-context"><div class="section-kicker">Request details</div><dl class="kv"><dt>Refund method</dt><dd><?= e($methodLabels[$draft['refund_method']]??ucwords(str_replace('_',' ',$draft['refund_method']))) ?></dd><dt>Reason</dt><dd><?= e($draft['reason']) ?></dd><dt>Evidence note</dt><dd><?= $draft['evidence_note']!==''?nl2br(e($draft['evidence_note'])):'Not provided' ?></dd></dl></aside>
+    </div>
+    <form method="post" action="<?= e(url('returns')) ?>" class="return-review-submit"><?= csrf_field() ?><input type="hidden" name="review_token" value="<?= e($reviewToken) ?>"><a class="btn btn-ghost" href="<?= e(url('returns/new?sale='.$sale['id'])) ?>">← Back and edit</a><label class="dialog-confirm-check"><input type="checkbox" required><span>I checked the selected units, refund amount, and customer reason.</span></label><button class="btn btn-primary" type="submit">Send for approval</button></form>
+</div>

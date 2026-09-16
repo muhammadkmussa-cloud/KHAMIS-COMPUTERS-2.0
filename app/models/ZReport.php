@@ -41,15 +41,28 @@ class ZReport
               WHERE status = 'cancelled' AND {$where}",
             $params
         );
+        $returnWhere  = 'DATE(r.created_at) = ?';
+        $returnParams = [$date];
+        if ($userId !== null) {
+            $returnWhere .= ' AND r.user_id = ?';
+            $returnParams[] = $userId;
+        }
         $r = Database::fetch(
-            "SELECT COUNT(*) AS cnt, COALESCE(SUM(refund_amount), 0) AS total
-               FROM returns
-              WHERE status = 'completed' AND {$where}",
-            $params
+            "SELECT COUNT(*) AS cnt,
+                    COALESCE(SUM(r.refund_amount), 0) AS total,
+                    COALESCE(SUM(CASE
+                        WHEN r.refund_method = 'cash' THEN r.refund_amount
+                        WHEN r.refund_method = 'original' AND s.payment_method = 'cash' THEN r.refund_amount
+                        ELSE 0 END), 0) AS cash_total
+               FROM returns r
+               JOIN sales s ON s.id = r.sale_id
+              WHERE r.status = 'completed' AND {$returnWhere}",
+            $returnParams
         );
 
         $cash    = round((float) $s['cash'], 2);
-        $refunds = round((float) $r['total'], 2);
+        $refunds    = round((float) $r['total'], 2);
+        $cashRefunds = round((float) $r['cash_total'], 2);
 
         return [
             'sales_count'   => (int) $s['cnt'],
@@ -63,12 +76,13 @@ class ZReport
             'voids_total'   => round((float) $v['total'], 2),
             'refunds_count' => (int) $r['cnt'],
             'refunds_total' => $refunds,
-            'expected_cash' => round($cash - $refunds, 2),
+            'cash_refunds'  => $cashRefunds,
+            'expected_cash' => round($cash - $cashRefunds, 2),
         ];
     }
 
-    /** Snapshot a day for a specific cashier (upsert). */
-    public static function close(string $date, int $userId, ?string $notes = null): int
+    /** Create one immutable snapshot for a cashier and date. */
+    public static function close(string $date, int $userId, float $countedCash, ?string $notes = null, ?int $closedBy = null): int
     {
         $m = self::summary($date, $userId);
         $existing = Database::fetch(
@@ -76,6 +90,13 @@ class ZReport
             [$userId, $date]
         );
 
+        if ($existing) {
+            throw new Exception('This day is already closed and its snapshot is immutable.');
+        }
+        $variance = round($countedCash - (float) $m['expected_cash'], 2);
+        if (abs($variance) >= 0.01 && trim((string) $notes) === '') {
+            throw new Exception('Explain the cash variance before closing the day.');
+        }
         $data = [
             'sales_count'   => $m['sales_count'],
             'total_sales'   => $m['total_sales'],
@@ -89,29 +110,40 @@ class ZReport
             'refunds_count' => $m['refunds_count'],
             'refunds_total' => $m['refunds_total'],
             'expected_cash' => $m['expected_cash'],
+            'counted_cash'  => round($countedCash, 2),
+            'variance'      => $variance,
+            'closed_by'     => $closedBy,
             'notes'         => trim((string) $notes) !== '' ? trim((string) $notes) : null,
             'created_at'    => Database::now(),
         ];
 
-        if ($existing) {
-            $id = (int) $existing['id'];
-            Database::update('z_reports', $data, 'id = :id', ['id' => $id]);
-            return $id;
-        }
         return (int) Database::insert('z_reports', $data + [
             'user_id'     => $userId,
             'report_date' => $date,
         ]);
     }
 
-    public static function all(int $limit = 60): array
+    /**
+     * Saved day-closing snapshots, newest first. Pass $userId to restrict the
+     * result to a single staff member (cashiers only see their own day).
+     */
+    public static function all(int $limit = 60, ?int $userId = null): array
     {
+        $where = '';
+        $args  = [];
+        if ($userId !== null) {
+            $where  = ' WHERE z.user_id = ?';
+            $args[] = $userId;
+        }
         return Database::fetchAll(
-            "SELECT z.*, u.name AS user_name
+            "SELECT z.*, u.name AS user_name, cu.name AS closed_by_name
                FROM z_reports z
                LEFT JOIN users u ON u.id = z.user_id
+               LEFT JOIN users cu ON cu.id = z.closed_by
+              {$where}
               ORDER BY z.report_date DESC, z.id DESC
-              LIMIT " . max(1, min(500, $limit))
+              LIMIT " . max(1, min(500, $limit)),
+            $args
         );
     }
 

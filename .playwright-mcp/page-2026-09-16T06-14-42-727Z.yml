@@ -1,0 +1,123 @@
+- generic [ref=f27e1]:
+  - link "Skip to main content" [ref=f27e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f27e3]:
+    - generic [ref=f27e4]:
+      - link "Khamis Computers dashboard" [ref=f27e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f27e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f27e10]:
+        - link "Dashboard" [ref=f27e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f27e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f27e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f27e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f27e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f27e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Z-report" [ref=f27e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports/z
+      - generic [ref=f27e19]:
+        - link "Shop ↗" [ref=f27e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Cashier, cashier" [ref=f27e21]:
+          - generic [ref=f27e22]: K
+          - generic [ref=f27e23]:
+            - text: Khamis
+            - generic [ref=f27e24]: cashier
+        - button "Sign out" [ref=f27e26] [cursor=pointer]
+  - main [ref=f27e27]:
+    - generic [ref=f27e28]:
+      - generic [ref=f27e29]:
+        - text: Cashier workspace
+        - heading "New sale" [level=1] [ref=f27e30]
+        - paragraph [ref=f27e31]: Scan a barcode or search the catalogue. Your active cart is saved on this device.
+      - generic "Register status" [ref=f27e32]:
+        - generic "Register online" [ref=f27e33]: ● Online
+    - generic [ref=f27e34]:
+      - generic [ref=f27e35]:
+        - generic [ref=f27e37]:
+          - generic [ref=f27e38]: Search products, barcodes, or serial numbers
+          - searchbox "Search products, barcodes, or serial numbers" [ref=f27e39]: FCA956D5D52B76
+          - generic: /
+        - status [ref=f27e40]: 1 result
+        - generic "Product results" [ref=f27e41]:
+          - button "HP ProBook 450 G10 (i5/16GB/512GB)KC-LAP-001 Laptops Serial tracked Exact serial match KSh 65,000.00 1 unit" [ref=f27e42] [cursor=pointer]:
+            - generic [ref=f27e43]:
+              - generic [aria-hidden] [ref=f27e44]: HP
+              - generic [ref=f27e45]:
+                - text: HP ProBook 450 G10 (i5/16GB/512GB)KC-LAP-001
+                - generic [ref=f27e46]:
+                  - generic [ref=f27e47]: Laptops
+                  - generic [ref=f27e48]: Serial tracked
+            - generic [ref=f27e49]: Exact serial match
+            - generic [ref=f27e50]: KSh 65,000.00
+            - generic [ref=f27e51]: 1 unit
+      - complementary [ref=f27e52]:
+        - generic [ref=f27e53]:
+          - generic [ref=f27e54]:
+            - heading "Current sale" [level=2] [ref=f27e55]
+            - generic [ref=f27e56]: 0 items
+          - button "Clear cart" [disabled] [ref=f27e57]
+        - generic [ref=f27e59]:
+          - strong [ref=f27e60]: No items yet
+          - text: Scan or choose a product to begin.
+        - generic [ref=f27e61]:
+          - group [ref=f27e62]:
+            - generic "Customer details Optional" [ref=f27e63] [cursor=pointer]:
+              - text: Customer details
+              - generic [ref=f27e64]: Optional
+          - generic [ref=f27e65]:
+            - generic [ref=f27e66]:
+              - generic [ref=f27e67]: Subtotal
+              - generic [ref=f27e68]: KSh 0.00
+            - generic [ref=f27e69]:
+              - generic [ref=f27e70]: Discount
+              - generic [ref=f27e71]:
+                - generic [ref=f27e72]: Number
+                - spinbutton "Number" [ref=f27e73]: "0"
+                - generic [ref=f27e74]: Discount type
+                - combobox "Discount type" [ref=f27e75]:
+                  - option "KSh" [selected]
+                  - option "%"
+                - generic [ref=f27e76]: Manager PIN
+            - generic [ref=f27e77]:
+              - generic [ref=f27e78]: VAT (16%)
+              - generic [ref=f27e79]: KSh 0.00
+            - generic [ref=f27e80]:
+              - generic [ref=f27e81]: Total
+              - generic [ref=f27e82]: KSh 0.00
+          - generic [ref=f27e84]:
+            - generic [ref=f27e85]:
+              - generic [ref=f27e86]: Payment method
+              - combobox "Payment method" [ref=f27e87]:
+                - option "Cash" [selected]
+                - option "M-PESA"
+                - option "Card"
+                - option "Bank transfer"
+            - generic [ref=f27e88]:
+              - generic [ref=f27e89]: Cash received
+              - spinbutton "Cash received" [ref=f27e90]
+          - button "Review and complete sale" [disabled] [ref=f27e91]
+          - alert [ref=f27e92]
+          - status [ref=f27e93]
+    - dialog [ref=f27e95]:
+      - heading "Serial numbers — HP ProBook 450 G10 (i5/16GB/512GB)" [level=3] [ref=f27e96]
+      - paragraph [ref=f27e97]: 1 available · Pick the exact unit or units to sell.
+      - generic [ref=f27e98]:
+        - generic [ref=f27e99]: Search serial numbers
+        - searchbox "Search serial numbers" [active] [ref=f27e100]
+        - generic [ref=f27e101]: 1 selected
+      - generic [ref=f27e103] [cursor=pointer]:
+        - checkbox "FCA956D5D52B76 Warranty until 2027-09-08 Available" [checked] [ref=f27e104]
+        - generic [ref=f27e105]:
+          - strong [ref=f27e106]: FCA956D5D52B76
+          - generic [ref=f27e107]: Warranty until 2027-09-08
+        - generic [ref=f27e108]: Available
+      - generic [ref=f27e109]:
+        - button "Cancel" [ref=f27e110] [cursor=pointer]
+        - button "Add selected units" [ref=f27e111] [cursor=pointer]

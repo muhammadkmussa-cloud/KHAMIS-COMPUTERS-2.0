@@ -2,11 +2,11 @@
    Khamis Computers — Service Worker (offline app shell for the POS)
    Strategy:
      - HTML (navigations):  network-first, fall back to cache, then /pos shell
-     - Static assets:       cache-first (stale while revalidate)
+     - Static assets:       network-first, cached for offline use
      - JSON APIs:           never cached — the JS falls back to IndexedDB itself
    ========================================================================== */
 
-var VERSION = 'kc-v2';
+var VERSION = 'kc-v3';
 
 // Subfolder support: the POS registers us as sw.js?base=/sub/path/ and we
 // prefix every app-shell asset with that base so offline works anywhere.
@@ -61,16 +61,16 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  // Static assets — cache first.
+  // Static assets — use the latest version online and retain it for offline use.
   if (/\.(css|js|svg|png|jpg|jpeg|webp|woff2?)$/.test(url.pathname)) {
     e.respondWith(
-      caches.match(e.request).then(function (hit) {
-        return hit || fetch(e.request).then(function (res) {
-          var copy = res.clone();
-          caches.open(VERSION).then(function (c) { c.put(e.request, copy); });
+      fetch(e.request).then(function (res) {
+          if (res.ok) {
+            var copy = res.clone();
+            caches.open(VERSION).then(function (c) { c.put(e.request, copy); });
+          }
           return res;
-        });
-      })
+      }).catch(function () { return caches.match(e.request); })
     );
     return;
   }

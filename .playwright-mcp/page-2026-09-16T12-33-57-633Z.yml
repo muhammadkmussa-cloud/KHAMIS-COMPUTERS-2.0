@@ -1,0 +1,104 @@
+- generic [active] [ref=f60e1]:
+  - link "Skip to main content" [ref=f60e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f60e3]:
+    - generic [ref=f60e4]:
+      - link "Khamis Computers dashboard" [ref=f60e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f60e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f60e10]:
+        - link "Dashboard" [ref=f60e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f60e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f60e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f60e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f60e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f60e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Reports" [ref=f60e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports
+        - link "Staff" [ref=f60e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/staff
+        - link "Settings" [ref=f60e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/settings
+      - generic [ref=f60e21]:
+        - link "Shop ↗" [ref=f60e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Admin, admin" [ref=f60e23]:
+          - generic [ref=f60e24]: K
+          - generic [ref=f60e25]:
+            - text: Khamis
+            - generic [ref=f60e26]: admin
+        - button "Sign out" [ref=f60e28] [cursor=pointer]
+  - main [ref=f60e29]:
+    - generic [ref=f60e30]:
+      - generic [ref=f60e31]:
+        - generic [ref=f60e32]:
+          - heading "New return" [level=2] [ref=f60e33]
+          - paragraph [ref=f60e34]: Choose a sale to return items from.
+        - link "← Returns" [ref=f60e35] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+      - generic [ref=f60e36]:
+        - heading "Recent sales" [level=3] [ref=f60e37]
+        - paragraph [ref=f60e38]: Pick the order that contains the item being returned.
+        - table [ref=f60e39]:
+          - rowgroup [ref=f60e40]:
+            - row [ref=f60e41]:
+              - columnheader "Sale" [ref=f60e42]
+              - columnheader "Customer" [ref=f60e43]
+              - columnheader "Date" [ref=f60e44]
+              - columnheader "Total" [ref=f60e45]
+              - columnheader [ref=f60e46]
+          - rowgroup [ref=f60e47]:
+            - row [ref=f60e48]:
+              - cell "S-20260915-0066" [ref=f60e49]
+              - cell "Walk-in" [ref=f60e50]
+              - cell "15 Sep 2026" [ref=f60e51]
+              - cell "KSh 140,360.00" [ref=f60e52]
+              - cell [ref=f60e53]:
+                - link "Select" [ref=f60e55] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/returns/new?sale=66
+            - row [ref=f60e56]:
+              - cell "S-20260909-0064" [ref=f60e57]
+              - cell "Walk-in" [ref=f60e58]
+              - cell "09 Sep 2026" [ref=f60e59]
+              - cell "KSh 141,752.00" [ref=f60e60]
+              - cell [ref=f60e61]:
+                - link "Select" [ref=f60e63] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/returns/new?sale=65
+            - row [ref=f60e64]:
+              - cell "S-20260909-0024" [ref=f60e65]
+              - cell "Walk-in" [ref=f60e66]
+              - cell "09 Sep 2026" [ref=f60e67]
+              - cell "KSh 236,640.00" [ref=f60e68]
+              - cell [ref=f60e69]:
+                - link "Select" [ref=f60e71] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/returns/new?sale=63
+            - row [ref=f60e72]:
+              - cell "S-20260908-0003" [ref=f60e73]
+              - cell "Offline Tester" [ref=f60e74]
+              - cell "08 Sep 2026" [ref=f60e75]
+              - cell "KSh 141,752.00" [ref=f60e76]
+              - cell [ref=f60e77]:
+                - link "Select" [ref=f60e79] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/returns/new?sale=3
+            - row [ref=f60e80]:
+              - cell "S-20260908-0002" [ref=f60e81]
+              - cell "Brian Otieno" [ref=f60e82]
+              - cell "08 Sep 2026" [ref=f60e83]
+              - cell "KSh 144,304.00" [ref=f60e84]
+              - cell [ref=f60e85]:
+                - link "Select" [ref=f60e87] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/returns/new?sale=2
+            - row [ref=f60e88]:
+              - cell "S-20260908-0001" [ref=f60e89]
+              - cell "Amina Hassan" [ref=f60e90]
+              - cell "08 Sep 2026" [ref=f60e91]
+              - cell "KSh 143,144.00" [ref=f60e92]
+              - cell [ref=f60e93]:
+                - link "Select" [ref=f60e95] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/returns/new?sale=1

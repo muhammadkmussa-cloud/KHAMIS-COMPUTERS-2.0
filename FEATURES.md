@@ -18,7 +18,7 @@ Complete list of every feature in the system and exactly where it is implemented
 | 0.3 | Database layer (PDO; MySQL + SQLite, prepared statements, insert/update/delete/fetch, dup-key detection) | `app/core/Database.php` | — |
 | 0.4 | Schema, migrations & seeding (idempotent `CREATE TABLE IF NOT EXISTS`, `migrateColumns()` for upgrades, baseline settings, delivery-zone seeds) | `schema/schema.sql`, `app/core/Schema.php`, `tools/install.php` | — |
 | 0.5 | Front controller + routing (`{param}` matching, method, `auth`/`admin` guards, 404) | `public_html/index.php`, `app/core/Router.php` | `app/views/errors/404.php`, `app/views/shop/404.php` |
-| 0.6 | View system (layouts `app` / `auth` / `shop`, partials, page render) | `app/core/View.php` | `app/views/layouts/{app,auth,shop}.php`, `app/views/partials/{topnav,flash,sidebar}.php` |
+| 0.6 | View system (layouts `app` / `auth` / `shop`, partials, page render) | `app/core/View.php` | `app/views/layouts/{app,auth,shop}.php`, `app/views/partials/{topnav,flash,reports-tabs}.php` |
 | 0.7 | Auth — login/logout, roles (admin/cashier), bcrypt + auto-rehash, `requireLogin`/`requireAdmin` | `app/core/Auth.php`, `app/controllers/AuthController.php` | `app/views/auth/login.php`, logout button in `app/views/layouts/app.php` |
 | 0.8 | Session hardening (strict mode, cookie-only, regenerate on login, HttpOnly/SameSite) | `app/bootstrap.php` | — |
 | 0.9 | CSRF protection (session-scoped token, `checkOrFail`) | `app/core/Csrf.php`, `app/helpers/functions.php` (`csrf_field`) | `csrf_field()` in every form |
@@ -204,7 +204,7 @@ Complete list of every feature in the system and exactly where it is implemented
 
 **Frontend (HTML/CSS/JS)**
 - `app/views/layouts/` — `app.php` (staff), `auth.php` (login/install), `shop.php` (storefront), `print.php` (standalone print pages)
-- `app/views/partials/` — `topnav.php`, `flash.php`, `sidebar.php`, `reports-tabs.php`
+- `app/views/partials/` — `topnav.php`, `flash.php`, `reports-tabs.php`
 - `app/views/**` — one folder per module (pos, products, sales, returns, grn, suppliers, categories, brands, expenses, reports, settings, staff, shop, setup, auth, errors, dashboard)
 - `public_html/assets/css/` — `app.css` (staff), `shop.css` (storefront)
 - `public_html/assets/js/` — `app.js` (shared), `shop.js` (cart/checkout), `pos-offline.js` (offline POS)

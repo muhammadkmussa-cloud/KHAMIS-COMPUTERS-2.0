@@ -107,10 +107,20 @@ function csv_response(array $rows, string $filename): void
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF"); // UTF-8 BOM for Excel
     foreach ($rows as $row) {
-        fputcsv($out, array_values($row), ',', '"', '\\');
+        $cells = array_map(
+            static fn ($value) => is_string($value) ? csv_safe_cell($value) : $value,
+            array_values($row)
+        );
+        fputcsv($out, $cells, ',', '"', '\\');
     }
     fclose($out);
     exit;
+}
+
+/** Neutralize user-controlled text that spreadsheet apps could execute as a formula. */
+function csv_safe_cell(string $value): string
+{
+    return preg_match('/^[\x00-\x20]*[=+\-@]/u', $value) === 1 ? "'" . $value : $value;
 }
 
 function brand_mark(int $size = 32): string

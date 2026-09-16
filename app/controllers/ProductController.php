@@ -6,39 +6,43 @@ class ProductController
     public function index(): void
     {
         Auth::requireLogin();
-        $q        = trim($_GET['q'] ?? '');
-        $products = Product::all($q);
-        $lowStock = $q === '' ? Product::lowStock() : [];
+        $filters = [
+            'q' => trim((string) ($_GET['q'] ?? '')),
+            'category' => (string) ($_GET['category'] ?? ''),
+            'tracking' => (string) ($_GET['tracking'] ?? ''),
+            'status' => (string) ($_GET['status'] ?? ''),
+            'stock' => (string) ($_GET['stock'] ?? ''),
+        ];
+        $products = Product::search($filters);
 
         View::render('products/index', [
             'title'    => 'Inventory',
             'products' => $products,
-            'lowStock' => $lowStock,
-            'q'        => $q,
+            'filters'  => $filters,
+            'summary'  => Product::inventorySummary(),
+            'categories' => Category::all(),
         ]);
     }
 
     public function create(): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         View::render('products/form', [
             'title'      => 'Add product',
             'product'    => null,
             'categories' => Category::all(),
             'brands'     => Brand::all(),
+            'hasHistory' => false,
         ]);
     }
 
     public function store(): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
-        $errors = Product::validate($_POST);
+        $errors = array_merge(Product::validate($_POST), Product::uniquenessErrors($_POST));
         $sku = trim((string) ($_POST['sku'] ?? ''));
-        if ($sku !== '' && Database::fetchValue('SELECT COUNT(*) FROM products WHERE sku = ?', [$sku]) > 0) {
-            $errors[] = 'That SKU is already in use.';
-        }
 
         if ($errors) {
             flash('error', implode(' ', $errors));
@@ -47,7 +51,8 @@ class ProductController
         }
 
         $now = Database::now();
-        $id  = Database::insert('products', [
+        try {
+            $id = Database::insert('products', [
             'name'          => trim($_POST['name']),
             'sku'           => $sku,
             'category_id'   => (int) ($_POST['category_id'] ?? 0) ?: null,
@@ -56,13 +61,19 @@ class ProductController
             'sell_price'    => round((float) $_POST['sell_price'], 2),
             'barcode'       => trim((string) ($_POST['barcode'] ?? '')) ?: null,
             'description'   => trim((string) ($_POST['description'] ?? '')),
-            'is_active'     => isset($_POST['is_active']) ? 1 : 0,
-            'is_serialized' => isset($_POST['is_serialized']) ? 1 : 0,
+            'is_active'     => ($_POST['is_active'] ?? '') === '1' ? 1 : 0,
+            'is_serialized' => ($_POST['is_serialized'] ?? '') === '1' ? 1 : 0,
             'warranty_months' => ($_POST['warranty_months'] ?? '') !== '' ? max(0, (int) $_POST['warranty_months']) : null,
             'reorder_level' => max(0, (int) ($_POST['reorder_level'] ?? 0)),
             'created_at'    => $now,
             'updated_at'    => $now,
-        ]);
+            ]);
+        } catch (Throwable $e) {
+            if (!Database::isDuplicateKey($e)) throw $e;
+            set_old($_POST);
+            flash('error', 'That SKU or barcode was just used by another product. Choose a unique value and try again.');
+            redirect('products/new');
+        }
 
         flash('success', 'Product created.');
         redirect(!empty($_POST['print_labels']) ? 'products/' . $id . '/labels?autoprint=1' : 'products/' . $id);
@@ -71,7 +82,7 @@ class ProductController
     /** JSON: generate a unique internal product barcode (Code 128-safe). */
     public function generateBarcode(): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         for ($i = 0; $i < 12; $i++) {
             $code = 'KC' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 10));
             if ((int) Database::fetchValue('SELECT COUNT(*) FROM products WHERE barcode = ?', [$code]) === 0) {
@@ -81,10 +92,25 @@ class ProductController
         json_response(['ok' => false, 'error' => 'Could not generate a unique barcode. Try again.'], 500);
     }
 
+    /** JSON uniqueness check used by the product identity form. */
+    public function checkUnique(): void
+    {
+        Auth::requireAdmin();
+        $field = (string) ($_GET['field'] ?? '');
+        if (!in_array($field, ['sku', 'barcode'], true)) {
+            json_response(['ok' => false, 'error' => 'Unsupported field.'], 422);
+        }
+        $value = trim((string) ($_GET['value'] ?? ''));
+        $exclude = max(0, (int) ($_GET['exclude'] ?? 0));
+        $errors = Product::uniquenessErrors([$field => $value], $exclude > 0 ? $exclude : null);
+        json_response(['ok' => true, 'available' => $errors === [], 'message' => $errors[0] ?? 'Available']);
+    }
+
     /** Export the catalogue (with live stock) as CSV. */
     public function export(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         $rows = Product::all();
         $csv  = [['SKU', 'Barcode', 'Name', 'Category', 'Brand', 'Cost (KSh)', 'Sell (KSh)', 'In stock', 'Tracked by', 'Warranty (months)', 'Active']];
@@ -116,19 +142,24 @@ class ProductController
             redirect('products');
         }
 
+        $unitQ = trim((string) ($_GET['unit_q'] ?? ''));
+        $unitStatus = (string) ($_GET['unit_status'] ?? '');
         View::render('products/show', [
             'title'     => $product['name'],
             'product'   => $product,
-            'units'     => Product::units($id),
+            'units'     => Product::units($id, $unitQ, $unitStatus),
+            'unitSummary' => Product::unitSummary($id),
+            'unitQ' => $unitQ,
+            'unitStatus' => $unitStatus,
             'movements' => Product::movements($id),
             'images'    => Product::images($id),
-            'stock'     => Product::stockOf($product),
+            'stock'     => Product::stock($id),
         ]);
     }
 
     public function edit(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         $product = Product::find($id);
         if (!$product) {
             flash('error', 'Product not found.');
@@ -140,12 +171,13 @@ class ProductController
             'product'    => $product,
             'categories' => Category::all(),
             'brands'     => Brand::all(),
+            'hasHistory' => self::hasStockHistory($id),
         ]);
     }
 
     public function update(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $product = Product::find($id);
@@ -154,19 +186,14 @@ class ProductController
             redirect('products');
         }
 
-        $errors = Product::validate($_POST);
+        $errors = array_merge(Product::validate($_POST), Product::uniquenessErrors($_POST, $id));
         $sku = trim((string) ($_POST['sku'] ?? ''));
-        if ($sku !== '' && Database::fetchValue('SELECT COUNT(*) FROM products WHERE sku = ? AND id != ?', [$sku, $id]) > 0) {
-            $errors[] = 'That SKU is already in use.';
-        }
 
         // Changing the tracking mode on a product with history would desync
         // stock (units vs movements), so it is only allowed on untouched products.
-        $newSerialized = isset($_POST['is_serialized']) ? 1 : 0;
+        $newSerialized = ($_POST['is_serialized'] ?? '') === '1' ? 1 : 0;
         if ((int) $product['is_serialized'] !== $newSerialized) {
-            $units = (int) Database::fetchValue('SELECT COUNT(*) FROM inventory_units WHERE product_id = ?', [$id]);
-            $moves = (int) Database::fetchValue('SELECT COUNT(*) FROM stock_movements WHERE product_id = ?', [$id]);
-            if (($units + $moves) > 0) {
+            if (self::hasStockHistory($id)) {
                 $errors[] = 'You cannot change serial/IMEI tracking on a product that already has stock history. Create a new product instead.';
             }
         }
@@ -176,7 +203,8 @@ class ProductController
             redirect('products/' . $id . '/edit');
         }
 
-        Database::update('products', [
+        try {
+            Database::update('products', [
             'name'          => trim($_POST['name']),
             'sku'           => $sku,
             'category_id'   => (int) ($_POST['category_id'] ?? 0) ?: null,
@@ -185,20 +213,34 @@ class ProductController
             'sell_price'    => round((float) $_POST['sell_price'], 2),
             'barcode'       => trim((string) ($_POST['barcode'] ?? '')) ?: null,
             'description'   => trim((string) ($_POST['description'] ?? '')),
-            'is_active'     => isset($_POST['is_active']) ? 1 : 0,
-            'is_serialized' => isset($_POST['is_serialized']) ? 1 : 0,
+            'is_active'     => ($_POST['is_active'] ?? '') === '1' ? 1 : 0,
+            'is_serialized' => ($_POST['is_serialized'] ?? '') === '1' ? 1 : 0,
             'warranty_months' => ($_POST['warranty_months'] ?? '') !== '' ? max(0, (int) $_POST['warranty_months']) : null,
             'reorder_level' => max(0, (int) ($_POST['reorder_level'] ?? 0)),
             'updated_at'    => Database::now(),
-        ], 'id = :id', ['id' => $id]);
+            ], 'id = :id', ['id' => $id]);
+        } catch (Throwable $e) {
+            if (!Database::isDuplicateKey($e)) throw $e;
+            flash('error', 'That SKU or barcode was just used by another product. Choose a unique value and try again.');
+            redirect('products/' . $id . '/edit');
+        }
 
         flash('success', 'Product updated.');
         redirect(!empty($_POST['print_labels']) ? 'products/' . $id . '/labels?autoprint=1' : 'products/' . $id);
     }
 
+    private static function hasStockHistory(int $id): bool
+    {
+        return (int) Database::fetchValue(
+            'SELECT (SELECT COUNT(*) FROM inventory_units WHERE product_id = ?)
+                  + (SELECT COUNT(*) FROM stock_movements WHERE product_id = ?)',
+            [$id, $id]
+        ) > 0;
+    }
+
     public function delete(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $product = Product::find($id);
@@ -250,7 +292,7 @@ class ProductController
     /** Add serial numbers to a serialized product. */
     public function addUnits(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $product = Product::find($id);
@@ -281,27 +323,45 @@ class ProductController
         $wm  = max(0, (int) ($product['warranty_months'] ?? 0));
         $expires = $wm > 0 ? date('Y-m-d', strtotime($now . ' +' . $wm . ' months')) : null;
         $inserted = 0;
-        foreach ($serials as $sn) {
-            if (Database::fetchValue('SELECT COUNT(*) FROM inventory_units WHERE serial_number = ?', [$sn]) > 0) {
-                continue; // skip duplicates silently
+        $skipped = 0;
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            foreach ($serials as $sn) {
+                $sn = mb_substr($sn, 0, 120);
+                if (Database::fetchValue('SELECT COUNT(*) FROM inventory_units WHERE serial_number = ?', [$sn]) > 0) {
+                    $skipped++;
+                    continue;
+                }
+                try {
+                    Database::insert('inventory_units', [
+                        'product_id' => $id, 'serial_number' => $sn,
+                        'status' => 'in_stock', 'received_at' => $now,
+                        'warranty_expires' => $expires,
+                    ]);
+                    $inserted++;
+                } catch (Throwable $e) {
+                    if (!Database::isDuplicateKey($e)) throw $e;
+                    $skipped++;
+                }
             }
-            Database::insert('inventory_units', [
-                'product_id' => $id, 'serial_number' => $sn,
-                'status' => 'in_stock', 'received_at' => $now,
-                'warranty_expires' => $expires,
-            ]);
-            $inserted++;
+            if ($inserted > 0) {
+                Database::insert('stock_movements', [
+                    'product_id' => $id, 'type' => 'received', 'quantity' => $inserted,
+                    'reference' => 'MANUAL', 'user_id' => Auth::id(), 'created_at' => $now,
+                ]);
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
         }
         if ($inserted === 0) {
             flash('error', 'Those serial numbers already exist — nothing was added.');
             redirect('products/' . $id);
         }
-        Database::insert('stock_movements', [
-            'product_id' => $id, 'type' => 'received', 'quantity' => $inserted,
-            'reference' => 'MANUAL', 'user_id' => Auth::id(), 'created_at' => $now,
-        ]);
 
-        flash('success', $inserted . ' serial number(s) added.');
+        flash('success', $inserted . ' serial number(s) added' . ($skipped > 0 ? '; ' . $skipped . ' duplicate(s) skipped.' : '.'));
         redirect($print ? 'products/' . $id . '/labels?kind=serials&autoprint=1' : 'products/' . $id);
     }
 
@@ -327,7 +387,7 @@ class ProductController
     /** Change a unit's status (sold / damaged / returned / missing / in_stock). */
     public function setUnitStatus(int $id, int $unitId): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $unit = Database::fetch('SELECT * FROM inventory_units WHERE id = ? AND product_id = ?', [$unitId, $id]);
@@ -339,7 +399,8 @@ class ProductController
         $status = (string) ($_POST['status'] ?? 'in_stock');
         $allowed = ['in_stock', 'reserved', 'sold', 'damaged', 'returned', 'missing'];
         if (!in_array($status, $allowed, true)) {
-            $status = 'in_stock';
+            flash('error', 'Choose a valid unit status.');
+            redirect('products/' . $id . '#stock');
         }
 
         // A unit sold on a live order is managed by the sale/return/void flows.
@@ -364,19 +425,99 @@ class ProductController
         if ($warranty !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $warranty)) {
             $warranty = '';
         }
-        Database::update('inventory_units',
-            ['status' => $status, 'note' => trim((string) ($_POST['note'] ?? '')) ?: null,
-             'warranty_expires' => $warranty !== '' ? $warranty : null],
-            'id = :id AND product_id = :pid',
-            ['id' => $unitId, 'pid' => $id]);
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            Database::update('inventory_units',
+                ['status' => $status, 'note' => trim((string) ($_POST['note'] ?? '')) ?: null,
+                 'warranty_expires' => $warranty !== '' ? $warranty : null],
+                'id = :id AND product_id = :pid',
+                ['id' => $unitId, 'pid' => $id]);
+            self::recordUnitStatusMovement($id, $unitId, (string) $unit['status'], $status, 'Unit status update');
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            throw $e;
+        }
 
         flash('success', 'Unit updated.');
         redirect('products/' . $id);
     }
 
+    /** Apply one explicit status to selected serialized units. */
+    public function bulkUnits(int $id): void
+    {
+        Auth::requireAdmin();
+        Csrf::checkOrFail();
+        $product = Product::find($id);
+        if (!$product || (int) $product['is_serialized'] !== 1) {
+            flash('error', 'Bulk unit updates apply to serialized products.');
+            redirect('products/' . $id);
+        }
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['unit_ids'] ?? [])))));
+        $ids = array_slice($ids, 0, 200);
+        $status = (string) ($_POST['bulk_status'] ?? '');
+        $allowed = ['in_stock', 'reserved', 'returned', 'damaged', 'missing'];
+        if (!$ids || !in_array($status, $allowed, true)) {
+            flash('error', 'Select at least one unit and a permitted destination status.');
+            redirect('products/' . $id . '#stock');
+        }
+
+        $slots = implode(',', array_fill(0, count($ids), '?'));
+        $units = Database::fetchAll(
+            "SELECT * FROM inventory_units WHERE product_id = ? AND id IN ({$slots})",
+            array_merge([$id], $ids)
+        );
+        if (count($units) !== count($ids)) {
+            flash('error', 'One or more selected units no longer exist. Refresh and try again.');
+            redirect('products/' . $id . '#stock');
+        }
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            foreach ($units as $unit) {
+                $liveSale = Database::fetchValue(
+                    "SELECT COUNT(*) FROM sale_items si JOIN sales s ON s.id = si.sale_id
+                      WHERE si.unit_id = ? AND s.status IN ('completed','pending')",
+                    [(int) $unit['id']]
+                );
+                if ((int) $liveSale > 0 && $unit['status'] === 'sold') {
+                    throw new RuntimeException('A selected sold unit belongs to a live order. Process a return or void instead.');
+                }
+                Database::update('inventory_units', [
+                    'status' => $status,
+                    'note' => trim((string) ($_POST['bulk_note'] ?? '')) ?: ($unit['note'] ?? null),
+                ], 'id = :id AND product_id = :pid', ['id' => (int) $unit['id'], 'pid' => $id]);
+                self::recordUnitStatusMovement($id, (int) $unit['id'], (string) $unit['status'], $status, 'Bulk unit update');
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            flash('error', $e->getMessage());
+            redirect('products/' . $id . '#stock');
+        }
+        Activity::log('inventory.units_bulk_updated', json_encode(['product_id' => $id, 'unit_ids' => $ids, 'status' => $status], JSON_UNESCAPED_SLASHES));
+        flash('success', count($ids) . ' selected unit(s) updated to ' . str_replace('_', ' ', $status) . '.');
+        redirect('products/' . $id . '?unit_status=' . rawurlencode($status) . '#stock');
+    }
+
+    private static function recordUnitStatusMovement(int $productId, int $unitId, string $from, string $to, string $reference): void
+    {
+        if ($from === $to || ($from === 'in_stock') === ($to === 'in_stock')) return;
+        Database::insert('stock_movements', [
+            'product_id' => $productId,
+            'unit_id' => $unitId,
+            'type' => $to === 'in_stock' ? 'adjustment_in' : 'adjustment_out',
+            'quantity' => $to === 'in_stock' ? 1 : -1,
+            'reference' => $reference,
+            'user_id' => Auth::id(),
+            'created_at' => Database::now(),
+        ]);
+    }
+
     public function deleteUnit(int $id, int $unitId): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         // Never delete a unit that appears in sales or returns history —
@@ -399,7 +540,7 @@ class ProductController
     /** Manual stock adjustment for non-serialized products. */
     public function adjust(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $product = Product::find($id);
@@ -409,21 +550,26 @@ class ProductController
         }
 
         $delta = (int) ($_POST['delta'] ?? 0);
+        $reason = trim((string) ($_POST['reason'] ?? ''));
         if ($delta === 0) {
             flash('error', 'Enter a non-zero adjustment.');
             redirect('products/' . $id);
         }
-        $newStock = Product::stockOf($product) + $delta;
+        $newStock = Product::stockAfterAdjustment($id, $delta);
         if ($newStock < 0) {
             flash('error', 'Stock cannot go below zero.');
             redirect('products/' . $id);
+        }
+        if (mb_strlen($reason) < 3) {
+            flash('error', 'Enter a clear reason for the stock adjustment.');
+            redirect('products/' . $id . '#stock');
         }
 
         Database::insert('stock_movements', [
             'product_id' => $id,
             'type'       => $delta > 0 ? 'adjustment_in' : 'adjustment_out',
             'quantity'   => $delta,
-            'reference'  => trim((string) ($_POST['reason'] ?? 'Manual adjustment')) ?: 'Adjustment',
+            'reference'  => mb_substr($reason, 0, 255),
             'user_id'    => Auth::id(),
             'created_at' => Database::now(),
         ]);
@@ -464,7 +610,7 @@ class ProductController
     /** Upload gallery images for a product. */
     public function uploadImages(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $product = Product::find($id);
@@ -497,10 +643,15 @@ class ProductController
                     $errors[] = basename((string) $orig) . ' is not a JPG/PNG/WebP image.';
                     continue;
                 }
-                if (@getimagesize((string) $files['tmp_name'][$i]) === false) {
+                $imageInfo = @getimagesize((string) $files['tmp_name'][$i]);
+                $mimeExt = is_array($imageInfo) ? [
+                    'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp',
+                ][$imageInfo['mime'] ?? ''] ?? null : null;
+                if ($mimeExt === null) {
                     $errors[] = basename((string) $orig) . ' is not a valid image file.';
                     continue;
                 }
+                $ext = $mimeExt;
                 $name = $id . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
                 if (!move_uploaded_file((string) $files['tmp_name'][$i], $dir . '/' . $name)) {
                     $errors[] = 'Could not save ' . basename((string) $orig) . '.';
@@ -508,7 +659,8 @@ class ProductController
                 }
                 $max = (int) Database::fetchValue('SELECT COALESCE(MAX(sort_order), 0) FROM product_images WHERE product_id = ?', [$id]);
                 Database::insert('product_images', [
-                    'product_id' => $id, 'filename' => $name, 'sort_order' => $max + 1, 'created_at' => Database::now(),
+                    'product_id' => $id, 'filename' => $name, 'alt_text' => $product['name'],
+                    'sort_order' => $max + 1, 'created_at' => Database::now(),
                 ]);
                 if (empty($product['image'])) {
                     Database::update('products', ['image' => $name, 'updated_at' => Database::now()], 'id = :id', ['id' => $id]);
@@ -530,10 +682,48 @@ class ProductController
         redirect('products/' . $id);
     }
 
+    /** Update image description and move it one position in the gallery. */
+    public function updateImage(int $id, int $imageId): void
+    {
+        Auth::requireAdmin();
+        Csrf::checkOrFail();
+        $img = Database::fetch('SELECT * FROM product_images WHERE id = ? AND product_id = ?', [$imageId, $id]);
+        if (!$img) {
+            flash('error', 'Image not found.');
+            redirect('products/' . $id . '#images');
+        }
+        $alt = mb_substr(trim((string) ($_POST['alt_text'] ?? '')), 0, 255);
+        $direction = (string) ($_POST['direction'] ?? '');
+        $pdo = Database::pdo();
+        $pdo->beginTransaction();
+        try {
+            Database::update('product_images', ['alt_text' => $alt ?: null], 'id = :id', ['id' => $imageId]);
+            if (in_array($direction, ['up', 'down'], true)) {
+                $operator = $direction === 'up' ? '<' : '>';
+                $order = $direction === 'up' ? 'DESC' : 'ASC';
+                $other = Database::fetch(
+                    "SELECT * FROM product_images WHERE product_id = ? AND sort_order {$operator} ? ORDER BY sort_order {$order}, id {$order} LIMIT 1",
+                    [$id, (int) $img['sort_order']]
+                );
+                if ($other) {
+                    Database::update('product_images', ['sort_order' => (int) $other['sort_order']], 'id = :id', ['id' => $imageId]);
+                    Database::update('product_images', ['sort_order' => (int) $img['sort_order']], 'id = :id', ['id' => (int) $other['id']]);
+                }
+            }
+            $pdo->commit();
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            flash('error', 'Could not update the image.');
+            redirect('products/' . $id . '#images');
+        }
+        flash('success', 'Image details updated.');
+        redirect('products/' . $id . '#images');
+    }
+
     /** Set a gallery image as the product's primary image. */
     public function setPrimaryImage(int $id, int $imageId): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $img = Database::fetch('SELECT * FROM product_images WHERE id = ? AND product_id = ?', [$imageId, $id]);
@@ -549,7 +739,7 @@ class ProductController
     /** Remove a gallery image (promotes the next one if it was primary). */
     public function deleteImage(int $id, int $imageId): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
         Csrf::checkOrFail();
 
         $img = Database::fetch('SELECT * FROM product_images WHERE id = ? AND product_id = ?', [$imageId, $id]);
@@ -581,7 +771,7 @@ class ProductController
      */
     public function labels(int $id): void
     {
-        Auth::requireLogin();
+        Auth::requireAdmin();
 
         $product = Product::find($id);
         if (!$product) {
@@ -590,7 +780,8 @@ class ProductController
         }
 
         $kind    = ($_GET['kind'] ?? 'shelf') === 'serials' ? 'serials' : 'shelf';
-        $thermal = !empty($_GET['thermal']);
+        $paper   = (($_GET['paper'] ?? '') === 'thermal' || !empty($_GET['thermal'])) ? 'thermal' : 'a4';
+        $thermal = $paper === 'thermal';
         $qty     = max(1, min(500, (int) ($_GET['qty'] ?? 24)));
 
         $units = [];
@@ -615,6 +806,7 @@ class ProductController
             'kind'         => $kind,
             'qty'          => $qty,
             'thermal'      => $thermal,
+            'paper'        => $paper,
             'units'        => $units,
             'barcodeValue' => $barcodeValue,
         ], 'print');

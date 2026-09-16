@@ -20,12 +20,18 @@
     </form>
 </div>
 
+<div class="report-period-links"><span>Quick period</span><a href="<?= e(url('reports/purchases').'?from='.date('Y-m-01').'&to='.date('Y-m-t')) ?>">This month</a><a href="<?= e(url('reports/purchases').'?from='.date('Y-m-01',strtotime('first day of last month')).'&to='.date('Y-m-t',strtotime('last day of last month'))) ?>">Last month</a><a href="<?= e(url('reports/purchases').'?from='.date('Y-01-01').'&to='.date('Y-m-d')) ?>">Year to date</a></div>
+
 <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
     <div class="kpi"><div class="kpi-label">Total purchases (net)</div><div class="kpi-value blue"><?= money($d['grand_net']) ?></div><div class="kpi-hint">VAT-exclusive, <?= e($from) ?> → <?= e($to) ?></div></div>
     <div class="kpi"><div class="kpi-label">Est. input VAT</div><div class="kpi-value" style="color:var(--green)"><?= money($d['grand_vat']) ?></div><div class="kpi-hint"><?= e((string) $rate) ?>% of purchases</div></div>
     <div class="kpi"><div class="kpi-label">Deliveries</div><div class="kpi-value"><?= number_format($d['grn_count']) ?></div><div class="kpi-hint">goods-received notes</div></div>
     <div class="kpi"><div class="kpi-label">Suppliers</div><div class="kpi-value"><?= number_format(count($d['summary'])) ?></div><div class="kpi-hint">with purchases this period</div></div>
 </div>
+
+<?php if($d['trend']): $maxPurchase=max(1.0,...array_map(fn($point)=>(float)$point['net'],$d['trend'])); ?>
+<section class="card purchase-trend"><div class="section-kicker">Spend trend</div><h2>Purchases over time</h2><div><?php foreach($d['trend'] as $point): ?><span title="<?= e(date('d M Y',strtotime($point['date']))) ?> · <?= money($point['net']) ?> · <?= number_format($point['deliveries']) ?> deliveries"><i style="height:<?= max(5,round($point['net']/$maxPurchase*100)) ?>%"></i><small><?= e(date('d M',strtotime($point['date']))) ?></small><b><?= money($point['net']) ?></b></span><?php endforeach; ?></div></section>
+<?php endif; ?>
 
 <?php if ($filter !== ''): ?>
     <?php $f = $d['summary'][0] ?? null; ?>

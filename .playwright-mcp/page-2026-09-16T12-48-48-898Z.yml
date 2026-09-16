@@ -1,0 +1,117 @@
+- generic [active] [ref=f67e1]:
+  - link "Skip to main content" [ref=f67e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f67e3]:
+    - generic [ref=f67e4]:
+      - link "Khamis Computers dashboard" [ref=f67e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f67e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f67e10]:
+        - link "Dashboard" [ref=f67e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f67e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f67e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f67e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f67e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f67e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Reports" [ref=f67e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports
+        - link "Staff" [ref=f67e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/staff
+        - link "Settings" [ref=f67e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/settings
+      - generic [ref=f67e21]:
+        - link "Shop ↗" [ref=f67e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Admin, admin" [ref=f67e23]:
+          - generic [ref=f67e24]: K
+          - generic [ref=f67e25]:
+            - text: Khamis
+            - generic [ref=f67e26]: admin
+        - button "Sign out" [ref=f67e28] [cursor=pointer]
+  - main [ref=f67e29]:
+    - generic [ref=f67e30]:
+      - generic [ref=f67e31]:
+        - generic [ref=f67e32]:
+          - generic [ref=f67e33]: Return case
+          - heading "R-20260908-001" [level=1] [ref=f67e34]
+          - paragraph [ref=f67e35]:
+            - generic [ref=f67e36]: Completed
+            - text: for
+            - link "S-20260908-0003" [ref=f67e37] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/3
+        - link "← Returns" [ref=f67e39] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+      - region "Return status timeline" [ref=f67e40]:
+        - generic [ref=f67e41]:
+          - generic [ref=f67e42]: ✓
+          - paragraph [ref=f67e43]:
+            - generic [ref=f67e44]: Request created
+            - generic [ref=f67e45]: 08 Sep 2026 · 07:50 PM by Khamis Admin
+        - generic [ref=f67e47]:
+          - generic [ref=f67e48]: ✓
+          - paragraph [ref=f67e49]:
+            - generic [ref=f67e50]: Request approved
+            - generic [ref=f67e51]: No stock changes yet
+        - generic [ref=f67e53]:
+          - generic [ref=f67e54]: ✓
+          - paragraph [ref=f67e55]:
+            - generic [ref=f67e56]: Stock outcomes recorded
+            - generic [ref=f67e57]: Inventory updated item by item
+      - generic [ref=f67e58]:
+        - main [ref=f67e59]:
+          - generic [ref=f67e60]:
+            - generic [ref=f67e61]:
+              - generic [ref=f67e62]:
+                - generic [ref=f67e63]: Returned items
+                - heading "2 lines" [level=2] [ref=f67e64]
+              - strong [ref=f67e65]: KSh 122,200.00
+            - generic [ref=f67e66]:
+              - article [ref=f67e67]:
+                - generic [ref=f67e68]:
+                  - link "MacBook Air M3" [ref=f67e69] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8102/products/9
+                  - generic [ref=f67e70]: KC-LAP-004 · Serial MAC-AIR-0001
+                - generic [ref=f67e71]:
+                  - generic [ref=f67e72]: 1 unit · sold at KSh 120,000.00
+                  - generic [ref=f67e73]: KSh 120,000.00
+              - article [ref=f67e74]:
+                - generic [ref=f67e75]:
+                  - link "Logitech Wireless Mouse M221" [ref=f67e76] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8102/products/6
+                  - generic [ref=f67e77]: KC-ACC-001
+                - generic [ref=f67e78]:
+                  - generic [ref=f67e79]: 1 unit · sold at KSh 2,200.00
+                  - generic [ref=f67e80]: KSh 2,200.00
+          - generic [ref=f67e81]:
+            - generic [ref=f67e82]: Reason and inspection evidence
+            - heading "Customer context" [level=2] [ref=f67e83]
+            - generic [ref=f67e84]:
+              - generic [ref=f67e85]:
+                - term [ref=f67e86]: Reason
+                - definition [ref=f67e87]: Changed mind
+              - generic [ref=f67e88]:
+                - term [ref=f67e89]: Evidence or inspection note
+                - definition [ref=f67e90]: Not provided
+        - complementary [ref=f67e91]:
+          - generic [ref=f67e92]: Case summary
+          - heading "KSh 122,200.00" [level=2] [ref=f67e93]
+          - paragraph [ref=f67e94]: Requested through Original payment method.
+          - generic [ref=f67e95]:
+            - term [ref=f67e96]: Original sale
+            - definition [ref=f67e97]:
+              - link "S-20260908-0003" [ref=f67e98] [cursor=pointer]:
+                - /url: http://127.0.0.1:8102/sales/3
+            - term [ref=f67e99]: Customer
+            - definition [ref=f67e100]: Offline Tester
+            - term [ref=f67e101]: Phone
+            - definition [ref=f67e102]: "0700000000"
+            - term [ref=f67e103]: Sales channel
+            - definition [ref=f67e104]: POS
+            - term [ref=f67e105]: Requested by
+            - definition [ref=f67e106]: Khamis Admin

@@ -60,6 +60,7 @@ class ShopController
             'title' => 'Your cart — ' . config('app.name'),
             'zones' => DeliveryZone::active(),
             'mpesaEnabled' => MpesaService::enabled(),
+            'recommendations' => Product::featured(4),
         ], 'shop');
     }
 
@@ -99,18 +100,26 @@ class ShopController
         }
 
         $name        = trim((string) ($data['name'] ?? ''));
-        $phone       = trim((string) ($data['phone'] ?? ''));
+        $phone       = self::normalizeKenyanPhone((string) ($data['phone'] ?? ''));
         $email       = trim((string) ($data['email'] ?? ''));
         $fulfillment = (($data['fulfillment'] ?? 'pickup') === 'delivery') ? 'delivery' : 'pickup';
         $address     = trim((string) ($data['address'] ?? ''));
-        $payment     = (string) ($data['payment_method'] ?? 'cash');
-        $payNow      = !empty($data['pay_now']) && $payment === 'mpesa' && MpesaService::enabled();
+        try {
+            [$payment, $payNow] = self::checkoutPaymentIntent($data, MpesaService::enabled());
+        } catch (InvalidArgumentException $e) {
+            json_response(['ok' => false, 'error' => $e->getMessage()], 422);
+        }
+        $clientRef = trim((string) ($data['client_ref'] ?? ''));
+        $deviceId  = trim((string) ($data['device_id'] ?? ''));
 
         if ($name === '') {
             json_response(['ok' => false, 'error' => 'Please enter your full name.'], 422);
         }
-        if ($phone === '') {
-            json_response(['ok' => false, 'error' => 'Please enter a phone number so we can contact you.'], 422);
+        if ($phone === null) {
+            json_response(['ok' => false, 'error' => 'Enter a valid Kenyan mobile number, for example 0712 345 678.'], 422);
+        }
+        if ($clientRef === '' || $deviceId === '' || strlen($clientRef) > 100 || strlen($deviceId) > 100) {
+            json_response(['ok' => false, 'error' => 'Could not secure this checkout. Refresh the page and try again.'], 422);
         }
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             json_response(['ok' => false, 'error' => 'Please enter a valid email address.'], 422);
@@ -161,14 +170,23 @@ class ShopController
                 'delivery_zone'       => $deliveryZone,
                 'status'              => $payNow ? 'pending' : 'completed',
                 'user_id'             => null,
+                'client_ref'          => $clientRef,
+                'device_id'           => $deviceId,
             ]);
         } catch (Throwable $e) {
             json_response(['ok' => false, 'error' => $e->getMessage()], 422);
         }
 
+        if (!empty($sale['duplicate'])) {
+            $existing = SaleService::find((int) $sale['id']);
+            if ($existing && in_array($existing['status'], ['cancelled', 'voided'], true)) {
+                json_response(['ok' => false, 'reset_ref' => true, 'error' => 'That payment attempt ended. Please place the order again.'], 409);
+            }
+        }
+
         // M-PESA STK push: prompt the customer's phone now. If the request
         // itself fails, void the reserved stock and ask them to retry.
-        if ($payNow) {
+        if ($payNow && empty($sale['duplicate'])) {
             $full = SaleService::find((int) $sale['id']);
             $push = MpesaService::stkPush($phone, (float) $full['total'], (string) $full['sale_number'], (int) $sale['id']);
             if (!$push['ok']) {
@@ -177,7 +195,7 @@ class ShopController
                 } catch (Throwable $e) {
                     error_log('[mpesa] could not void failed order: ' . $e->getMessage());
                 }
-                json_response(['ok' => false, 'error' => $push['error'] ?? 'M-PESA is unavailable. Please try again.'], 422);
+                json_response(['ok' => false, 'reset_ref' => true, 'error' => $push['error'] ?? 'M-PESA is unavailable. Please try again.'], 422);
             }
         }
 
@@ -224,6 +242,11 @@ class ShopController
     /** Safaricom Daraja STK callback (server-to-server, no session). */
     public function mpesaCallback(): void
     {
+        if (!MpesaService::validCallbackToken((string) ($_GET['token'] ?? ''))) {
+            http_response_code(404);
+            echo '{"ResultCode":1,"ResultDesc":"Not found"}';
+            return;
+        }
         $raw  = (string) file_get_contents('php://input');
         $body = json_decode($raw, true);
         if (!is_array($body)) {
@@ -274,8 +297,14 @@ class ShopController
         $sale = $number !== '' && $phone !== '' ? Sale::findByNumberAndPhone($number, $phone) : null;
 
         if (!$sale) {
-            flash('error', 'We could not find an order matching that number and phone.');
-            redirect('shop/track');
+            http_response_code(404);
+            View::render('shop/track', [
+                'title'       => 'Track your order — ' . config('app.name'),
+                'lookupError' => 'We could not find an order with those details. Check both entries and try again.',
+                'orderNumber' => $number,
+                'phone'       => $phone,
+            ], 'shop');
+            return;
         }
 
         $_SESSION['last_order_id'] = (int) $sale['id'];
@@ -284,6 +313,34 @@ class ShopController
             'sale'  => $sale,
             'items' => SaleService::items((int) $sale['id']),
         ], 'shop');
+    }
+
+    /** Return a consistent local Kenyan mobile number, or null when invalid. */
+    public static function normalizeKenyanPhone(string $phone): ?string
+    {
+        $digits = preg_replace('/\D+/', '', $phone) ?? '';
+        if (str_starts_with($digits, '254') && strlen($digits) === 12) {
+            $digits = '0' . substr($digits, 3);
+        } elseif (strlen($digits) === 9 && ($digits[0] === '7' || $digits[0] === '1')) {
+            $digits = '0' . $digits;
+        }
+        return preg_match('/^0(?:1|7)\d{8}$/', $digits) ? $digits : null;
+    }
+
+    /** Validate the client payment choice before any stock can be reserved. */
+    public static function checkoutPaymentIntent(array $data, bool $mpesaEnabled): array
+    {
+        $payment = (string) ($data['payment_method'] ?? 'cash');
+        if (!in_array($payment, ['cash', 'mpesa'], true)) {
+            throw new InvalidArgumentException('Please choose a valid payment method.');
+        }
+        if ($payment === 'mpesa') {
+            if (empty($data['pay_now']) || !$mpesaEnabled) {
+                throw new InvalidArgumentException('M-PESA pay now is unavailable. Choose pay on handover or refresh the page.');
+            }
+            return ['mpesa', true];
+        }
+        return ['cash', false];
     }
 
     public function order(int $id): void
@@ -298,7 +355,7 @@ class ShopController
             redirect('shop');
         }
         View::render('shop/order', [
-            'title' => 'Order confirmed — ' . config('app.name'),
+            'title' => ($sale['status'] === 'pending' ? 'Complete M-PESA payment' : (in_array($sale['status'], ['cancelled', 'voided'], true) ? 'Order not completed' : 'Order confirmed')) . ' — ' . config('app.name'),
             'sale'  => $sale,
             'items' => SaleService::items($id),
         ], 'shop');

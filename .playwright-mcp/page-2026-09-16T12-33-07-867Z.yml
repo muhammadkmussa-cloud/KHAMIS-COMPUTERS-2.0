@@ -1,0 +1,69 @@
+- generic [active] [ref=f59e1]:
+  - link "Skip to main content" [ref=f59e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f59e3]:
+    - generic [ref=f59e4]:
+      - link "Khamis Computers dashboard" [ref=f59e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f59e9]: Khamis Computers
+      - button "Open navigation" [ref=f59e10] [cursor=pointer]
+      - button "Sign out" [ref=f59e16] [cursor=pointer]
+  - main [ref=f59e17]:
+    - generic [ref=f59e18]:
+      - generic [ref=f59e19]:
+        - heading "Returns" [level=1] [ref=f59e20]
+        - paragraph [ref=f59e21]: Refunds and reversals across all orders.
+      - link "+ New return" [ref=f59e22] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns/new
+    - table [ref=f59e24]:
+      - rowgroup [ref=f59e25]:
+        - row [ref=f59e26]:
+          - columnheader "Return" [ref=f59e27]
+          - columnheader "Sale" [ref=f59e28]
+          - columnheader "Customer" [ref=f59e29]
+          - columnheader "Items" [ref=f59e30]
+          - columnheader "Refund" [ref=f59e31]
+          - columnheader "Status" [ref=f59e32]
+          - columnheader "Date" [ref=f59e33]
+          - columnheader [ref=f59e34]
+      - rowgroup [ref=f59e35]:
+        - row [ref=f59e36]:
+          - cell [ref=f59e37]:
+            - text: Return
+            - link "R-20260908-002" [ref=f59e38] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/returns/2
+          - cell [ref=f59e39]:
+            - text: Sale
+            - link "S-20260908-0001" [ref=f59e40] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/1
+          - cell "Customer Amina Hassan" [ref=f59e41]
+          - cell "Items 1" [ref=f59e42]
+          - cell "Refund KSh 120,000.00" [ref=f59e43]
+          - cell "Status Rejected" [ref=f59e44]:
+            - text: Status
+            - generic [ref=f59e45]: Rejected
+          - cell "Date 08 Sep 2026" [ref=f59e46]
+          - cell [ref=f59e47]:
+            - text: Details
+            - link "View" [ref=f59e49] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/returns/2
+        - row [ref=f59e50]:
+          - cell [ref=f59e51]:
+            - text: Return
+            - link "R-20260908-001" [ref=f59e52] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/returns/1
+          - cell [ref=f59e53]:
+            - text: Sale
+            - link "S-20260908-0003" [ref=f59e54] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/3
+          - cell "Customer Offline Tester" [ref=f59e55]
+          - cell "Items 2" [ref=f59e56]
+          - cell "Refund KSh 122,200.00" [ref=f59e57]
+          - cell "Status Completed" [ref=f59e58]:
+            - text: Status
+            - generic [ref=f59e59]: Completed
+          - cell "Date 08 Sep 2026" [ref=f59e60]
+          - cell [ref=f59e61]:
+            - text: Details
+            - link "View" [ref=f59e63] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/returns/1

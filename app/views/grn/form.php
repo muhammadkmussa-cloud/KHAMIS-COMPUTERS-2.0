@@ -1,159 +1,58 @@
 <?php
-// Products for the dynamic line picker.
-$productJson = [];
-foreach ($products as $p) {
-    $productJson[] = [
-        'id' => (int) $p['id'],
-        'name' => $p['name'],
-        'sku' => $p['sku'],
-        'cost' => (float) $p['cost_price'],
-        'serialized' => (int) $p['is_serialized'] === 1,
-    ];
-}
+$productData=[];
+foreach($products as $product){$productData[]=['id'=>(int)$product['id'],'name'=>$product['name'],'sku'=>$product['sku'],'barcode'=>$product['barcode']??'','cost'=>(float)$product['cost_price'],'serialized'=>(int)$product['is_serialized']===1,'stock'=>(int)($product['units_stock']??$product['qty_stock']??0),'label'=>$product['sku'].' · '.$product['name']];}
+$draft=$draft??null;
+$draftLines=$draft['lines']??[];
+if(!$draftLines && $prefillProduct>0){foreach($productData as $product){if($product['id']===$prefillProduct){$draftLines=[['product_id'=>$product['id'],'quantity'=>1,'unit_cost'=>$product['cost'],'serials'=>[]]];break;}}}
+$selectedSupplier=(int)($draft['supplier_id']??($_GET['supplier']??0));
+$customSupplier=$selectedSupplier?'':(string)($draft['supplier']??$prefillSupplierName??'');
+include APP_PATH . '/views/partials/inventory-tabs.php';
 ?>
-<div class="content-narrow">
-    <div class="page-head">
-        <div>
-            <h2>Receive stock</h2>
-            <p class="lede">Record a delivery — it updates stock (and serial numbers) immediately.</p>
-        </div>
-        <a class="btn btn-ghost" href="<?= e(url('grn')) ?>">← Goods received</a>
-    </div>
+<div class="page-head grn-receive-head"><div><div class="section-kicker">Guided receiving</div><h1>Receive stock</h1><p class="lede">Validate the delivery, review its exact impact, then post stock once.</p></div><a class="btn btn-ghost" href="<?= e(url('grn')) ?>">Goods received</a></div>
 
-    <div class="card">
-        <form method="post" action="<?= e(url('grn')) ?>" id="grn-form" class="form">
-            <?= csrf_field() ?>
+<ol class="workflow-steps grn-steps" aria-label="Receiving progress"><li class="complete"><span>1</span><b>Delivery</b></li><li class="active"><span>2</span><b>Items</b></li><li><span>3</span><b>Review</b></li><li><span>4</span><b>Posted</b></li></ol>
 
-            <div class="form-row">
-                <div class="field">
-                    <span>Supplier <a href="<?= e(url('suppliers')) ?>" class="hint" style="font-weight:600">(manage)</a></span>
-                    <select name="supplier_id">
-                        <option value="">— choose saved supplier or type below —</option>
-                        <?php foreach ($suppliers as $sp): ?>
-                            <option value="<?= (int) $sp['id'] ?>"><?= e($sp['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <input type="text" name="supplier" placeholder="…or type a supplier name" style="margin-top:6px">
-                </div>
-                <div class="field">
-                    <span>Note (optional)</span>
-                    <input type="text" name="note" placeholder="Delivery reference…">
-                </div>
-            </div>
+<?php if($errors): ?><div class="alert alert-error grn-errors" role="alert"><b>Resolve these issues before review:</b><ul><?php foreach($errors as $error): ?><li><?= e($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
 
-            <div>
-                <div class="section-kicker">Items</div>
-                <div id="grn-rows"></div>
-                <button type="button" class="btn btn-outline btn-sm" id="add-row">+ Add product</button>
-            </div>
+<form method="post" action="<?= e(url('grn/review')) ?>" id="grn-form" class="grn-workspace" novalidate>
+    <?= csrf_field() ?>
+    <section class="card grn-delivery-card"><div class="product-section-head"><div><span>01</span><div><h2>Delivery details</h2><p>Identify the supplier document before entering stock.</p></div></div><small>Required</small></div><div class="grn-delivery-fields">
+        <label class="field" for="grn-supplier"><span>Saved supplier</span><select id="grn-supplier" name="supplier_id"><option value="">Enter a one-time supplier below</option><?php foreach($suppliers as $supplier): ?><option value="<?= (int)$supplier['id'] ?>" <?= (int)$supplier['id']===$selectedSupplier?'selected':'' ?>><?= e($supplier['name']) ?></option><?php endforeach; ?></select><small><a href="<?= e(url('suppliers?add=1')) ?>">Add or manage suppliers</a></small></label>
+        <label class="field" for="grn-custom-supplier"><span>One-time supplier</span><input id="grn-custom-supplier" type="text" name="supplier" maxlength="190" value="<?= e($customSupplier) ?>" placeholder="Use only when the supplier is not saved"></label>
+        <label class="field" for="grn-reference"><span>Supplier reference</span><input id="grn-reference" type="text" name="supplier_reference" maxlength="120" value="<?= e($draft['supplier_reference']??'') ?>" placeholder="Invoice or delivery-note number"><small>Shown on the GRN and searchable later.</small></label>
+        <label class="field" for="grn-note"><span>Receiving note</span><input id="grn-note" type="text" name="note" maxlength="2000" value="<?= e($draft['note']??'') ?>" placeholder="Condition, courier, or internal note"></label>
+    </div></section>
 
-            <div class="grn-total">Total cost: <span id="grn-total">KSh 0.00</span></div>
+    <section class="card grn-items-card"><div class="product-section-head"><div><span>02</span><div><h2>Delivery items</h2><p>Search by name, SKU, or scan a product barcode. Serialized quantities must match exact serial counts.</p></div></div><button type="button" class="btn btn-outline btn-sm" id="add-grn-row">Add line</button></div>
+        <datalist id="grn-product-options"><?php foreach($productData as $product): ?><option value="<?= e($product['label']) ?>"><?= e($product['barcode']?:($product['serialized']?'Serial tracked':'Quantity tracked')) ?></option><?php endforeach; ?></datalist>
+        <div class="grn-line-head" aria-hidden="true"><span>Product</span><span>Quantity</span><span>Unit cost</span><span>Line total</span><span></span></div>
+        <div id="grn-lines"></div>
+        <button type="button" class="btn btn-outline btn-sm grn-add-mobile" id="add-grn-row-mobile">Add another product</button>
+    </section>
 
-            <div class="form-actions">
-                <button class="btn btn-primary" type="submit">Receive &amp; update stock</button>
-                <a class="btn btn-ghost" href="<?= e(url('grn')) ?>">Cancel</a>
-            </div>
-        </form>
-    </div>
-</div>
+    <aside class="grn-review-bar"><div><span>Delivery total</span><b id="grn-total">KSh 0.00</b><small><span id="grn-unit-count">0</span> units across <span id="grn-line-count">0</span> lines</small></div><div><a class="btn btn-ghost" href="<?= e(url('grn')) ?>">Cancel</a><button class="btn btn-primary" type="submit">Review receipt</button></div></aside>
+</form>
 
 <script>
-window.KC_PRODUCTS = <?= json_encode($productJson) ?>;
-</script>
-<script>
-(function () {
-  var products = window.KC_PRODUCTS || [];
-  var rows = document.getElementById('grn-rows');
-  var counter = 0;
-
-  function money(n) {
-    return 'KSh ' + Number(n || 0).toLocaleString('en-KE', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+(function(){
+  var products=<?= json_encode($productData,JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP) ?>, initial=<?= json_encode($draftLines,JSON_UNESCAPED_SLASHES|JSON_HEX_TAG|JSON_HEX_AMP) ?>;
+  var form=document.getElementById('grn-form'),lines=document.getElementById('grn-lines'),supplier=document.getElementById('grn-supplier'),customSupplier=document.getElementById('grn-custom-supplier');
+  function money(value){return 'KSh '+Number(value||0).toLocaleString('en-KE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function serialValues(text){return String(text||'').split(/\r?\n/).map(function(value){return value.trim();}).filter(Boolean);}
+  function productById(id){return products.find(function(product){return product.id===Number(id);});}
+  function resolveProduct(value){var needle=String(value||'').trim().toLowerCase();return products.find(function(product){return product.label.toLowerCase()===needle||product.sku.toLowerCase()===needle||(product.barcode&&product.barcode.toLowerCase()===needle);});}
+  function setFeedback(row,message,isError){var feedback=row.querySelector('[data-line-feedback]');feedback.textContent=message||'';feedback.classList.toggle('text-danger',!!isError);}
+  function chooseProduct(row,product){var search=row.querySelector('[data-product-search]'),id=row.querySelector('[name="product_id[]"]'),cost=row.querySelector('[name="cost[]"]'),serialWrap=row.querySelector('[data-serial-wrap]');id.value=product?product.id:'';if(product){search.value=product.label;search.setCustomValidity('');if(cost.value==='')cost.value=product.cost.toFixed(2);row.dataset.serialized=product.serialized?'1':'0';serialWrap.hidden=!product.serialized;row.querySelector('[data-product-meta]').textContent=(product.serialized?'Serial / IMEI':'Quantity')+' · '+product.stock+' currently available';}else{row.dataset.serialized='0';serialWrap.hidden=true;id.value='';row.querySelector('[data-product-meta]').textContent='Choose a product from the catalogue';}validateRow(row);updateTotals();}
+  function validateRow(row){var product=productById(row.querySelector('[name="product_id[]"]').value),qty=Number(row.querySelector('[name="qty[]"]').value),cost=Number(row.querySelector('[name="cost[]"]').value),serials=serialValues(row.querySelector('[name="serials[]"]').value),message='';if(!product)message='Choose a valid product.';else if(!Number.isInteger(qty)||qty<1)message='Quantity must be a whole number of at least 1.';else if(!Number.isFinite(cost)||cost<0)message='Unit cost cannot be negative.';else if(product.serialized&&serials.length!==qty)message='Enter exactly '+qty+' serial number'+(qty===1?'':'s')+'; '+serials.length+' entered.';else if(product.serialized&&new Set(serials.map(function(value){return value.toLowerCase();})).size!==serials.length)message='Serial numbers on this line must be unique.';setFeedback(row,message,!!message);return !message;}
+  function addLine(data){data=data||{};var row=document.createElement('article');row.className='grn-line';row.innerHTML='<div class="grn-product-picker"><label><span class="sr-only">Product</span><input type="search" list="grn-product-options" autocomplete="off" placeholder="Search name, SKU, or scan barcode" data-product-search required></label><input type="hidden" name="product_id[]"><small data-product-meta>Choose a product from the catalogue</small></div><label><span>Quantity</span><input type="number" name="qty[]" min="1" max="10000" step="1" required value="1"></label><label><span>Unit cost</span><input type="number" name="cost[]" min="0" step="0.01" required placeholder="0.00"></label><div class="grn-line-total"><span>Line total</span><b data-line-total>KSh 0.00</b></div><button type="button" class="btn btn-danger-ghost btn-sm" data-remove-line aria-label="Remove receiving line">Remove</button><label class="grn-serial-field" data-serial-wrap hidden><span>Serial / IMEI numbers <small data-serial-count></small></span><textarea name="serials[]" rows="4" placeholder="One exact serial per line"></textarea></label><p class="grn-line-feedback" data-line-feedback aria-live="polite"></p>';
+    lines.appendChild(row);var search=row.querySelector('[data-product-search]'),qty=row.querySelector('[name="qty[]"]'),cost=row.querySelector('[name="cost[]"]'),serials=row.querySelector('[name="serials[]"]');qty.value=data.quantity||1;cost.value=data.unit_cost!==undefined?data.unit_cost:'';serials.value=Array.isArray(data.serials)?data.serials.join('\n'):'';var product=productById(data.product_id);chooseProduct(row,product||null);if(!data.product_id)setFeedback(row,'',false);
+    search.addEventListener('change',function(){chooseProduct(row,resolveProduct(search.value));});search.addEventListener('input',function(){var exact=resolveProduct(search.value);if(exact)chooseProduct(row,exact);});[qty,cost,serials].forEach(function(control){control.addEventListener('input',function(){validateRow(row);updateTotals();});});row.querySelector('[data-remove-line]').addEventListener('click',function(){row.remove();if(!lines.children.length)addLine();updateTotals();});updateTotals();
   }
-
-  function productSelect() {
-    var sel = document.createElement('select');
-    sel.name = 'product_id[]';
-    sel.innerHTML = '<option value="">— choose product —</option>' + products.map(function (p) {
-      return '<option value="' + p.id + '" data-serialized="' + (p.serialized ? 1 : 0) + '" data-cost="' + p.cost + '">' +
-             escapeHtml(p.name) + ' (' + escapeHtml(p.sku) + ')' + (p.serialized ? ' · serial' : '') + '</option>';
-    }).join('');
-    return sel;
-  }
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
-    });
-  }
-
-  function addRow() {
-    counter++;
-    var row = document.createElement('div');
-    row.className = 'grn-row';
-    row.style.cssText = 'padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;background:var(--surface-2)';
-
-    var sel = productSelect();
-    var qty = document.createElement('input');
-    qty.type = 'number'; qty.min = 1; qty.value = 1; qty.name = 'qty[]';
-    var cost = document.createElement('input');
-    cost.type = 'number'; cost.step = '0.01'; cost.min = 0; cost.value = ''; cost.name = 'cost[]'; cost.placeholder = 'Unit cost';
-
-    var serials = document.createElement('textarea');
-    serials.name = 'serials[]'; serials.rows = 2; serials.placeholder = 'Serial numbers (one per line) — blank = auto-generate';
-    serials.style.display = 'none';
-
-    var rm = document.createElement('button');
-    rm.type = 'button'; rm.className = 'btn btn-danger-ghost btn-sm'; rm.textContent = '✕';
-    rm.onclick = function () { row.remove(); updateTotal(); };
-
-    var p1 = document.createElement('div'); p1.className = 'product'; p1.appendChild(sel);
-    var p2 = document.createElement('div'); p2.appendChild(qty);
-    var p3 = document.createElement('div'); p3.appendChild(cost);
-    var p4 = document.createElement('div'); p4.appendChild(rm);
-    var sWrap = document.createElement('div'); sWrap.className = 'serials'; sWrap.appendChild(serials);
-
-    row.appendChild(p1); row.appendChild(p2); row.appendChild(p3); row.appendChild(p4); row.appendChild(sWrap);
-    rows.appendChild(row);
-
-    sel.addEventListener('change', function () {
-      var opt = sel.selectedOptions[0];
-      var serialized = opt && opt.getAttribute('data-serialized') === '1';
-      serials.style.display = serialized ? 'block' : 'none';
-      if (opt && !cost.value) { cost.value = opt.getAttribute('data-cost'); }
-      syncQtyFromSerials();
-    });
-
-    serials.addEventListener('input', function () {
-      if (serials.style.display !== 'none') { syncQtyFromSerials(); }
-    });
-    [qty, cost].forEach(function (el) { el.addEventListener('input', updateTotal); });
-  }
-
-  function syncQtyFromSerials() {
-    var rows = document.querySelectorAll('#grn-rows .grn-row');
-    rows.forEach(function (row) {
-      var sel = row.querySelector('select');
-      var ta = row.querySelector('textarea');
-      var qty = row.querySelector('input[name="qty[]"]');
-      var opt = sel.selectedOptions[0];
-      if (opt && opt.getAttribute('data-serialized') === '1') {
-        var n = ta.value.split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean).length;
-        if (n > 0) { qty.value = n; }
-      }
-    });
-    updateTotal();
-  }
-
-  function updateTotal() {
-    var total = 0;
-    document.querySelectorAll('#grn-rows .grn-row').forEach(function (row) {
-      var q = parseFloat(row.querySelector('input[name="qty[]"]').value) || 0;
-      var c = parseFloat(row.querySelector('input[name="cost[]"]').value) || 0;
-      total += q * c;
-    });
-    document.getElementById('grn-total').textContent = money(total);
-  }
-
-  document.getElementById('add-row').addEventListener('click', addRow);
-  addRow();
+  function updateTotals(){var total=0,units=0,count=0;lines.querySelectorAll('.grn-line').forEach(function(row){var qty=Number(row.querySelector('[name="qty[]"]').value)||0,cost=Number(row.querySelector('[name="cost[]"]').value)||0,hasProduct=!!row.querySelector('[name="product_id[]"]').value;if(hasProduct){total+=qty*cost;units+=qty;count++;}row.querySelector('[data-line-total]').textContent=money(hasProduct?qty*cost:0);var serialCount=serialValues(row.querySelector('[name="serials[]"]').value).length;row.querySelector('[data-serial-count]').textContent=serialCount+' entered';});document.getElementById('grn-total').textContent=money(total);document.getElementById('grn-unit-count').textContent=units;document.getElementById('grn-line-count').textContent=count;}
+  function validateAll(){var valid=true,ids=[],serials=[];if(!supplier.value&&!customSupplier.value.trim()){customSupplier.setCustomValidity('Choose or enter a supplier.');valid=false;}else customSupplier.setCustomValidity('');lines.querySelectorAll('.grn-line').forEach(function(row){if(!validateRow(row))valid=false;var id=row.querySelector('[name="product_id[]"]').value;if(id){if(ids.includes(id)){setFeedback(row,'This product is already on another line.',true);valid=false;}ids.push(id);}serialValues(row.querySelector('[name="serials[]"]').value).forEach(function(serial){var key=serial.toLowerCase();if(serials.includes(key)){setFeedback(row,'This serial is duplicated elsewhere in the receipt.',true);valid=false;}serials.push(key);});});if(!ids.length)valid=false;return valid;}
+  supplier.addEventListener('change',function(){customSupplier.disabled=!!supplier.value;if(supplier.value)customSupplier.value='';});customSupplier.disabled=!!supplier.value;
+  document.getElementById('add-grn-row').addEventListener('click',function(){addLine();});document.getElementById('add-grn-row-mobile').addEventListener('click',function(){addLine();});
+  form.addEventListener('submit',function(event){if(!validateAll()){event.preventDefault();form.reportValidity();window.KC.toast('Resolve the highlighted receiving lines before review.','error');}});
+  (initial.length?initial:[{}]).forEach(addLine);
 })();
 </script>

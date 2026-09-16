@@ -75,7 +75,7 @@ Two staff roles. Cashiers sell; admins also manage inventory, staff and settings
 | Categories, brands, suppliers | ✅ | ❌ |
 | Barcode/label generation & printing | ✅ | ❌ |
 | Create returns | ✅ | ✅ |
-| Approve / reject returns | ✅ | ✅ |
+| Approve / reject returns | ✅ | ❌ |
 | Delete expenses | ✅ | ❌ |
 | Void sale / M-PESA mark-paid & retry | ✅ | ❌ |
 | Reports (revenue, profit, VAT, purchases by supplier) | ✅ | ❌ |
@@ -237,9 +237,11 @@ Every feature was re-audited end-to-end and every bug found was fixed
 - Low-stock alerts retry after a failed send instead of going quiet for 24h.
 
 A repeatable test harness now lives in `tools/` (`stock-check.php`,
-`integration-test.php`, `http-test.sh`, `route-smoke.sh`, `flow-test.sh`) —
-94 automated checks, all passing, with the database restored to baseline after
-each run.
+`integration-test.php`, `http-test.sh`, `route-smoke.sh`, `flow-test.sh`,
+`rbac-gate.sh`). Each script reports its own pass count and the database is
+restored to baseline after each run; `rbac-gate.sh` verifies the admin/cashier
+role gates over HTTP (cashiers are denied reports, VAT, purchases and CSV
+exports, and every admin-only POST changes no data).
 
 ## Tech stack
 

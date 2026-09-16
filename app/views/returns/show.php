@@ -1,60 +1,32 @@
-<?php [$label, $cls] = status_badge($r['status']); ?>
-<div class="page-head">
-    <div>
-        <div class="section-kicker">Return</div>
-        <h1><?= e($r['return_number']) ?></h1>
-        <p class="lede">
-            <span class="badge badge-<?= $cls ?>"><?= e($label) ?></span>
-            &nbsp; against <a href="<?= e(url('sales/' . $r['sale_id'])) ?>"><?= e($r['sale_number']) ?></a>
-            &nbsp; · <?= e(date('d M Y · h:i A', strtotime($r['created_at']))) ?>
-        </p>
-    </div>
-    <div class="page-actions">
-        <a class="btn btn-ghost" href="<?= e(url('returns')) ?>">← Returns</a>
-        <?php if ($r['status'] === 'pending'): ?>
-            <form method="post" action="<?= e(url('returns/' . $r['id'] . '/reject')) ?>" onsubmit="return confirm('Reject this return?');" style="display:inline">
-                <?= csrf_field() ?>
-                <button class="btn btn-danger-ghost" type="submit">Reject</button>
-            </form>
-            <form method="post" action="<?= e(url('returns/' . $r['id'] . '/approve')) ?>" onsubmit="return confirm('Approve and restock the returned items?');" style="display:inline">
-                <?= csrf_field() ?>
-                <button class="btn btn-primary" type="submit">Approve &amp; restock</button>
-            </form>
-        <?php endif; ?>
+<?php
+[$label,$cls]=status_badge($r['status']);
+$methodLabels=['original'=>'Original payment method','cash'=>'Cash','mpesa'=>'M-PESA','bank'=>'Bank transfer','store_credit'=>'Store credit'];
+$outcomeLabels=['restock'=>'Returned to sellable stock','damaged'=>'Received as damaged','unavailable'=>'Kept unavailable'];
+?>
+<div class="return-detail">
+    <div class="page-head return-detail-head"><div><div class="section-kicker">Return case</div><h1><?= e($r['return_number']) ?></h1><p class="lede"><span class="badge badge-<?= $cls ?>"><?= e($r['status']==='pending'?'Pending approval':$label) ?></span> for <a href="<?= e(url('sales/'.$r['sale_id'])) ?>"><?= e($r['sale_number']) ?></a></p></div><div class="page-actions"><a class="btn btn-ghost" href="<?= e(url('returns')) ?>">← Returns</a><?php if($r['status']==='pending'&&Auth::isAdmin()): ?><button class="btn btn-danger-ghost" type="button" data-open-return-dialog="reject-return-dialog">Reject</button><button class="btn btn-primary" type="button" data-open-return-dialog="approve-return-dialog">Review and approve</button><?php endif; ?></div></div>
+
+    <section class="return-timeline" aria-label="Return status timeline">
+        <div class="complete"><span>✓</span><p><b>Request created</b><small><?= e(date('d M Y · h:i A',strtotime($r['created_at']))) ?><?= $r['user_name']?' by '.e($r['user_name']):'' ?></small></p></div>
+        <i></i>
+        <div class="<?= $r['status']==='pending'?'active':'complete' ?>"><span><?= $r['status']==='pending'?'2':'✓' ?></span><p><b><?= $r['status']==='pending'?'Manager decision pending':($r['status']==='rejected'?'Request rejected':'Request approved') ?></b><small><?= $r['decided_at']?e(date('d M Y · h:i A',strtotime($r['decided_at']))):($r['status']==='pending'?'No stock changes yet':'Historical decision time unavailable') ?></small></p></div>
+        <i></i>
+        <div class="<?= $r['status']==='completed'?'complete':($r['status']==='rejected'?'stopped':'') ?>"><span><?= $r['status']==='completed'?'✓':($r['status']==='rejected'?'×':'3') ?></span><p><b><?= $r['status']==='completed'?'Stock outcomes recorded':($r['status']==='rejected'?'Case closed':'Stock outcome') ?></b><small><?= $r['status']==='completed'?'Inventory updated item by item':($r['status']==='rejected'?'No refund or stock change':'Recorded after approval') ?></small></p></div>
+    </section>
+
+    <div class="return-detail-grid">
+        <main>
+            <section class="card"><div class="return-section-head"><div><div class="section-kicker">Returned items</div><h2><?= count($items) ?> line<?= count($items)===1?'':'s' ?></h2></div><strong><?= money($r['refund_amount']) ?></strong></div>
+                <div class="return-detail-items"><?php foreach($items as $item): ?><article><span><a href="<?= e(url('products/'.$item['product_id'])) ?>"><b><?= e($item['product_name']) ?></b></a><small><?= e($item['sku']) ?><?= $item['serial_number']?' · Serial '.e($item['serial_number']):'' ?></small></span><span><small><?= (int)$item['quantity'] ?> unit<?= (int)$item['quantity']===1?'':'s' ?> · sold at <?= money($item['unit_price']) ?></small><b><?= money($item['refund_amount']) ?></b></span><?php if($item['stock_outcome']): ?><em class="return-outcome outcome-<?= e($item['stock_outcome']) ?>"><?= e($outcomeLabels[$item['stock_outcome']]??ucfirst($item['stock_outcome'])) ?></em><?php endif; ?></article><?php endforeach; ?></div>
+            </section>
+            <section class="card return-case-notes"><div class="section-kicker">Reason and inspection evidence</div><h2>Customer context</h2><dl><div><dt>Reason</dt><dd><?= nl2br(e($r['reason']?:'Not recorded')) ?></dd></div><div><dt>Evidence or inspection note</dt><dd><?= nl2br(e($r['evidence_note']?:'Not provided')) ?></dd></div><?php if($r['decision_note']): ?><div><dt>Decision note</dt><dd><?= nl2br(e($r['decision_note'])) ?></dd></div><?php endif; ?></dl></section>
+        </main>
+        <aside class="card return-case-summary"><div class="section-kicker">Case summary</div><h2><?= money($r['refund_amount']) ?></h2><p>Requested through <?= e($methodLabels[$r['refund_method']]??ucwords(str_replace('_',' ',$r['refund_method']))) ?>.</p><dl class="kv"><dt>Original sale</dt><dd><a href="<?= e(url('sales/'.$r['sale_id'])) ?>"><?= e($r['sale_number']) ?></a></dd><dt>Customer</dt><dd><?= e($r['customer_name']?:'Walk-in customer') ?></dd><dt>Phone</dt><dd><?= e($r['customer_phone']?:'—') ?></dd><dt>Sales channel</dt><dd><?= e(strtoupper($r['channel'])) ?></dd><dt>Requested by</dt><dd><?= e($r['user_name']?:'System') ?></dd><?php if($r['decision_user_name']): ?><dt>Decided by</dt><dd><?= e($r['decision_user_name']) ?></dd><?php endif; ?></dl></aside>
     </div>
 </div>
 
-<div class="grid-2" style="margin-top:0;align-items:start">
-    <div class="card">
-        <h3>Items</h3>
-        <table class="table">
-            <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Refund</th></tr></thead>
-            <tbody>
-            <?php foreach ($items as $i): ?>
-                <tr>
-                    <td>
-                        <div class="cell-main"><?= e($i['product_name']) ?></div>
-                        <div class="cell-sub"><?= e($i['sku']) ?><?= $i['serial_number'] ? ' · SN ' . e($i['serial_number']) : '' ?></div>
-                    </td>
-                    <td class="num"><?= (int) $i['quantity'] ?></td>
-                    <td class="num"><?= money($i['refund_amount']) ?></td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-            <tfoot>
-                <tr><td colspan="2" style="text-align:right;font-weight:700">Total refund</td>
-                    <td class="num" style="font-weight:700"><?= money($r['refund_amount']) ?></td></tr>
-            </tfoot>
-        </table>
-    </div>
-
-    <div class="card">
-        <h3>Details</h3>
-        <dl class="kv">
-            <dt>Customer</dt><dd><?= e($r['customer_name'] ?? 'Walk-in') ?></dd>
-            <dt>Phone</dt><dd><?= e($r['customer_phone'] ?? '—') ?></dd>
-            <dt>Channel</dt><dd><?= e($r['channel']) ?></dd>
-            <dt>Reason</dt><dd><?= $r['reason'] !== '' ? e($r['reason']) : '—' ?></dd>
-        </dl>
-    </div>
-</div>
+<?php if($r['status']==='pending'&&Auth::isAdmin()): ?>
+<dialog class="workflow-dialog return-decision-dialog" id="approve-return-dialog"><form method="post" action="<?= e(url('returns/'.$r['id'].'/approve')) ?>"><?= csrf_field() ?><div class="workflow-dialog-head"><span aria-hidden="true">✓</span><div><div class="section-kicker">Approval decision</div><h2>Approve <?= e($r['return_number']) ?></h2></div></div><div class="alert alert-info">This records a <?= money($r['refund_amount']) ?> refund decision. Choose what happens to each returned item; only “Return to stock” increases sellable inventory.</div><div class="decision-item-list"><?php foreach($items as $item): ?><label><span><b><?= e($item['product_name']) ?></b><small><?= (int)$item['quantity'] ?> unit<?= (int)$item['quantity']===1?'':'s' ?><?= $item['serial_number']?' · '.e($item['serial_number']):'' ?></small></span><select name="outcome[<?= (int)$item['id'] ?>]" required><option value="">Choose outcome…</option><option value="restock">Return to stock</option><option value="damaged">Mark damaged</option><option value="unavailable">Keep unavailable</option></select></label><?php endforeach; ?></div><label class="field"><span>Approval note</span><textarea name="decision_note" rows="3" required maxlength="500" placeholder="Inspection result and basis for approval"></textarea></label><label class="dialog-confirm-check"><input type="checkbox" required><span>I verified the items, refund value, and selected stock outcomes.</span></label><div class="workflow-dialog-actions"><button class="btn btn-ghost" type="button" data-close-return-dialog>Cancel</button><button class="btn btn-primary" type="submit">Approve and record outcomes</button></div></form></dialog>
+<dialog class="workflow-dialog return-decision-dialog" id="reject-return-dialog"><form method="post" action="<?= e(url('returns/'.$r['id'].'/reject')) ?>"><?= csrf_field() ?><div class="workflow-dialog-head danger"><span aria-hidden="true">!</span><div><div class="section-kicker">Rejection decision</div><h2>Reject <?= e($r['return_number']) ?></h2></div></div><div class="alert alert-warning">The request closes without changing stock. The requested <?= money($r['refund_amount']) ?> refund remains unprocessed.</div><label class="field"><span>Rejection note</span><textarea name="decision_note" rows="4" required maxlength="500" placeholder="Explain why this request cannot be approved"></textarea></label><div class="workflow-dialog-actions"><button class="btn btn-ghost" type="button" data-close-return-dialog>Keep pending</button><button class="btn btn-danger" type="submit">Reject return</button></div></form></dialog>
+<script>(function(){document.querySelectorAll('[data-open-return-dialog]').forEach(function(button){button.addEventListener('click',function(){var dialog=document.getElementById(button.dataset.openReturnDialog);if(dialog)dialog.showModal();});});document.querySelectorAll('[data-close-return-dialog]').forEach(function(button){button.addEventListener('click',function(){button.closest('dialog').close();});});document.querySelectorAll('.return-decision-dialog').forEach(function(dialog){dialog.addEventListener('click',function(event){if(event.target===dialog)dialog.close();});});})();</script>
+<?php endif; ?>

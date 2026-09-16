@@ -198,6 +198,7 @@ class Schema
     /** Lightweight forward migrations for already-installed databases. */
     public static function migrateColumns(): void
     {
+        $backfillSaleItemCosts = !self::columnExists('sale_items', 'unit_cost');
         $columns = [
             'sales' => [
                 'fulfillment'      => "VARCHAR(20) NOT NULL DEFAULT 'pickup'",
@@ -205,15 +206,45 @@ class Schema
                 'delivery_fee'     => 'DECIMAL(12,2) NOT NULL DEFAULT 0',
                 'delivery_zone'    => 'VARCHAR(120) NULL',
             ],
+            'sale_items' => [
+                'unit_cost' => 'DECIMAL(12,2) NOT NULL DEFAULT 0',
+            ],
             'products' => [
                 'warranty_months' => 'INT NULL',
                 'image'           => 'VARCHAR(255) NULL',
             ],
+            'product_images' => [
+                'alt_text' => 'VARCHAR(255) NULL',
+            ],
             'inventory_units' => [
                 'warranty_expires' => 'DATE NULL',
+                'grn_item_id' => 'INT NULL',
             ],
             'goods_received' => [
                 'supplier_id' => 'INT NULL',
+                'supplier_reference' => 'VARCHAR(120) NULL',
+            ],
+            'returns' => [
+                'refund_method'   => "VARCHAR(20) NOT NULL DEFAULT 'original'",
+                'evidence_note'   => 'TEXT NULL',
+                'decision_note'   => 'TEXT NULL',
+                'decision_user_id'=> 'INT NULL',
+                'decided_at'      => 'DATETIME NULL',
+            ],
+            'return_items' => [
+                'stock_outcome' => 'VARCHAR(20) NULL',
+            ],
+            'expenses' => [
+                'receipt_file'  => 'VARCHAR(255) NULL',
+                'is_recurring'  => 'TINYINT NOT NULL DEFAULT 0',
+                'deleted_at'    => 'DATETIME NULL',
+                'deleted_by'    => 'INT NULL',
+                'delete_reason' => 'VARCHAR(500) NULL',
+            ],
+            'z_reports' => [
+                'counted_cash' => 'DECIMAL(12,2) NOT NULL DEFAULT 0',
+                'variance'     => 'DECIMAL(12,2) NOT NULL DEFAULT 0',
+                'closed_by'    => 'INT NULL',
             ],
         ];
         foreach ($columns as $table => $defs) {
@@ -222,6 +253,32 @@ class Schema
                     Database::pdo()->exec("ALTER TABLE {$table} ADD COLUMN {$col} {$def}");
                 }
             }
+        }
+
+        // Preserve truthful history for decisions recorded before outcome and
+        // decision-note fields existed. The previous workflow always restocked
+        // every approved item and stored no separate decision timestamp.
+        Database::run(
+            "UPDATE return_items SET stock_outcome = 'restock'
+              WHERE stock_outcome IS NULL AND return_id IN (SELECT id FROM returns WHERE status = 'completed')"
+        );
+        Database::run(
+            "UPDATE returns SET decided_at = NULL, decision_user_id = NULL,
+                    decision_note = 'Historical approval; decision details were not recorded.'
+              WHERE status = 'completed' AND (decision_note IS NULL OR decision_note = 'Approved before decision notes were introduced.')"
+        );
+        Database::run(
+            "UPDATE returns SET decided_at = NULL, decision_user_id = NULL,
+                    decision_note = 'Historical rejection; decision details were not recorded.'
+              WHERE status = 'rejected' AND (decision_note IS NULL OR decision_note = 'Rejected before decision notes were introduced.')"
+        );
+        Database::run(
+            'UPDATE z_reports SET counted_cash = expected_cash, variance = 0 WHERE closed_by IS NULL AND counted_cash = 0 AND variance = 0'
+        );
+        if ($backfillSaleItemCosts) {
+            Database::run(
+                'UPDATE sale_items SET unit_cost = COALESCE((SELECT cost_price FROM products WHERE products.id = sale_items.product_id), 0)'
+            );
         }
     }
 }

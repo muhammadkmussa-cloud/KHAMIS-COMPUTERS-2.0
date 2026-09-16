@@ -1,0 +1,150 @@
+- generic [ref=f64e1]:
+  - link "Skip to main content" [ref=f64e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f64e3]:
+    - generic [ref=f64e4]:
+      - link "Khamis Computers dashboard" [ref=f64e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f64e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f64e10]:
+        - link "Dashboard" [ref=f64e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f64e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f64e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f64e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f64e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f64e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Reports" [ref=f64e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports
+        - link "Staff" [ref=f64e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/staff
+        - link "Settings" [ref=f64e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/settings
+      - generic [ref=f64e21]:
+        - link "Shop ↗" [ref=f64e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Admin, admin" [ref=f64e23]:
+          - generic [ref=f64e24]: K
+          - generic [ref=f64e25]:
+            - text: Khamis
+            - generic [ref=f64e26]: admin
+        - button "Sign out" [ref=f64e28] [cursor=pointer]
+  - main [ref=f64e29]:
+    - generic [ref=f64e30]:
+      - generic [ref=f64e31]:
+        - generic [ref=f64e32]:
+          - generic [ref=f64e33]: After-sales workflow
+          - heading "Start a return" [level=1] [ref=f64e34]
+          - paragraph [ref=f64e35]: Select eligible items and prepare the refund request.
+        - link "← Return history" [ref=f64e36] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+      - list "Return progress" [ref=f64e37]:
+        - listitem [ref=f64e38]:
+          - generic [ref=f64e39]: "1"
+          - generic [ref=f64e40]: Select sale
+        - listitem [ref=f64e41]:
+          - generic [ref=f64e42]: "2"
+          - generic [ref=f64e43]: Select items
+        - listitem [ref=f64e44]:
+          - generic [ref=f64e45]: "3"
+          - generic [ref=f64e46]: Refund and reason
+        - listitem [ref=f64e47]:
+          - generic [ref=f64e48]: "4"
+          - generic [ref=f64e49]: Review
+      - generic [ref=f64e50]:
+        - generic [ref=f64e51]:
+          - generic [ref=f64e52]: Selected sale
+          - generic [ref=f64e53]: S-20260908-0001
+        - generic [ref=f64e54]:
+          - generic [ref=f64e55]: Customer
+          - generic [ref=f64e56]: Amina Hassan
+        - generic [ref=f64e57]:
+          - generic [ref=f64e58]: Order total
+          - generic [ref=f64e59]: KSh 143,144.00
+        - link "Change sale" [ref=f64e60] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns/new
+      - generic [ref=f64e61]:
+        - generic [ref=f64e62]:
+          - generic [ref=f64e63]:
+            - generic [ref=f64e64]:
+              - generic [ref=f64e65]: Step 2
+              - heading "Select returned items" [level=2] [ref=f64e66]
+              - paragraph [ref=f64e67]: Refund limits follow the quantity selected and the price paid on this sale.
+            - generic [ref=f64e68]:
+              - generic [ref=f64e69]: Refund total
+              - strong [ref=f64e70]: KSh 120,000.00
+              - generic [ref=f64e71]: 1 item selected
+          - generic [ref=f64e72]:
+            - article [ref=f64e73]:
+              - generic [ref=f64e74] [cursor=pointer]:
+                - checkbox "Return MacBook Air M3" [checked] [ref=f64e75]
+                - generic [ref=f64e76]: Return MacBook Air M3
+              - generic [ref=f64e77]:
+                - generic [ref=f64e78]: MacBook Air M3
+                - generic [ref=f64e79]: KC-LAP-004 · Serial M3-SN-001
+                - generic [ref=f64e80]: KSh 120,000.00 each · 1 of 1 returnable
+              - generic [ref=f64e81]:
+                - generic [ref=f64e82]: Quantity
+                - spinbutton "Quantity" [ref=f64e83]: "1"
+              - generic [ref=f64e84]:
+                - generic [ref=f64e85]: Refund amount
+                - generic [ref=f64e86]:
+                  - generic [ref=f64e87]: KSh
+                  - spinbutton "Refund amount KSh Maximum KSh 120,000.00" [ref=f64e88]: "120000.00"
+                - generic [ref=f64e89]: Maximum KSh 120,000.00
+            - article [ref=f64e90]:
+              - generic [ref=f64e91] [cursor=pointer]:
+                - checkbox "Return Logitech Wireless Mouse M221" [ref=f64e92]
+                - generic [ref=f64e93]: Return Logitech Wireless Mouse M221
+              - generic [ref=f64e94]:
+                - generic [ref=f64e95]: Logitech Wireless Mouse M221
+                - generic [ref=f64e96]: KC-ACC-001
+                - generic [ref=f64e97]: KSh 2,200.00 each · 2 of 2 returnable
+              - generic [ref=f64e98]:
+                - generic [ref=f64e99]: Quantity
+                - spinbutton "Quantity" [disabled] [ref=f64e100]: "1"
+              - generic [ref=f64e101]:
+                - generic [ref=f64e102]: Refund amount
+                - generic [ref=f64e103]:
+                  - generic [ref=f64e104]: KSh
+                  - spinbutton "Refund amount KSh Maximum KSh 2,200.00" [disabled] [ref=f64e105]: "2200.00"
+                - generic [ref=f64e106]: Maximum KSh 2,200.00
+        - generic [ref=f64e107]:
+          - generic [ref=f64e109]:
+            - generic [ref=f64e110]: Step 3
+            - heading "Refund and reason" [level=2] [ref=f64e111]
+            - paragraph [ref=f64e112]: Record enough context for a manager to make a clear decision.
+          - generic [ref=f64e113]:
+            - generic [ref=f64e114]:
+              - generic [ref=f64e115]: Refund method
+              - combobox "Refund method This records the intended refund channel." [ref=f64e116]:
+                - option "Original payment method" [selected]
+                - option "Cash"
+                - option "M-PESA"
+                - option "Bank transfer"
+                - option "Store credit"
+              - generic [ref=f64e117]: This records the intended refund channel.
+            - generic [ref=f64e118]:
+              - generic [ref=f64e119]: Reason for return
+              - textbox "Reason for return" [ref=f64e120]:
+                - /placeholder: Describe the fault, mismatch, or customer request.
+                - text: Intermittent display fault confirmed at the service counter.
+            - generic [ref=f64e121]:
+              - generic [ref=f64e122]:
+                - text: Evidence or inspection note
+                - emphasis [ref=f64e123]: Optional
+              - textbox "Evidence or inspection note Optional" [active] [ref=f64e124]:
+                - /placeholder: Packaging condition, diagnostic result, accessories received…
+                - text: Original charger and packaging received. Screen flickers after warm-up.
+        - generic [ref=f64e125]:
+          - generic [ref=f64e126]:
+            - generic [ref=f64e127]: Next step
+            - generic [ref=f64e128]: No stock or refund is changed until approval
+          - link "Cancel" [ref=f64e129] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/sales/1
+          - button "Review return →" [ref=f64e130] [cursor=pointer]

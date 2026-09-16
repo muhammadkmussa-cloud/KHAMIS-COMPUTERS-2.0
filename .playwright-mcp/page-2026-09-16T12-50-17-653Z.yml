@@ -1,0 +1,122 @@
+- generic [active] [ref=f69e1]:
+  - link "Skip to main content" [ref=f69e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f69e3]:
+    - generic [ref=f69e4]:
+      - link "Khamis Computers dashboard" [ref=f69e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f69e9]: Khamis Computers
+      - button "Open navigation" [ref=f69e10] [cursor=pointer]
+      - button "Sign out" [ref=f69e16] [cursor=pointer]
+  - main [ref=f69e17]:
+    - generic [ref=f69e18]:
+      - generic [ref=f69e19]:
+        - generic [ref=f69e20]: After-sales desk
+        - heading "Returns" [level=1] [ref=f69e21]
+        - paragraph [ref=f69e22]: Review customer requests, refund exposure, and stock outcomes in one place.
+      - link "Start a return" [ref=f69e23] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns/new
+    - region "Returns summary" [ref=f69e24]:
+      - article [ref=f69e25]:
+        - generic [ref=f69e26]: Needs approval
+        - generic [ref=f69e27]: "1"
+        - generic [ref=f69e28]: Decision required
+      - article [ref=f69e29]:
+        - generic [ref=f69e30]: Completed
+        - generic [ref=f69e31]: "2"
+        - generic [ref=f69e32]: Approved returns
+      - article [ref=f69e33]:
+        - generic [ref=f69e34]: Refunded
+        - generic [ref=f69e35]: KSh 187,200.00
+        - generic [ref=f69e36]: Completed value
+      - article [ref=f69e37]:
+        - generic [ref=f69e38]: Rejected
+        - generic [ref=f69e39]: "1"
+        - generic [ref=f69e40]: Closed without refund
+    - group [ref=f69e41]:
+      - generic "Search and filters" [ref=f69e42]
+      - option "All statuses" [selected]
+      - option "Pending approval"
+      - option "Completed"
+      - option "Rejected"
+    - region "Return records" [ref=f69e43]:
+      - link "R-20260916-002 Pending approval Amina Hassan · 0712345678 Original sale S-20260908-0001 Returned 1 unit Refund KSh 100.00 Requested 16 Sep 2026" [ref=f69e44] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns/17
+        - generic [ref=f69e45]:
+          - generic [ref=f69e46]:
+            - generic [ref=f69e47]: R-20260916-002
+            - generic [ref=f69e48]: Pending approval
+          - generic [ref=f69e49]: Amina Hassan · 0712345678
+        - generic [ref=f69e50]:
+          - generic [ref=f69e51]: Original sale
+          - generic [ref=f69e52]: S-20260908-0001
+        - generic [ref=f69e53]:
+          - generic [ref=f69e54]: Returned
+          - generic [ref=f69e55]: 1 unit
+        - generic [ref=f69e56]:
+          - generic [ref=f69e57]: Refund
+          - generic [ref=f69e58]: KSh 100.00
+        - generic [ref=f69e59]:
+          - generic [ref=f69e60]: Requested
+          - generic [ref=f69e61]: 16 Sep 2026
+        - generic [aria-hidden] [ref=f69e62]: →
+      - link "R-20260916-001 Completed Walk-in customer · No phone Original sale S-20260915-0066 Returned 1 unit Refund KSh 65,000.00 Requested 16 Sep 2026" [ref=f69e63] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns/16
+        - generic [ref=f69e64]:
+          - generic [ref=f69e65]:
+            - generic [ref=f69e66]: R-20260916-001
+            - generic [ref=f69e67]: Completed
+          - generic [ref=f69e68]: Walk-in customer · No phone
+        - generic [ref=f69e69]:
+          - generic [ref=f69e70]: Original sale
+          - generic [ref=f69e71]: S-20260915-0066
+        - generic [ref=f69e72]:
+          - generic [ref=f69e73]: Returned
+          - generic [ref=f69e74]: 1 unit
+        - generic [ref=f69e75]:
+          - generic [ref=f69e76]: Refund
+          - generic [ref=f69e77]: KSh 65,000.00
+        - generic [ref=f69e78]:
+          - generic [ref=f69e79]: Requested
+          - generic [ref=f69e80]: 16 Sep 2026
+        - generic [aria-hidden] [ref=f69e81]: →
+      - link "R-20260908-002 Rejected Amina Hassan · 0712345678 Original sale S-20260908-0001 Returned 1 unit Refund KSh 120,000.00 Requested 08 Sep 2026" [ref=f69e82] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns/2
+        - generic [ref=f69e83]:
+          - generic [ref=f69e84]:
+            - generic [ref=f69e85]: R-20260908-002
+            - generic [ref=f69e86]: Rejected
+          - generic [ref=f69e87]: Amina Hassan · 0712345678
+        - generic [ref=f69e88]:
+          - generic [ref=f69e89]: Original sale
+          - generic [ref=f69e90]: S-20260908-0001
+        - generic [ref=f69e91]:
+          - generic [ref=f69e92]: Returned
+          - generic [ref=f69e93]: 1 unit
+        - generic [ref=f69e94]:
+          - generic [ref=f69e95]: Refund
+          - generic [ref=f69e96]: KSh 120,000.00
+        - generic [ref=f69e97]:
+          - generic [ref=f69e98]: Requested
+          - generic [ref=f69e99]: 08 Sep 2026
+        - generic [aria-hidden] [ref=f69e100]: →
+      - link "R-20260908-001 Completed Offline Tester · 0700000000 Original sale S-20260908-0003 Returned 2 units Refund KSh 122,200.00 Requested 08 Sep 2026" [ref=f69e101] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns/1
+        - generic [ref=f69e102]:
+          - generic [ref=f69e103]:
+            - generic [ref=f69e104]: R-20260908-001
+            - generic [ref=f69e105]: Completed
+          - generic [ref=f69e106]: Offline Tester · 0700000000
+        - generic [ref=f69e107]:
+          - generic [ref=f69e108]: Original sale
+          - generic [ref=f69e109]: S-20260908-0003
+        - generic [ref=f69e110]:
+          - generic [ref=f69e111]: Returned
+          - generic [ref=f69e112]: 2 units
+        - generic [ref=f69e113]:
+          - generic [ref=f69e114]: Refund
+          - generic [ref=f69e115]: KSh 122,200.00
+        - generic [ref=f69e116]:
+          - generic [ref=f69e117]: Requested
+          - generic [ref=f69e118]: 08 Sep 2026
+        - generic [aria-hidden] [ref=f69e119]: →

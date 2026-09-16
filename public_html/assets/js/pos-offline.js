@@ -121,6 +121,8 @@
               var c = JSON.parse(JSON.stringify(p));
               c.units = [p.units[j]];
               c.stock = 1;
+              c.exact_match = true;
+              c.matched_by = 'serial';
               return [c];
             }
           }
@@ -140,14 +142,28 @@
     return kv.get(QUEUE).then(function (q) { return (q || []).length; });
   }
 
-  function queueSale(payload) {
-    var ref = 'off-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
-    var item = { client_ref: ref, device_id: deviceId(), created_at: isoNow(), payload: payload };
+  function queueSale(payload, clientRef, summary) {
+    var ref = clientRef || ('off-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6));
+    var item = {
+      client_ref: ref,
+      device_id: deviceId(),
+      created_at: isoNow(),
+      payload: payload,
+      summary: summary || null,
+      status: 'saved',
+      last_error: ''
+    };
     return kv.get(QUEUE).then(function (q) {
       q = q || [];
+      var existing = q.find(function (queued) { return queued.client_ref === ref; });
+      if (existing) return existing;
       q.push(item);
       return kv.set(QUEUE, q).then(function () { return item; });
     });
+  }
+
+  function queueItems() {
+    return kv.get(QUEUE).then(function (q) { return q || []; });
   }
 
   function syncQueue() {
@@ -170,7 +186,14 @@
         (data.results || []).forEach(function (res) {
           if (res.ok || res.duplicate) { done[res.client_ref] = res; }
         });
-        var remaining = q.filter(function (it) { return !done[it.client_ref]; });
+        var resultByRef = {};
+        (data.results || []).forEach(function (res) { resultByRef[res.client_ref] = res; });
+        var remaining = q.filter(function (it) { return !done[it.client_ref]; }).map(function (it) {
+          var result = resultByRef[it.client_ref];
+          it.status = result && result.error ? 'attention' : 'saved';
+          it.last_error = result && result.error ? result.error : '';
+          return it;
+        });
         return kv.set(QUEUE, remaining).then(function () {
           return { synced: Object.keys(done).length, failed: remaining.length, auth: false, results: data.results || [] };
         });
@@ -186,8 +209,8 @@
     if (!cfg.catalog) { return Promise.resolve(); }
     return fetch(cfg.catalog)
       .then(function (r) { return r.json(); })
-      .then(cacheCatalog)
-      .catch(function () {});
+      .then(function (list) { cacheCatalog(list); return list; })
+      .catch(function () { return searchLocal(''); });
   }
 
   function registerSW() {
@@ -200,7 +223,11 @@
 
   function init() {
     var p = isOnline() ? loadCatalog() : Promise.resolve();
-    return p.then(function () { return registerSW(); });
+    return p.then(function (list) {
+      return registerSW().then(function () {
+        return list || searchLocal('');
+      });
+    }).then(function (list) { return Promise.resolve(list); });
   }
 
   window.KCPosOffline = {
@@ -209,6 +236,7 @@
     cacheCatalog: cacheCatalog,
     mergeCatalog: mergeCatalog,
     queueSale: queueSale,
+    queueItems: queueItems,
     pendingCount: pendingCount,
     syncQueue: syncQueue,
     isOnline: isOnline,

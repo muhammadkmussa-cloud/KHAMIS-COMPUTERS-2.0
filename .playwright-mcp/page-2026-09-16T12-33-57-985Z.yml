@@ -1,0 +1,86 @@
+- generic [active] [ref=f61e1]:
+  - link "Skip to main content" [ref=f61e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f61e3]:
+    - generic [ref=f61e4]:
+      - link "Khamis Computers dashboard" [ref=f61e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f61e9]: Khamis Computers
+      - navigation "Primary navigation" [ref=f61e10]:
+        - link "Dashboard" [ref=f61e11] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/dashboard
+        - link "POS" [ref=f61e12] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+        - link "Sales" [ref=f61e14] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - link "Returns" [ref=f61e15] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/returns
+        - link "Expenses" [ref=f61e16] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/expenses
+        - link "Inventory" [ref=f61e17] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/products
+        - link "Reports" [ref=f61e18] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/reports
+        - link "Staff" [ref=f61e19] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/staff
+        - link "Settings" [ref=f61e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/settings
+      - generic [ref=f61e21]:
+        - link "Shop ↗" [ref=f61e22] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - generic "Signed in as Khamis Admin, admin" [ref=f61e23]:
+          - generic [ref=f61e24]: K
+          - generic [ref=f61e25]:
+            - text: Khamis
+            - generic [ref=f61e26]: admin
+        - button "Sign out" [ref=f61e28] [cursor=pointer]
+  - main [ref=f61e29]:
+    - generic [ref=f61e30]:
+      - generic [ref=f61e31]:
+        - generic [ref=f61e32]: Return
+        - heading "R-20260908-001" [level=1] [ref=f61e33]
+        - paragraph [ref=f61e34]:
+          - generic [ref=f61e35]: Completed
+          - text: against
+          - link "S-20260908-0003" [ref=f61e36] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/sales/3
+          - text: · 08 Sep 2026 · 07:50 PM
+      - link "← Returns" [ref=f61e38] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/returns
+    - generic [ref=f61e39]:
+      - generic [ref=f61e40]:
+        - heading "Items" [level=3] [ref=f61e41]
+        - table [ref=f61e42]:
+          - rowgroup [ref=f61e43]:
+            - row [ref=f61e44]:
+              - columnheader "Item" [ref=f61e45]
+              - columnheader "Qty" [ref=f61e46]
+              - columnheader "Refund" [ref=f61e47]
+          - rowgroup [ref=f61e48]:
+            - row [ref=f61e49]:
+              - cell "MacBook Air M3 KC-LAP-004 · SN MAC-AIR-0001" [ref=f61e50]:
+                - generic [ref=f61e51]: MacBook Air M3
+                - generic [ref=f61e52]: KC-LAP-004 · SN MAC-AIR-0001
+              - cell "1" [ref=f61e53]
+              - cell "KSh 120,000.00" [ref=f61e54]
+            - row [ref=f61e55]:
+              - cell "Logitech Wireless Mouse M221 KC-ACC-001" [ref=f61e56]:
+                - generic [ref=f61e57]: Logitech Wireless Mouse M221
+                - generic [ref=f61e58]: KC-ACC-001
+              - cell "1" [ref=f61e59]
+              - cell "KSh 2,200.00" [ref=f61e60]
+          - rowgroup [ref=f61e61]:
+            - row [ref=f61e62]:
+              - cell "Total refund" [ref=f61e63]
+              - cell "KSh 122,200.00" [ref=f61e64]
+      - generic [ref=f61e65]:
+        - heading "Details" [level=3] [ref=f61e66]
+        - generic [ref=f61e67]:
+          - term [ref=f61e68]: Customer
+          - definition [ref=f61e69]: Offline Tester
+          - term [ref=f61e70]: Phone
+          - definition [ref=f61e71]: "0700000000"
+          - term [ref=f61e72]: Channel
+          - definition [ref=f61e73]: pos
+          - term [ref=f61e74]: Reason
+          - definition [ref=f61e75]: Changed mind

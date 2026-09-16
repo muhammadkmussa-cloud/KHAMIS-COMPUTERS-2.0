@@ -96,9 +96,10 @@ To enable "Pay now with M-PESA" at online checkout:
 1. Create an app on the **Safaricom Daraja developer portal** and get the
    consumer key, consumer secret, passkey and shortcode.
 2. Enter them in **Settings → M-PESA**, choose sandbox/live, and enable it.
-3. Set the **Confirmation/Callback URL** on the Daraja portal to
-   `https://yourdomain.com/mpesa/callback` (the Settings page shows the exact
-   URL). The callback is the only way orders flip from *pending* to *paid*, so
+3. Set the **Confirmation/Callback URL** on the Daraja portal to the exact
+   tokenized URL shown in Settings → M-PESA. It will look like
+   `https://yourdomain.com/mpesa/callback?token=...`; do not remove the token.
+   The callback is the only way orders flip from *pending* to *paid*, so
    the URL must be reachable from the internet and the server needs outbound
    HTTPS to `api.safaricom.co.ke` (live) / `sandbox.safaricom.co.ke`.
 4. Outbound HTTPS requires the PHP **cURL** extension (standard on cPanel).

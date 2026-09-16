@@ -9,14 +9,10 @@ class ReportController
 
         $date   = self::validDate($_GET['date'] ?? '', date('Y-m-d'));
         $userId = isset($_GET['user']) ? (int) $_GET['user'] : null;
-        if ($userId === 0) {
-            $userId = null; // "All staff"
-        }
-        if ($userId !== null && !Auth::isAdmin() && $userId !== Auth::id()) {
-            $userId = Auth::id(); // cashiers only see their own day
-        }
         if (!Auth::isAdmin()) {
-            $userId = Auth::id();
+            $userId = Auth::id(); // cashiers only see their own day
+        } elseif ($userId === 0) {
+            $userId = null; // "All staff"
         }
 
         View::render('reports/z', [
@@ -27,11 +23,13 @@ class ReportController
             'summary'  => ZReport::summary($date, $userId),
             'closed'   => $userId !== null
                 ? Database::fetch(
-                    'SELECT z.*, u.name AS user_name FROM z_reports z LEFT JOIN users u ON u.id = z.user_id WHERE z.user_id = ? AND z.report_date = ?',
+                    'SELECT z.*, u.name AS user_name, cu.name AS closed_by_name FROM z_reports z LEFT JOIN users u ON u.id = z.user_id LEFT JOIN users cu ON cu.id = z.closed_by WHERE z.user_id = ? AND z.report_date = ?',
                     [$userId, $date]
                 )
                 : null,
-            'history'  => ZReport::all(30),
+            'history'  => ZReport::all(60, Auth::isAdmin() ? null : Auth::id()),
+            'pendingPayments' => (int) Database::fetchValue("SELECT COUNT(*) FROM sales WHERE status='pending' AND DATE(created_at)=?" . ($userId!==null?' AND user_id=?':''), $userId!==null?[$date,$userId]:[$date]),
+            'pendingReturns' => (int) Database::fetchValue("SELECT COUNT(*) FROM returns WHERE status='pending' AND DATE(created_at)=?" . ($userId!==null?' AND user_id=?':''), $userId!==null?[$date,$userId]:[$date]),
         ]);
     }
 
@@ -46,10 +44,30 @@ class ReportController
             flash('error', 'You can only close your own day.');
             redirect('reports/z');
         }
+        $target = Database::fetch('SELECT id, name FROM users WHERE id = ?', [$userId]);
+        if (!$target) {
+            flash('error', 'Please choose a valid staff member to close their day.');
+            redirect('reports/z');
+        }
 
-        $id    = ZReport::close($date, $userId, (string) ($_POST['notes'] ?? ''));
-        $user  = Database::fetch('SELECT name FROM users WHERE id = ?', [$userId]);
-        Activity::log('zreport.closed', ($user['name'] ?? 'user') . ' ' . $date);
+        $rawCounted = trim((string) ($_POST['counted_cash'] ?? ''));
+        if (!preg_match('/^\d+(?:\.\d{1,2})?$/', $rawCounted)) {
+            flash('error', 'Enter the counted cash with at most two decimal places.');
+            redirect('reports/z?date=' . $date . '&user=' . $userId);
+        }
+        foreach (['sales_reviewed','offline_clear','payments_reviewed'] as $check) {
+            if (!isset($_POST[$check])) {
+                flash('error', 'Complete every close-of-day checklist item.');
+                redirect('reports/z?date=' . $date . '&user=' . $userId);
+            }
+        }
+        try {
+            $id = ZReport::close($date, $userId, (float) $rawCounted, (string) ($_POST['notes'] ?? ''), Auth::id());
+        } catch (Throwable $e) {
+            flash('error', $e->getMessage());
+            redirect('reports/z?date=' . $date . '&user=' . $userId);
+        }
+        Activity::log('zreport.closed', ($target['name'] ?? 'user') . ' ' . $date);
         flash('success', 'Day closed — Z-report #' . $id . ' saved for ' . $date . '.');
         redirect('reports/z?date=' . $date . '&user=' . $userId);
     }
@@ -57,22 +75,25 @@ class ReportController
     public function index(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         [$from, $to] = self::range($_GET['from'] ?? '', $_GET['to'] ?? '');
         $m           = self::metrics($from, $to);
+        $periodDays  = max(1, (int)((strtotime($to)-strtotime($from))/86400)+1);
+        $previousTo  = date('Y-m-d', strtotime($from . ' -1 day'));
+        $previousFrom= date('Y-m-d', strtotime($previousTo . ' -' . ($periodDays-1) . ' days'));
+        $previous    = self::metrics($previousFrom, $previousTo);
 
-        // Revenue by day (cap the window to 60 days for a readable chart).
+        // Aggregate longer periods into weekly points instead of rendering a
+        // wall of thin daily bars.
         $chartFrom = $from;
-        $dayDiff   = (int) ((strtotime($to) - strtotime($chartFrom)) / 86400);
-        if ($dayDiff > 60) {
-            $chartFrom = date('Y-m-d', strtotime($to . ' -13 days'));
-        }
+        $dayDiff   = $periodDays - 1;
         $days = [];
         for ($d = strtotime($chartFrom); $d <= strtotime($to); $d += 86400) {
             $days[date('Y-m-d', $d)] = 0.0;
         }
         $dailyRows = Database::fetchAll(
-            "SELECT DATE(created_at) AS d, SUM(total) AS rev
+            "SELECT DATE(created_at) AS d, SUM(subtotal-discount) AS rev
                FROM sales WHERE status = 'completed' AND DATE(created_at) >= :from AND DATE(created_at) <= :to
               GROUP BY DATE(created_at)",
             ['from' => $chartFrom, 'to' => $to]
@@ -81,6 +102,13 @@ class ReportController
             if (isset($days[$row['d']])) {
                 $days[$row['d']] = (float) $row['rev'];
             }
+        }
+        if ($periodDays > 31) {
+            $weekly=[];
+            foreach($days as $day=>$value){$week=date('o-\WW',strtotime($day));if(!isset($weekly[$week]))$weekly[$week]=['label'=>'Week '.date('W',strtotime($day)),'value'=>0.0];$weekly[$week]['value']+=(float)$value;}
+            $chart=array_values($weekly);
+        } else {
+            $chart=[];foreach($days as $day=>$value)$chart[]=['label'=>date('d M',strtotime($day)),'value'=>$value];
         }
 
         View::render('reports/index', [
@@ -94,9 +122,18 @@ class ReportController
             'expenses'    => $m['expenses'],
             'cogs'        => $m['cogs'],
             'grossProfit' => $m['revenue'] - $m['cogs'],
-            'net'         => $m['revenue'] - $m['refunds'] - $m['expenses'],
+            'net'         => $m['revenue'] - $m['cogs'] - $m['refunds'] - $m['expenses'],
             'channels'    => $m['channels'],
             'days'        => $days,
+            'chart'       => $chart,
+            'chartMode'   => $periodDays > 31 ? 'Weekly' : 'Daily',
+            'previousFrom'=> $previousFrom,
+            'previousTo'  => $previousTo,
+            'comparison'  => [
+                'revenue'=>self::percentChange($m['revenue'],$previous['revenue']),
+                'orders'=>self::percentChange($m['orders'],$previous['orders']),
+                'gross'=>self::percentChange($m['revenue']-$m['cogs'],$previous['revenue']-$previous['cogs']),
+            ],
             'topProducts' => $m['topProducts'],
             'lowStock'    => Product::lowStock(),
         ]);
@@ -106,17 +143,18 @@ class ReportController
     public function export(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         [$from, $to] = self::range($_GET['from'] ?? '', $_GET['to'] ?? '');
         $m           = self::metrics($from, $to);
         $orders      = $m['orders'];
-        $net         = $m['revenue'] - $m['refunds'] - $m['expenses'];
+        $net         = $m['revenue'] - $m['cogs'] - $m['refunds'] - $m['expenses'];
         $gross       = $m['revenue'] - $m['cogs'];
 
         $csv = [
             ['Metric', 'Value'],
             ['Report period', $from . ' to ' . $to],
-            ['Revenue (KSh)', number_format($m['revenue'], 2, '.', '')],
+            ['Net sales excl. VAT and delivery (KSh)', number_format($m['revenue'], 2, '.', '')],
             ['Completed orders', $orders],
             ['Average order value (KSh)', number_format($orders > 0 ? $m['revenue'] / $orders : 0, 2, '.', '')],
             ['Refunds (KSh)', number_format($m['refunds'], 2, '.', '')],
@@ -142,6 +180,7 @@ class ReportController
     public function vatReport(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         [$from, $to] = self::range($_GET['from'] ?? '', $_GET['to'] ?? '');
         View::render('reports/vat', [
@@ -156,6 +195,7 @@ class ReportController
     public function vatExport(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         [$from, $to] = self::range($_GET['from'] ?? '', $_GET['to'] ?? '');
         $d = self::vatData($from, $to);
@@ -257,7 +297,7 @@ class ReportController
         // Daily series for the breakdown table.
         $dayKeys = [];
         for ($t = strtotime($from); $t <= strtotime($to); $t += 86400) {
-            $dayKeys[date('Y-m-d', $t)] = ['out' => 0.0, 'in' => 0.0];
+            $dayKeys[date('Y-m-d', $t)] = ['out' => 0.0, 'returned' => 0.0, 'in' => 0.0];
         }
         $salesDaily = Database::fetchAll(
             "SELECT DATE(created_at) AS d, SUM(tax_amount) AS v
@@ -268,6 +308,20 @@ class ReportController
         foreach ($salesDaily as $row) {
             if (isset($dayKeys[$row['d']])) {
                 $dayKeys[$row['d']]['out'] = (float) $row['v'];
+            }
+        }
+        $returnsDaily = Database::fetchAll(
+            "SELECT DATE(r.created_at) AS d,
+                    SUM(r.refund_amount * ((s.tax_amount * 1.0) / NULLIF(s.subtotal - s.discount, 0))) AS v
+               FROM returns r
+               JOIN sales s ON s.id = r.sale_id
+              WHERE r.status = 'completed' AND DATE(r.created_at) >= :from AND DATE(r.created_at) <= :to
+              GROUP BY DATE(r.created_at)",
+            $params
+        );
+        foreach ($returnsDaily as $row) {
+            if (isset($dayKeys[$row['d']])) {
+                $dayKeys[$row['d']]['returned'] = round((float) $row['v'], 2);
             }
         }
         $purchDaily = Database::fetchAll(
@@ -328,6 +382,7 @@ class ReportController
     public function purchases(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         [$from, $to] = self::range($_GET['from'] ?? '', $_GET['to'] ?? '');
         $filter = trim((string) ($_GET['supplier'] ?? ''));
@@ -346,6 +401,7 @@ class ReportController
     public function purchasesExport(): void
     {
         Auth::requireLogin();
+        Auth::requireAdmin();
 
         [$from, $to] = self::range($_GET['from'] ?? '', $_GET['to'] ?? '');
         $filter = trim((string) ($_GET['supplier'] ?? ''));
@@ -471,6 +527,13 @@ class ReportController
             }
         }
 
+        $trendRows = [];
+        foreach ($groups as $group) {
+            foreach ($group['grns'] as $grn) {
+                $trendRows[] = $grn;
+            }
+        }
+
         $summary   = [];
         $grandNet  = 0.0;
         $grandGrns = 0;
@@ -503,6 +566,7 @@ class ReportController
             'grand_net' => $grandNet,
             'grand_vat' => round($grandNet * vat_rate() / 100, 2),
             'grn_count' => $grandGrns,
+            'trend'     => array_values(array_reduce($trendRows, function($carry,$row){$day=substr((string)$row['created_at'],0,10);if(!isset($carry[$day]))$carry[$day]=['date'=>$day,'net'=>0.0,'deliveries'=>0];$carry[$day]['net']+=(float)$row['net'];$carry[$day]['deliveries']++;return $carry;}, [])),
         ];
     }
 
@@ -515,15 +579,22 @@ class ReportController
     /** Parse + normalise the date window. */
     private static function validDate(string $raw, string $fallback): string
     {
-        return preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($raw)) ? trim($raw) : $fallback;
+        $raw = trim($raw);
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $raw);
+        return $date && $date->format('Y-m-d') === $raw ? $raw : $fallback;
+    }
+
+    private static function percentChange(float $current, float $previous): ?float
+    {
+        return $previous == 0.0 ? null : round(($current-$previous)/abs($previous)*100,1);
     }
 
     private static function range(string $rawFrom, string $rawTo): array
     {
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($rawFrom))) {
+        if (self::validDate($rawFrom, '') === '') {
             $rawFrom = date('Y-m-d', strtotime('-29 days'));
         }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', trim($rawTo))) {
+        if (self::validDate($rawTo, '') === '') {
             $rawTo = date('Y-m-d');
         }
         if (strtotime($rawFrom) > strtotime($rawTo)) {
@@ -538,21 +609,20 @@ class ReportController
         $rangeSql    = 'DATE(created_at) >= :from AND DATE(created_at) <= :to';
         $rangeParams = ['from' => $from, 'to' => $to];
 
-        $revenue  = (float) Database::fetchValue("SELECT COALESCE(SUM(total),0) FROM sales WHERE status = 'completed' AND {$rangeSql}", $rangeParams);
+        $revenue  = (float) Database::fetchValue("SELECT COALESCE(SUM(subtotal-discount),0) FROM sales WHERE status = 'completed' AND {$rangeSql}", $rangeParams);
         $orders   = (int) Database::fetchValue("SELECT COUNT(*) FROM sales WHERE status = 'completed' AND {$rangeSql}", $rangeParams);
         $refunds  = (float) Database::fetchValue("SELECT COALESCE(SUM(refund_amount),0) FROM returns WHERE status = 'completed' AND {$rangeSql}", $rangeParams);
         $expenses = Expense::sumRange($from, $to);
         $cogs     = (float) Database::fetchValue(
-            "SELECT COALESCE(SUM(p.cost_price * si.quantity), 0)
+            "SELECT COALESCE(SUM(si.unit_cost * si.quantity), 0)
                FROM sale_items si
                JOIN sales s ON s.id = si.sale_id
-               JOIN products p ON p.id = si.product_id
               WHERE s.status = 'completed' AND DATE(s.created_at) >= :from AND DATE(s.created_at) <= :to",
             $rangeParams
         );
 
         $channels = Database::fetchAll(
-            "SELECT channel, SUM(total) AS rev, COUNT(*) AS n
+            "SELECT channel, SUM(subtotal-discount) AS rev, COUNT(*) AS n
                FROM sales WHERE status = 'completed' AND {$rangeSql}
               GROUP BY channel",
             $rangeParams

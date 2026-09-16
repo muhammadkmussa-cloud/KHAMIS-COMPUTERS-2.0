@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS product_images (
     id            INTEGER PRIMARY KEY AUTO_INCREMENT,
     product_id    INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     filename      VARCHAR(255) NOT NULL,
+    alt_text      VARCHAR(255) NULL,
     sort_order    INTEGER NOT NULL DEFAULT 0,
     created_at    DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -125,6 +126,9 @@ CREATE TABLE IF NOT EXISTS z_reports (
     refunds_count   INTEGER NOT NULL DEFAULT 0,
     refunds_total   DECIMAL(12,2) NOT NULL DEFAULT 0,
     expected_cash   DECIMAL(12,2) NOT NULL DEFAULT 0,
+    counted_cash    DECIMAL(12,2) NOT NULL DEFAULT 0,
+    variance        DECIMAL(12,2) NOT NULL DEFAULT 0,
+    closed_by       INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
     notes           TEXT NULL,
     created_at      DATETIME NOT NULL,
     UNIQUE (user_id, report_date)
@@ -139,7 +143,8 @@ CREATE TABLE IF NOT EXISTS inventory_units (
       -- in_stock | reserved | sold | damaged | returned | missing
     received_at   DATETIME NOT NULL,
     warranty_expires DATE NULL,                        -- per-unit warranty expiry
-    note          VARCHAR(255) NULL
+    note          VARCHAR(255) NULL,
+    grn_item_id   INTEGER NULL                         -- source goods_received_items row
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- @@kc@@
@@ -175,6 +180,7 @@ CREATE TABLE IF NOT EXISTS goods_received (
     grn_number    VARCHAR(40) NOT NULL UNIQUE,
     supplier      VARCHAR(190) NOT NULL DEFAULT '',        -- name snapshot (kept for history)
     supplier_id   INTEGER NULL,                            -- link to suppliers (no FK: SET NULL handled in code)
+    supplier_reference VARCHAR(120) NULL,                  -- supplier invoice / delivery-note number
     total_cost    DECIMAL(12,2) NOT NULL DEFAULT 0,
     user_id       INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
     note          TEXT NULL,
@@ -225,6 +231,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
     product_id    INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     unit_id       INTEGER NULL REFERENCES inventory_units(id) ON DELETE SET NULL,
     quantity      INTEGER NOT NULL DEFAULT 1,
+    unit_cost     DECIMAL(12,2) NOT NULL DEFAULT 0,     -- cost snapshot at sale time
     unit_price    DECIMAL(12,2) NOT NULL DEFAULT 0,     -- excludes VAT (price charged)
     line_total    DECIMAL(12,2) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -238,6 +245,11 @@ CREATE TABLE IF NOT EXISTS returns (
     status         VARCHAR(20) NOT NULL DEFAULT 'pending',
       -- pending | approved | rejected | completed
     refund_amount  DECIMAL(12,2) NOT NULL DEFAULT 0,
+    refund_method  VARCHAR(20) NOT NULL DEFAULT 'original',
+    evidence_note  TEXT NULL,
+    decision_note  TEXT NULL,
+    decision_user_id INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
+    decided_at     DATETIME NULL,
     user_id        INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
     created_at     DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -249,7 +261,8 @@ CREATE TABLE IF NOT EXISTS return_items (
     sale_item_id  INTEGER NOT NULL REFERENCES sale_items(id) ON DELETE CASCADE,
     unit_id       INTEGER NULL REFERENCES inventory_units(id) ON DELETE SET NULL,
     quantity      INTEGER NOT NULL DEFAULT 1,
-    refund_amount DECIMAL(12,2) NOT NULL DEFAULT 0
+    refund_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    stock_outcome VARCHAR(20) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- @@kc@@
@@ -258,8 +271,13 @@ CREATE TABLE IF NOT EXISTS expenses (
     description   VARCHAR(255) NOT NULL,
     amount        DECIMAL(12,2) NOT NULL DEFAULT 0,
     category      VARCHAR(60) NOT NULL DEFAULT 'general',
+    receipt_file  VARCHAR(255) NULL,
+    is_recurring  TINYINT NOT NULL DEFAULT 0,
     expense_date  DATE NOT NULL,
     user_id       INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
+    deleted_at    DATETIME NULL,
+    deleted_by    INTEGER NULL REFERENCES users(id) ON DELETE SET NULL,
+    delete_reason VARCHAR(500) NULL,
     created_at    DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

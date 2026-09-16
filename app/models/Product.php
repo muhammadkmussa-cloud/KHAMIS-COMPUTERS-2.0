@@ -36,6 +36,69 @@ class Product
         );
     }
 
+    /** Filtered inventory workspace query with live stock from the ledger. */
+    public static function search(array $filters = []): array
+    {
+        $q = trim((string) ($filters['q'] ?? ''));
+        $category = (int) ($filters['category'] ?? 0);
+        $tracking = (string) ($filters['tracking'] ?? '');
+        $status = (string) ($filters['status'] ?? '');
+        $stock = (string) ($filters['stock'] ?? '');
+        $params = [];
+        $where = [];
+        $stockExpr = "CASE WHEN p.is_serialized = 1
+            THEN (SELECT COUNT(*) FROM inventory_units u WHERE u.product_id = p.id AND u.status = 'in_stock')
+            ELSE (SELECT COALESCE(SUM(m.quantity), 0) FROM stock_movements m WHERE m.product_id = p.id) END";
+
+        if ($q !== '') {
+            $where[] = '(p.name LIKE :q OR p.sku LIKE :q OR p.barcode LIKE :q)';
+            $params['q'] = '%' . $q . '%';
+        }
+        if ($category > 0) {
+            $where[] = 'p.category_id = :category';
+            $params['category'] = $category;
+        }
+        if (in_array($tracking, ['serialized', 'quantity'], true)) {
+            $where[] = 'p.is_serialized = :serialized';
+            $params['serialized'] = $tracking === 'serialized' ? 1 : 0;
+        }
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $where[] = 'p.is_active = :active';
+            $params['active'] = $status === 'active' ? 1 : 0;
+        }
+        if ($stock === 'out') $where[] = "({$stockExpr}) <= 0";
+        if ($stock === 'available') $where[] = "({$stockExpr}) > 0";
+        if ($stock === 'low') $where[] = "p.reorder_level > 0 AND ({$stockExpr}) <= p.reorder_level";
+
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+        return Database::fetchAll(
+            "SELECT p.*, c.name AS category_name, b.name AS brand_name,
+                    (SELECT COUNT(*) FROM inventory_units u WHERE u.product_id = p.id AND u.status = 'in_stock') AS units_stock,
+                    (SELECT COALESCE(SUM(m.quantity), 0) FROM stock_movements m WHERE m.product_id = p.id) AS qty_stock,
+                    {$stockExpr} AS live_stock
+               FROM products p
+               LEFT JOIN categories c ON c.id = p.category_id
+               LEFT JOIN brands b ON b.id = p.brand_id
+               {$whereSql}
+              ORDER BY p.name ASC",
+            $params
+        );
+    }
+
+    public static function inventorySummary(): array
+    {
+        $rows = self::search();
+        $summary = ['total' => count($rows), 'active' => 0, 'low' => 0, 'out' => 0, 'value' => 0.0];
+        foreach ($rows as $row) {
+            $live = (int) ($row['live_stock'] ?? self::stockOf($row));
+            if ((int) $row['is_active'] === 1) $summary['active']++;
+            if ($live <= 0) $summary['out']++;
+            if ((int) $row['reorder_level'] > 0 && $live <= (int) $row['reorder_level']) $summary['low']++;
+            $summary['value'] += $live * (float) $row['cost_price'];
+        }
+        return $summary;
+    }
+
     public static function find(int $id): ?array
     {
         $p = Database::fetch(
@@ -75,12 +138,58 @@ class Product
         );
     }
 
-    public static function units(int $productId): array
+    /** Preview a quantity adjustment against the live ledger balance. */
+    public static function stockAfterAdjustment(int $id, int $delta): int
     {
+        return self::stock($id) + $delta;
+    }
+
+    public static function units(int $productId, string $search = '', string $status = ''): array
+    {
+        $where = ['product_id = :product_id'];
+        $params = ['product_id' => $productId];
+        if ($search !== '') {
+            $where[] = '(serial_number LIKE :search OR note LIKE :search)';
+            $params['search'] = '%' . $search . '%';
+        }
+        if (in_array($status, ['in_stock', 'reserved', 'sold', 'returned', 'damaged', 'missing'], true)) {
+            $where[] = 'status = :status';
+            $params['status'] = $status;
+        }
         return Database::fetchAll(
-            'SELECT * FROM inventory_units WHERE product_id = ? ORDER BY id DESC',
-            [$productId]
+            'SELECT * FROM inventory_units WHERE ' . implode(' AND ', $where) . ' ORDER BY id DESC',
+            $params
         );
+    }
+
+    public static function unitSummary(int $productId): array
+    {
+        $summary = ['total' => 0, 'in_stock' => 0, 'reserved' => 0, 'sold' => 0, 'attention' => 0];
+        foreach (Database::fetchAll('SELECT status, COUNT(*) AS total FROM inventory_units WHERE product_id = ? GROUP BY status', [$productId]) as $row) {
+            $count = (int) $row['total'];
+            $summary['total'] += $count;
+            if (isset($summary[$row['status']])) $summary[$row['status']] = $count;
+            if (in_array($row['status'], ['damaged', 'missing'], true)) $summary['attention'] += $count;
+        }
+        return $summary;
+    }
+
+    /** @return string[] uniqueness errors for product identity fields. */
+    public static function uniquenessErrors(array $data, ?int $excludeId = null): array
+    {
+        $errors = [];
+        foreach (['sku' => 'SKU', 'barcode' => 'Barcode'] as $field => $label) {
+            $value = trim((string) ($data[$field] ?? ''));
+            if ($value === '') continue;
+            $sql = "SELECT COUNT(*) FROM products WHERE {$field} = ?";
+            $params = [$value];
+            if ($excludeId !== null) {
+                $sql .= ' AND id != ?';
+                $params[] = $excludeId;
+            }
+            if ((int) Database::fetchValue($sql, $params) > 0) $errors[] = "That {$label} is already in use.";
+        }
+        return $errors;
     }
 
     /** Gallery images for a product (primary first). */

@@ -1,0 +1,196 @@
+- generic [active] [ref=f187e1]:
+  - link "Skip to main content" [ref=f187e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f187e3]:
+    - generic [ref=f187e4]:
+      - link "Khamis Computers dashboard" [ref=f187e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f187e9]: Khamis Computers
+      - button "Open navigation" [ref=f187e10] [cursor=pointer]
+      - button "Sign out" [ref=f187e16] [cursor=pointer]
+  - main [ref=f187e17]:
+    - generic [ref=f187e18]:
+      - generic [ref=f187e19]:
+        - heading "Khamis Computers" [level=1] [ref=f187e20]
+        - paragraph [ref=f187e21]: Point of Sale & Online Shop. Everything connected.
+      - generic [ref=f187e22]:
+        - link "Open shop ↗" [ref=f187e23] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/shop
+        - link "Open POS terminal" [ref=f187e24] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/pos
+    - generic [ref=f187e25]:
+      - generic [ref=f187e26]:
+        - generic [ref=f187e27]: Revenue today
+        - generic [ref=f187e28]: KSh 0.00
+        - generic [ref=f187e29]: completed sales · 2026-09-16
+      - generic [ref=f187e30]:
+        - generic [ref=f187e31]: Sales today
+        - generic [ref=f187e32]: "0"
+        - generic [ref=f187e33]: transactions
+      - generic [ref=f187e34]:
+        - generic [ref=f187e35]: Active products
+        - generic [ref=f187e36]: "9"
+        - generic [ref=f187e37]: in catalogue
+      - generic [ref=f187e38]:
+        - generic [ref=f187e39]: Stock value
+        - generic [ref=f187e40]: KSh 747,600.00
+        - generic [ref=f187e41]: at cost price
+    - generic [ref=f187e42]:
+      - generic [ref=f187e43]:
+        - heading "Build roadmap" [level=3] [ref=f187e44]
+        - paragraph [ref=f187e45]: Delivered piece by piece — each part turns on as it's built.
+        - list [ref=f187e46]:
+          - listitem [ref=f187e47]:
+            - generic [ref=f187e48]: ✓1. Foundation
+            - emphasis [ref=f187e49]: login, shell, database
+          - listitem [ref=f187e50]:
+            - generic [ref=f187e51]: ✓2. Inventory
+            - emphasis [ref=f187e52]: products, serial/IMEI, GRN
+          - listitem [ref=f187e53]:
+            - generic [ref=f187e54]: ✓3. POS terminal
+            - emphasis [ref=f187e55]: cart, checkout, receipt
+          - listitem [ref=f187e56]:
+            - generic [ref=f187e57]: ✓4. Online shop
+            - emphasis [ref=f187e58]: storefront, cart, checkout
+          - listitem [ref=f187e59]:
+            - generic [ref=f187e60]: ✓5. Offline POS
+            - emphasis [ref=f187e61]: service worker + sync
+          - listitem [ref=f187e62]:
+            - generic [ref=f187e63]: ✓6. Orders & reports
+            - emphasis [ref=f187e64]: history, returns, analytics
+          - listitem [ref=f187e65]:
+            - generic [ref=f187e66]: ✓7. Polish
+            - emphasis [ref=f187e67]: roles, settings, PDFs
+        - paragraph [ref=f187e68]: All seven pieces are complete ✅
+      - generic [ref=f187e69]:
+        - heading "System" [level=3] [ref=f187e70]
+        - generic [ref=f187e71]:
+          - term [ref=f187e72]: Environment
+          - definition [ref=f187e73]:
+            - generic [ref=f187e74]: development
+          - term [ref=f187e75]: Database driver
+          - definition [ref=f187e76]: sqlite
+          - term [ref=f187e77]: Currency / VAT
+          - definition [ref=f187e78]: KSh · 16%
+          - term [ref=f187e79]: Units in stock
+          - definition [ref=f187e80]: "12"
+          - term [ref=f187e81]: Pending returns
+          - definition [ref=f187e82]: "0"
+    - generic [ref=f187e83]:
+      - generic [ref=f187e84]:
+        - heading "Recent orders" [level=3] [ref=f187e85]
+        - table [ref=f187e86]:
+          - rowgroup [ref=f187e87]:
+            - row [ref=f187e88]:
+              - columnheader "Sale" [ref=f187e89]
+              - columnheader "Customer" [ref=f187e90]
+              - columnheader "Channel" [ref=f187e91]
+              - columnheader "Total" [ref=f187e92]
+              - columnheader [ref=f187e93]
+          - rowgroup [ref=f187e94]:
+            - row [ref=f187e95]:
+              - cell "Sale S-20260915-0066" [ref=f187e96]
+              - cell "Customer Walk-in" [ref=f187e97]
+              - cell "Channel pos" [ref=f187e98]:
+                - text: Channel
+                - generic [ref=f187e99]: pos
+              - cell "Total KSh 140,360.00" [ref=f187e100]
+              - cell [ref=f187e101]:
+                - text: Details
+                - link "View" [ref=f187e103] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/sales/66
+            - row [ref=f187e104]:
+              - cell "Sale S-20260909-0064" [ref=f187e105]
+              - cell "Customer Walk-in" [ref=f187e106]
+              - cell "Channel pos" [ref=f187e107]:
+                - text: Channel
+                - generic [ref=f187e108]: pos
+              - cell "Total KSh 141,752.00" [ref=f187e109]
+              - cell [ref=f187e110]:
+                - text: Details
+                - link "View" [ref=f187e112] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/sales/65
+            - row [ref=f187e113]:
+              - cell "Sale S-20260909-0024" [ref=f187e114]
+              - cell "Customer Walk-in" [ref=f187e115]
+              - cell "Channel pos" [ref=f187e116]:
+                - text: Channel
+                - generic [ref=f187e117]: pos
+              - cell "Total KSh 236,640.00" [ref=f187e118]
+              - cell [ref=f187e119]:
+                - text: Details
+                - link "View" [ref=f187e121] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/sales/63
+            - row [ref=f187e122]:
+              - cell "Sale S-20260908-0023" [ref=f187e123]
+              - cell "Customer Sim Buyer 2" [ref=f187e124]
+              - cell "Channel online" [ref=f187e125]:
+                - text: Channel
+                - generic [ref=f187e126]: online
+              - cell "Total KSh 4,872.00" [ref=f187e127]
+              - cell [ref=f187e128]:
+                - text: Details
+                - link "View" [ref=f187e130] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/sales/23
+            - row [ref=f187e131]:
+              - cell "Sale S-20260908-0022" [ref=f187e132]
+              - cell "Customer Sim Buyer" [ref=f187e133]
+              - cell "Channel online" [ref=f187e134]:
+                - text: Channel
+                - generic [ref=f187e135]: online
+              - cell "Total KSh 4,872.00" [ref=f187e136]
+              - cell [ref=f187e137]:
+                - text: Details
+                - link "View" [ref=f187e139] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/sales/22
+            - row [ref=f187e140]:
+              - cell "Sale S-20260908-0021" [ref=f187e141]
+              - cell "Customer Mpesa Buyer" [ref=f187e142]
+              - cell "Channel online" [ref=f187e143]:
+                - text: Channel
+                - generic [ref=f187e144]: online
+              - cell "Total KSh 8,700.00" [ref=f187e145]
+              - cell [ref=f187e146]:
+                - text: Details
+                - link "View" [ref=f187e148] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/sales/21
+        - paragraph [ref=f187e149]:
+          - link "See all orders →" [ref=f187e150] [cursor=pointer]:
+            - /url: http://127.0.0.1:8102/sales
+      - generic [ref=f187e151]:
+        - heading "Low stock" [level=3] [ref=f187e152]
+        - table [ref=f187e153]:
+          - rowgroup [ref=f187e154]:
+            - row [ref=f187e155]:
+              - columnheader "Product" [ref=f187e156]
+              - columnheader "In stock" [ref=f187e157]
+              - columnheader "Reorder at" [ref=f187e158]
+          - rowgroup [ref=f187e159]:
+            - row [ref=f187e160]:
+              - cell [ref=f187e161]:
+                - text: Product
+                - link "Dell Latitude 5440 (i7/16GB/512GB)" [ref=f187e162] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/2
+              - cell "In stock 2" [ref=f187e163]
+              - cell "Reorder at 2" [ref=f187e164]
+            - row [ref=f187e165]:
+              - cell [ref=f187e166]:
+                - text: Product
+                - link "HP ProBook 450 G10 (i5/16GB/512GB)" [ref=f187e167] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/1
+              - cell "In stock 2" [ref=f187e168]
+              - cell "Reorder at 2" [ref=f187e169]
+            - row [ref=f187e170]:
+              - cell [ref=f187e171]:
+                - text: Product
+                - link "Lenovo ThinkPad E14 (i5/8GB/256GB)" [ref=f187e172] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/3
+              - cell "In stock 2" [ref=f187e173]
+              - cell "Reorder at 2" [ref=f187e174]
+            - row [ref=f187e175]:
+              - cell [ref=f187e176]:
+                - text: Product
+                - link "MacBook Air M3" [ref=f187e177] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8102/products/9
+              - cell "In stock 0" [ref=f187e178]
+              - cell "Reorder at 1" [ref=f187e179]

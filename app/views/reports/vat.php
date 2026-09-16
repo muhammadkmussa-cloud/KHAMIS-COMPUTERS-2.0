@@ -14,6 +14,9 @@
     </form>
 </div>
 
+<div class="report-period-links"><span>Quick period</span><a href="<?= e(url('reports/vat').'?from='.date('Y-m-01').'&to='.date('Y-m-t')) ?>">This month</a><a href="<?= e(url('reports/vat').'?from='.date('Y-m-01',strtotime('first day of last month')).'&to='.date('Y-m-t',strtotime('last day of last month'))) ?>">Last month</a><a href="<?= e(url('reports/vat').'?from='.date('Y-01-01').'&to='.date('Y-m-d')) ?>">Year to date</a></div>
+<div class="alert alert-info report-assumption"><b>VAT basis:</b> Sales use VAT actually recorded at checkout. Returns reverse the original sale rate. Purchase input VAT is estimated at <?= e((string)$rate) ?>% because GRN costs are stored VAT-exclusive; expenses and delivery-fee VAT are excluded.</div>
+
 <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
     <div class="kpi"><div class="kpi-label">Output VAT (sales)</div><div class="kpi-value blue"><?= money($d['output']) ?></div><div class="kpi-hint"><?= number_format($d['sales_count']) ?> completed sales</div></div>
     <div class="kpi"><div class="kpi-label">Input VAT (purchases)</div><div class="kpi-value" style="color:var(--green)"><?= money($d['input']) ?></div><div class="kpi-hint">est. <?= e((string) $rate) ?>% of purchases (<?= money($d['purchase_net']) ?>)</div></div>
@@ -25,12 +28,13 @@
     <div class="card">
         <h3>Daily breakdown</h3>
         <table class="table">
-            <thead><tr><th>Date</th><th class="num">Output VAT</th><th class="num">Input VAT</th><th class="num">Net</th></tr></thead>
+            <thead><tr><th>Date</th><th class="num">Output VAT</th><th class="num">Returns VAT</th><th class="num">Input VAT</th><th class="num">Net</th></tr></thead>
             <tbody>
-            <?php foreach ($d['days'] as $day => $v): $dayNet = round($v['out'] - $v['in'], 2); ?>
+            <?php foreach ($d['days'] as $day => $v): $dayNet = round($v['out'] - $v['returned'] - $v['in'], 2); ?>
                 <tr>
                     <td class="cell-main"><?= e(date('D d M Y', strtotime($day))) ?></td>
                     <td class="num"><?= money($v['out']) ?></td>
+                    <td class="num"><?= money($v['returned']) ?></td>
                     <td class="num"><?= money($v['in']) ?></td>
                     <td class="num" style="font-weight:700;color:<?= $dayNet >= 0 ? 'var(--green)' : 'var(--red)' ?>"><?= money($dayNet) ?></td>
                 </tr>

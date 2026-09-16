@@ -1,0 +1,126 @@
+- generic [active] [ref=f122e1]:
+  - link "Skip to main content" [ref=f122e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f122e3]:
+    - generic [ref=f122e4]:
+      - link "Khamis Computers dashboard" [ref=f122e5] [cursor=pointer]:
+        - /url: http://127.0.0.1:8102/dashboard
+        - generic [ref=f122e9]: Khamis Computers
+      - button "Open navigation" [ref=f122e10] [cursor=pointer]
+      - button "Sign out" [ref=f122e16] [cursor=pointer]
+  - main [ref=f122e17]:
+    - generic [ref=f122e18]:
+      - generic [ref=f122e19]:
+        - link "← Sales" [ref=f122e20] [cursor=pointer]:
+          - /url: http://127.0.0.1:8102/sales
+        - generic [ref=f122e21]:
+          - generic [ref=f122e22]: Order record
+          - heading "S-20260908-0023" [level=1] [ref=f122e23]
+      - generic [ref=f122e24]:
+        - generic [ref=f122e25]: Pending
+        - generic [ref=f122e26]: Online
+        - time [ref=f122e27]: 08 Sep 2026 · 09:33 PM
+    - generic [ref=f122e28]:
+      - generic [ref=f122e30]:
+        - generic [ref=f122e31]: Payment exception
+        - heading "Waiting for M-PESA confirmation" [level=2] [ref=f122e32]
+        - paragraph [ref=f122e33]: Stock remains reserved while this order is pending. Confirm the customer and amount before taking action.
+      - list [ref=f122e35]:
+        - listitem [ref=f122e36]:
+          - generic [ref=f122e37]: "1"
+          - generic [ref=f122e38]:
+            - generic [ref=f122e39]: Order created
+            - generic [ref=f122e40]: 08 Sep · 09:33 PM
+        - listitem [ref=f122e41]:
+          - generic [ref=f122e42]: "2"
+          - generic [ref=f122e43]:
+            - generic [ref=f122e44]: Prompt sent
+            - generic [ref=f122e45]: No attempt record found
+        - listitem [ref=f122e46]:
+          - generic [ref=f122e47]: "3"
+          - generic [ref=f122e48]:
+            - generic [ref=f122e49]: Payment confirmation
+            - generic [ref=f122e50]: Receipt code required
+      - generic [ref=f122e51]:
+        - generic [ref=f122e52]:
+          - text: Customer
+          - generic [ref=f122e53]: "254700000000"
+        - generic [ref=f122e54]:
+          - text: Amount
+          - generic [ref=f122e55]: KSh 4,872.00
+        - generic [ref=f122e56]:
+          - text: Stock
+          - generic [ref=f122e57]: Reserved
+      - generic [ref=f122e58]:
+        - button "Send another prompt" [ref=f122e59] [cursor=pointer]
+        - button "Verify receipt and mark paid" [ref=f122e60] [cursor=pointer]
+    - generic [ref=f122e61]:
+      - generic [ref=f122e62]:
+        - generic [ref=f122e63]:
+          - generic [ref=f122e64]:
+            - generic [ref=f122e65]: Order total
+            - strong [ref=f122e66]: KSh 4,872.00
+          - generic [ref=f122e67]:
+            - generic [ref=f122e68]: 1 item
+            - generic [ref=f122e69]: Prices below exclude VAT
+        - region [ref=f122e70]:
+          - generic [ref=f122e71]:
+            - heading "Items" [level=2] [ref=f122e72]
+            - generic [ref=f122e73]: 1 line
+          - article [ref=f122e75]:
+            - generic [ref=f122e76]:
+              - generic [ref=f122e77]: TP-Link AC1200 Router
+              - generic [ref=f122e78]: KC-ACC-002
+            - generic [ref=f122e79]:
+              - generic [ref=f122e80]: Qty
+              - generic [ref=f122e81]: "1"
+            - generic [ref=f122e82]:
+              - generic [ref=f122e83]: KSh 4,200.00 each
+              - generic [ref=f122e84]: KSh 4,200.00
+        - generic [ref=f122e85]:
+          - generic [ref=f122e86]:
+            - generic [ref=f122e87]: Subtotal before VAT
+            - generic [ref=f122e88]: KSh 4,200.00
+          - generic [ref=f122e89]:
+            - generic [ref=f122e90]: VAT (16%)
+            - generic [ref=f122e91]: KSh 672.00
+          - generic [ref=f122e92]:
+            - generic [ref=f122e93]: Total
+            - generic [ref=f122e94]: KSh 4,872.00
+      - complementary [ref=f122e95]:
+        - generic [ref=f122e96]:
+          - heading "Order information" [level=2] [ref=f122e98]
+          - generic [ref=f122e99]:
+            - generic [ref=f122e100]:
+              - term [ref=f122e101]: Payment
+              - definition [ref=f122e102]: MPESA · Manual
+            - generic [ref=f122e103]:
+              - term [ref=f122e104]: Fulfilment
+              - definition [ref=f122e105]: Pickup
+            - generic [ref=f122e106]:
+              - term [ref=f122e107]: Customer
+              - definition [ref=f122e108]: Sim Buyer 2
+            - generic [ref=f122e109]:
+              - term [ref=f122e110]: Phone
+              - definition [ref=f122e111]:
+                - link "254700000000" [ref=f122e112] [cursor=pointer]:
+                  - /url: tel:254700000000
+            - generic [ref=f122e113]:
+              - term [ref=f122e114]: Recorded by
+              - definition [ref=f122e115]: Online checkout
+        - generic [ref=f122e116]:
+          - heading "Receipt and actions" [level=2] [ref=f122e118]
+          - generic [ref=f122e119]:
+            - link "Open PDF receipt" [ref=f122e120] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/23/pdf
+            - link "Print 80mm" [ref=f122e121] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/23/print?size=80
+            - link "Print 58mm" [ref=f122e122] [cursor=pointer]:
+              - /url: http://127.0.0.1:8102/sales/23/print?size=58
+          - button "Void this sale" [ref=f122e123] [cursor=pointer]
+          - paragraph [ref=f122e124]: PDF is best for email or A4 printing. Choose the thermal width that matches the installed roll.
+        - generic [ref=f122e125]:
+          - generic [ref=f122e126]:
+            - heading "Returns" [level=2] [ref=f122e127]
+            - generic [ref=f122e128]: "0"
+          - paragraph [ref=f122e129]: No returns have been recorded for this order.

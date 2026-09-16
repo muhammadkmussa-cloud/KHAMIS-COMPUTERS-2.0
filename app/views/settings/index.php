@@ -192,7 +192,7 @@ $s = function (string $key, string $default = '') use ($settings) {
                 </div>
             </div>
             <p class="hint" style="margin-top:-6px">
-                Callback URL (set this as the Confirmation/Callback URL on the Daraja portal): <code><?= e(url('mpesa/callback')) ?></code>
+                Callback URL (copy this exact tokenized URL into the Daraja portal): <code class="callback-url"><?= e(url('mpesa/callback?token=' . rawurlencode(MpesaService::callbackToken()))) ?></code>
             </p>
 
             <div class="form-actions">
@@ -205,25 +205,26 @@ $s = function (string $key, string $default = '') use ($settings) {
         <h3>Delivery zones <span class="badge badge-gray"><?= count($zones) ?></span></h3>
         <p class="sub">Flat delivery fees per area, charged on online delivery orders. Existing orders keep the fee they were placed with.</p>
 
-        <table class="table">
+        <table class="table mobile-cards zone-table">
             <thead><tr><th>Zone</th><th class="num">Fee</th><th>Status</th><th>Order</th><th style="width:180px"></th></tr></thead>
             <tbody>
             <?php foreach ($zones as $z): ?>
                 <tr>
                     <form method="post" action="<?= e(url('delivery-zones/' . $z['id'])) ?>">
                         <?= csrf_field() ?>
-                        <td><input type="text" name="name" value="<?= e($z['name']) ?>" required></td>
-                        <td class="num"><input type="number" name="fee" step="0.01" min="0" value="<?= e((string) $z['fee']) ?>" style="width:110px;text-align:right" required></td>
-                        <td>
+                        <td data-label="Zone"><input type="text" name="name" aria-label="Zone name" value="<?= e($z['name']) ?>" required></td>
+                        <td class="num" data-label="Fee"><input type="number" name="fee" aria-label="Delivery fee" step="0.01" min="0" value="<?= e((string) $z['fee']) ?>" style="width:110px;text-align:right" required></td>
+                        <td data-label="Status">
                             <label class="switch" style="display:inline-flex;align-items:center;gap:6px">
-                                <input type="checkbox" name="is_active" value="1" <?= (int) $z['is_active'] === 1 ? 'checked' : '' ?>>
+                                <input type="hidden" name="is_active" value="0">
+                                <input type="checkbox" name="is_active" aria-label="Zone active" value="1" <?= (int) $z['is_active'] === 1 ? 'checked' : '' ?>>
                                 <span><?= (int) $z['is_active'] === 1 ? 'Active' : 'Hidden' ?></span>
                             </label>
                         </td>
-                        <td><input type="number" name="sort_order" value="<?= (int) $z['sort_order'] ?>" style="width:70px"></td>
+                        <td data-label="Order"><input type="number" name="sort_order" aria-label="Display order" value="<?= (int) $z['sort_order'] ?>" style="width:70px"></td>
                         <td style="white-space:nowrap">
                             <button class="btn btn-outline btn-sm" type="submit">Save</button>
-                            <button class="btn btn-danger-ghost btn-sm" type="submit" formaction="<?= e(url('delivery-zones/' . $z['id'] . '/delete')) ?>" onclick="return confirm('Delete this delivery zone?');">Delete</button>
+                            <button class="btn btn-danger-ghost btn-sm" type="submit" formaction="<?= e(url('delivery-zones/' . $z['id'] . '/delete')) ?>" data-confirm="Delete this delivery zone?">Delete</button>
                         </td>
                     </form>
                 </tr>

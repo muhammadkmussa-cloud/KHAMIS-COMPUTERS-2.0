@@ -1,219 +1,83 @@
-<?php $serialized = (int) $product['is_serialized'] === 1; ?>
+<?php
+$serialized=(int)$product['is_serialized']===1;
+$availableImages=count($images);
+include APP_PATH . '/views/partials/inventory-tabs.php';
+?>
+<div class="page-head product-detail-head">
+    <div><div class="section-kicker"><?= e($product['category_name']??'Uncategorised') ?><?= $product['brand_name']?' · '.e($product['brand_name']):'' ?></div><h1><?= e($product['name']) ?></h1><div class="product-identity-line"><span><?= e($product['sku']) ?></span><?php if($product['barcode']): ?><span><?= e($product['barcode']) ?></span><?php endif; ?><span class="badge badge-<?= $serialized?'blue':'gray' ?>"><?= $serialized?'Serial / IMEI':'Quantity tracked' ?></span><span class="badge badge-<?= $product['is_active']?'green':'gray' ?>"><?= $product['is_active']?'Active':'Inactive' ?></span></div></div>
+    <div class="page-actions"><a class="btn btn-ghost" href="<?= e(url('products')) ?>">Inventory</a><?php if($product['is_active']): ?><a class="btn btn-outline" target="_blank" rel="noopener" href="<?= e(url('shop/product/'.$product['id'])) ?>">Shop preview ↗</a><?php endif; ?><?php if(Auth::isAdmin()): ?><a class="btn btn-primary" href="<?= e(url('products/'.$product['id'].'/edit')) ?>">Edit product</a><?php endif; ?></div>
+</div>
 
-<div class="page-head">
-    <div>
-        <div class="section-kicker"><?= e($product['category_name'] ?? 'Uncategorised') ?><?= $product['brand_name'] ? ' · ' . e($product['brand_name']) : '' ?></div>
-        <h1><?= e($product['name']) ?></h1>
-        <p class="lede">
-            SKU <?= e($product['sku']) ?>
-            <?= $product['barcode'] ? ' · Barcode ' . e($product['barcode']) : '' ?>
-            &nbsp;·&nbsp; <?= $serialized ? '<span class="badge badge-blue">serial / IMEI tracked</span>' : '<span class="badge badge-gray">quantity tracked</span>' ?>
-            &nbsp;·&nbsp; <?= $product['is_active'] ? '<span class="badge badge-green">active</span>' : '<span class="badge badge-gray">inactive</span>' ?>
-        </p>
+<section class="product-kpis" aria-label="Product summary"><div><span>Available stock</span><b><?= number_format($stock) ?></b><small><?= (int)$product['reorder_level']>0?'Reorder at '.(int)$product['reorder_level']:'No reorder alert' ?></small></div><div><span>Selling price</span><b><?= money(gross_of($product['sell_price'])) ?></b><small><?= money($product['sell_price']) ?> excl. VAT</small></div><?php if(Auth::isAdmin()): ?><div><span>Unit cost</span><b><?= money($product['cost_price']) ?></b><small><?= money($stock*(float)$product['cost_price']) ?> stock value</small></div><?php endif; ?><div><span>Tracking</span><b><?= $serialized?'Individual':'Quantity' ?></b><small><?= $serialized?number_format($unitSummary['total']).' unit records':'Ledger movements' ?></small></div></section>
+
+<div class="product-tabs" role="tablist" aria-label="Product sections">
+    <button id="tab-overview" type="button" role="tab" aria-controls="overview" data-product-tab="overview">Overview</button>
+    <button id="tab-images" type="button" role="tab" aria-controls="images" data-product-tab="images">Images <span><?= $availableImages ?></span></button>
+    <button id="tab-stock" type="button" role="tab" aria-controls="stock" data-product-tab="stock"><?= $serialized?'Stock & serials':'Stock' ?> <span><?= $stock ?></span></button>
+    <button id="tab-movements" type="button" role="tab" aria-controls="movements" data-product-tab="movements">Movements <span><?= count($movements) ?></span></button>
+    <?php if(Auth::isAdmin()): ?><button id="tab-labels" type="button" role="tab" aria-controls="labels" data-product-tab="labels">Labels</button><?php endif; ?>
+</div>
+
+<section class="product-tab-panel" id="overview" data-product-panel role="tabpanel" aria-labelledby="tab-overview">
+    <div class="product-overview-grid">
+        <article class="card"><div class="product-panel-head"><div><div class="section-kicker">Catalogue record</div><h2>Overview</h2></div></div><?php if($product['description']): ?><p class="product-description"><?= nl2br(e($product['description'])) ?></p><?php else: ?><div class="inline-empty"><b>No description yet</b><span>Add customer-facing specifications from Edit product.</span></div><?php endif; ?><dl class="product-facts"><div><dt>Category</dt><dd><?= e($product['category_name']??'Uncategorised') ?></dd></div><div><dt>Brand</dt><dd><?= e($product['brand_name']??'No brand') ?></dd></div><div><dt>Warranty</dt><dd><?= $product['warranty_months']!==null?(int)$product['warranty_months'].' months':'Not set' ?></dd></div><div><dt>Created</dt><dd><?= e(date('d M Y',strtotime($product['created_at']))) ?></dd></div></dl></article>
+        <aside class="card product-next-actions"><div class="product-panel-head"><div><div class="section-kicker">Next actions</div><h2>Keep stock moving</h2></div></div><?php if(Auth::isAdmin()): ?><a class="btn btn-primary btn-block" href="<?= e(url('grn/new?product='.$product['id'])) ?>">Receive from supplier</a><button type="button" class="btn btn-outline btn-block" data-show-tab="stock"><?= $serialized?'Manage serials':'Adjust stock' ?></button><button type="button" class="btn btn-outline btn-block" data-show-tab="images">Manage shop images</button><a class="btn btn-outline btn-block" href="<?= e(url('products/'.$product['id'].'/labels')) ?>">Open label workspace</a><?php else: ?><p class="muted">Open Stock to check availability and unit status.</p><button type="button" class="btn btn-outline btn-block" data-show-tab="stock">View stock</button><?php endif; ?></aside>
     </div>
-    <div class="page-actions">
-        <a class="btn btn-ghost" href="<?= e(url('products')) ?>">← Inventory</a>
-        <?php if (Auth::isAdmin()): ?>
-            <a class="btn btn-outline" href="<?= e(url('products/' . $product['id'] . '/labels?autoprint=1')) ?>">Print labels</a>
-            <?php if ($serialized): ?>
-                <a class="btn btn-outline" href="<?= e(url('products/' . $product['id'] . '/labels?kind=serials&autoprint=1')) ?>">Serial labels</a>
-            <?php endif; ?>
-            <a class="btn btn-outline" href="<?= e(url('products/' . $product['id'] . '/edit')) ?>">Edit</a>
-        <?php endif; ?>
+</section>
+
+<section class="product-tab-panel" id="images" data-product-panel role="tabpanel" aria-labelledby="tab-images" hidden>
+    <div class="card"><div class="product-panel-head"><div><div class="section-kicker">Online merchandising</div><h2>Product images</h2><p>Primary image appears first in the shop. Descriptions help customers using screen readers.</p></div><?php if($product['is_active']): ?><a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="<?= e(url('shop/product/'.$product['id'])) ?>">Public preview ↗</a><?php endif; ?></div>
+        <?php if(!$images): ?><div class="inline-empty image-empty"><b>No images uploaded</b><span>Add clear product photos; the first successful upload becomes primary.</span></div><?php else: ?><div class="product-image-grid"><?php foreach($images as $index=>$im): ?><article class="product-image-card"><div class="product-image-frame"><img src="<?= e(url('uploads/p/'.rawurlencode($im['filename']))) ?>" alt="<?= e($im['alt_text']?:$product['name']) ?>"><?php if($product['image']===$im['filename']): ?><span class="badge badge-blue">Primary</span><?php endif; ?></div><?php if(Auth::isAdmin()): ?><form method="post" action="<?= e(url('products/'.$product['id'].'/images/'.$im['id'].'/update')) ?>" class="image-meta-form"><?= csrf_field() ?><label for="image-alt-<?= (int)$im['id'] ?>">Image description</label><input id="image-alt-<?= (int)$im['id'] ?>" name="alt_text" maxlength="255" value="<?= e($im['alt_text']??'') ?>" placeholder="Describe the product view"><div><button class="btn btn-ghost btn-sm" type="submit" name="direction" value="up" <?= $index===0?'disabled':'' ?> aria-label="Move image earlier">← Earlier</button><button class="btn btn-ghost btn-sm" type="submit" name="direction" value="down" <?= $index===count($images)-1?'disabled':'' ?> aria-label="Move image later">Later →</button><button class="btn btn-outline btn-sm" type="submit">Save</button></div></form><div class="image-card-actions"><?php if($product['image']!==$im['filename']): ?><form method="post" action="<?= e(url('products/'.$product['id'].'/images/'.$im['id'].'/primary')) ?>"><?= csrf_field() ?><button class="btn btn-outline btn-sm" type="submit">Make primary</button></form><?php endif; ?><form method="post" action="<?= e(url('products/'.$product['id'].'/images/'.$im['id'].'/delete')) ?>" data-confirm="Remove this image from the product gallery?" data-confirm-action="Remove image"><?= csrf_field() ?><button class="btn btn-danger-ghost btn-sm" type="submit">Remove</button></form></div><?php endif; ?></article><?php endforeach; ?></div><?php endif; ?>
+        <?php if(Auth::isAdmin()): ?><form id="image-upload-form" method="post" action="<?= e(url('products/'.$product['id'].'/images')) ?>" enctype="multipart/form-data" class="image-drop-form"><?= csrf_field() ?><input id="product-images" type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple hidden><label for="product-images" class="image-drop-zone"><span aria-hidden="true">＋</span><b>Drop product images here</b><small>or choose JPG, PNG, or WebP files up to 3 MB each</small></label><div id="image-file-list" class="image-file-list" aria-live="polite"></div><div class="upload-progress" id="upload-progress" hidden><span></span></div><button class="btn btn-primary" type="submit" disabled>Upload selected images</button></form><?php endif; ?>
     </div>
-</div>
+</section>
 
-<div class="stat-strip">
-    <div class="stat"><b><?= $stock ?></b><span>in stock</span></div>
-    <div class="stat"><b><?= money($product['sell_price']) ?></b><span>sell (excl. VAT)</span></div>
-    <div class="stat"><b><?= money(gross_of($product['sell_price'])) ?></b><span>sell (incl. VAT)</span></div>
-    <div class="stat"><b><?= money($product['cost_price']) ?></b><span>cost price</span></div>
-    <div class="stat"><b><?= money($stock * (float) $product['cost_price']) ?></b><span>stock value</span></div>
-</div>
-
-<?php if ($product['description']): ?>
-<div class="card" style="margin-bottom:18px">
-    <p class="muted" style="margin:0"><?= nl2br(e($product['description'])) ?></p>
-</div>
-<?php endif; ?>
-
-<?php if (Auth::isAdmin()): ?>
-<div class="card" style="margin-bottom:18px">
-    <h3>Images <span class="badge badge-gray"><?= count($images) ?></span></h3>
-    <p class="sub">Shown on the online shop. The first image is used on cards and lists.</p>
-
-    <div style="display:flex;flex-wrap:wrap;gap:12px;margin:12px 0">
-        <?php if (!$images): ?>
-            <p class="muted" style="margin:0">No images yet — upload some below.</p>
-        <?php endif; ?>
-        <?php foreach ($images as $im): ?>
-            <div style="border:1px solid var(--border);border-radius:14px;padding:8px;text-align:center">
-                <img src="<?= e(url('uploads/p/' . rawurlencode($im['filename']))) ?>" alt=""
-                     style="width:120px;height:120px;object-fit:cover;border-radius:10px;display:block">
-                <div style="display:flex;gap:6px;justify-content:center;margin-top:8px">
-                    <?php if ($product['image'] === $im['filename']): ?>
-                        <span class="badge badge-blue">primary</span>
-                    <?php else: ?>
-                        <form method="post" action="<?= e(url('products/' . $product['id'] . '/images/' . $im['id'] . '/primary')) ?>" style="display:inline">
-                            <?= csrf_field() ?>
-                            <button class="btn btn-outline btn-sm" type="submit">Make primary</button>
-                        </form>
-                    <?php endif; ?>
-                    <form method="post" action="<?= e(url('products/' . $product['id'] . '/images/' . $im['id'] . '/delete')) ?>"
-                          onsubmit="return confirm('Remove this image?');" style="display:inline">
-                        <?= csrf_field() ?>
-                        <button class="btn btn-danger-ghost btn-sm" type="submit">Remove</button>
-                    </form>
-                </div>
-            </div>
-        <?php endforeach; ?>
+<section class="product-tab-panel" id="stock" data-product-panel role="tabpanel" aria-labelledby="tab-stock" hidden>
+<?php if($serialized): ?>
+    <div class="serial-summary"><div><span>Total units</span><b><?= $unitSummary['total'] ?></b></div><div><span>Available</span><b><?= $unitSummary['in_stock'] ?></b></div><div><span>Reserved</span><b><?= $unitSummary['reserved'] ?></b></div><div><span>Needs attention</span><b><?= $unitSummary['attention'] ?></b></div></div>
+    <div class="card"><div class="product-panel-head"><div><div class="section-kicker">Unit register</div><h2>Serial and IMEI stock</h2></div><?php if(Auth::isAdmin()): ?><a class="btn btn-outline btn-sm" href="<?= e(url('products/'.$product['id'].'/labels?kind=serials')) ?>">Serial labels</a><?php endif; ?></div>
+        <form method="get" action="<?= e(url('products/'.$product['id'])) ?>#stock" class="serial-filter-form"><label for="unit-q"><span>Search units</span><input id="unit-q" type="search" name="unit_q" value="<?= e($unitQ) ?>" placeholder="Serial, IMEI or note"></label><label for="unit-status"><span>Status</span><select id="unit-status" name="unit_status"><option value="">All statuses</option><?php foreach(['in_stock','reserved','sold','returned','damaged','missing'] as $s): ?><option value="<?= $s ?>" <?= $unitStatus===$s?'selected':'' ?>><?= e(ucwords(str_replace('_',' ',$s))) ?></option><?php endforeach; ?></select></label><button class="btn btn-primary btn-sm" type="submit">Apply</button><?php if($unitQ!==''||$unitStatus!==''): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('products/'.$product['id'].'#stock')) ?>">Clear</a><?php endif; ?></form>
+        <?php if(Auth::isAdmin()): ?><form id="bulk-unit-form" method="post" action="<?= e(url('products/'.$product['id'].'/units/bulk')) ?>" class="bulk-unit-bar"><?= csrf_field() ?><span><b data-selected-count>0</b> selected</span><label for="bulk-status" class="sr-only">New status</label><select id="bulk-status" name="bulk_status" required><option value="">Change status to…</option><option value="in_stock">In stock</option><option value="reserved">Reserved</option><option value="returned">Returned</option><option value="damaged">Damaged</option><option value="missing">Missing</option></select><label for="bulk-note" class="sr-only">Status note</label><input id="bulk-note" name="bulk_note" maxlength="255" placeholder="Optional note"><button class="btn btn-outline btn-sm" type="submit" disabled>Apply to selected</button></form><?php endif; ?>
+        <?php if(!$units): ?><div class="inline-empty"><b>No units match</b><span>Clear the search or add serials below.</span></div><?php else: ?><div class="table-wrap serial-table-wrap"><table class="table serial-table"><thead><tr><?php if(Auth::isAdmin()): ?><th><span class="sr-only">Select</span><input type="checkbox" data-select-all aria-label="Select all visible units"></th><?php endif; ?><th>Serial / IMEI</th><th>Status</th><th>Received</th><th>Warranty</th><th>Note</th><?php if(Auth::isAdmin()): ?><th>Update</th><?php endif; ?></tr></thead><tbody><?php foreach($units as $u): $wexp=$u['warranty_expires']??null;$expired=$wexp&&$wexp<date('Y-m-d'); ?><tr><?php if(Auth::isAdmin()): ?><td data-label="Select"><input type="checkbox" name="unit_ids[]" value="<?= (int)$u['id'] ?>" form="bulk-unit-form" data-unit-select aria-label="Select <?= e($u['serial_number']) ?>"></td><?php endif; ?><td data-label="Serial / IMEI"><span class="unit-chip"><?= e($u['serial_number']) ?></span></td><td data-label="Status"><span class="unit-status st-<?= e($u['status']) ?>"></span> <?= e(str_replace('_',' ',$u['status'])) ?></td><td data-label="Received" class="cell-sub"><?= e(substr($u['received_at'],0,10)) ?></td><td data-label="Warranty" class="cell-sub <?= $expired?'text-danger':'' ?>"><?= $wexp?e($wexp).($expired?' · expired':''):'—' ?></td><td data-label="Note" class="cell-sub"><?= e($u['note']??'—') ?></td><?php if(Auth::isAdmin()): ?><td data-label="Update"><details class="unit-edit"><summary class="btn btn-ghost btn-sm">Edit</summary><form method="post" action="<?= e(url('products/'.$product['id'].'/units/'.$u['id'].'/status')) ?>"><?= csrf_field() ?><label>Status<select name="status"><?php foreach(['in_stock','reserved','sold','returned','damaged','missing'] as $s): ?><option value="<?= $s ?>" <?= $u['status']===$s?'selected':'' ?>><?= e(ucwords(str_replace('_',' ',$s))) ?></option><?php endforeach; ?></select></label><label>Warranty expires<input type="date" name="warranty_expires" value="<?= e($wexp??'') ?>"></label><label>Note<input type="text" name="note" maxlength="255" value="<?= e($u['note']??'') ?>"></label><button class="btn btn-primary btn-sm" type="submit">Save unit</button></form></details></td><?php endif; ?></tr><?php endforeach; ?></tbody></table></div><?php endif; ?>
+        <?php if(Auth::isAdmin()): ?><details class="add-serial-panel"><summary>Add or generate serials</summary><form method="post" action="<?= e(url('products/'.$product['id'].'/units')) ?>" class="form"><?= csrf_field() ?><label class="field" for="new-serials"><span>Serial numbers, one per line</span><textarea id="new-serials" name="serials" rows="4" placeholder="SN1234567890&#10;SN1234567891"></textarea><small>Duplicates are skipped and reported.</small></label><div class="add-serial-actions"><button class="btn btn-primary" type="submit" name="action" value="add">Add entered serials</button><span>or generate</span><label for="auto-count" class="sr-only">Number to generate</label><input id="auto-count" type="number" name="auto_count" min="1" max="200" value="10"><button class="btn btn-outline" type="submit" name="action" value="generate">Generate serials</button><label class="dialog-confirm-check"><input type="checkbox" name="print_labels" value="1"><span>Open labels after adding</span></label></div></form></details><?php endif; ?>
     </div>
-
-    <form method="post" action="<?= e(url('products/' . $product['id'] . '/images')) ?>" enctype="multipart/form-data">
-        <?= csrf_field() ?>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple
-                   style="font-size:14px;padding:8px;border:1px solid var(--border);border-radius:10px">
-            <button class="btn btn-primary btn-sm" type="submit">Upload images</button>
-            <span class="hint">JPG, PNG or WebP · up to 3 MB each · multiple allowed</span>
-        </div>
-    </form>
-</div>
-<?php endif; ?>
-
-<?php if ($serialized): ?>
-<div class="card" style="margin-bottom:18px">
-    <h3>Serial numbers <span class="badge badge-gray"><?= count($units) ?></span></h3>
-    <p class="sub">Each unit is tracked individually for warranty and returns.</p>
-
-    <table class="table" style="margin-top:10px">
-        <thead><tr><th>Serial / IMEI</th><th>Status</th><th>Received</th><th>Warranty until</th><th>Note</th><th></th></tr></thead>
-        <tbody>
-        <?php if (!$units): ?>
-            <tr><td colspan="6" class="muted" style="padding:22px;text-align:center">No units recorded yet.</td></tr>
-        <?php endif; ?>
-        <?php foreach ($units as $u): ?>
-            <?php
-                $wexp = $u['warranty_expires'] ?? null;
-                $expired = $wexp && $wexp < date('Y-m-d');
-            ?>
-            <tr>
-                <td><span class="unit-chip"><?= e($u['serial_number']) ?></span></td>
-                <td><span class="unit-status st-<?= e($u['status']) ?>"></span> <?= e(str_replace('_', ' ', $u['status'])) ?></td>
-                <td class="cell-sub"><?= e(substr($u['received_at'], 0, 10)) ?></td>
-                <td class="cell-sub" style="<?= $expired ? 'color:var(--red);font-weight:600' : '' ?>">
-                    <?= $wexp ? e($wexp) . ($expired ? ' (expired)' : '') : '—' ?>
-                </td>
-                <td class="cell-sub"><?= e($u['note'] ?? '') ?></td>
-                <td>
-                    <?php if (Auth::isAdmin()): ?>
-                    <form method="post" action="<?= e(url('products/' . $product['id'] . '/units/' . $u['id'] . '/status')) ?>" style="display:flex;gap:6px;align-items:center;justify-content:flex-end">
-                        <?= csrf_field() ?>
-                        <select name="status" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--border)">
-                            <?php foreach (['in_stock','reserved','sold','returned','damaged','missing'] as $s): ?>
-                                <option value="<?= $s ?>" <?= $u['status'] === $s ? 'selected' : '' ?>><?= str_replace('_', ' ', $s) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="date" name="warranty_expires" value="<?= e($wexp ?? '') ?>" title="Warranty expiry" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--border)">
-                        <input type="text" name="note" placeholder="note" value="<?= e($u['note'] ?? '') ?>" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--border);width:120px">
-                        <button class="btn btn-outline btn-sm" type="submit">Save</button>
-                    </form>
-                    <?php endif; ?>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-
-    <?php if (Auth::isAdmin()): ?>
-    <hr>
-    <div class="form-row">
-        <form method="post" action="<?= e(url('products/' . $product['id'] . '/units')) ?>" class="field" style="flex:1">
-            <?= csrf_field() ?>
-            <span>Add serial numbers (one per line — duplicates are skipped)</span>
-            <textarea name="serials" rows="3" placeholder="SN1234567890&#10;SN1234567891"></textarea>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                <button class="btn btn-primary btn-sm" type="submit" name="action" value="add">Add units</button>
-                <span class="muted" style="font-size:12px">or auto-generate</span>
-                <input type="number" name="auto_count" min="1" max="200" value="10" style="width:72px" title="How many serials to generate">
-                <button class="btn btn-outline btn-sm" type="submit" name="action" value="generate">Generate serials</button>
-                <label class="field field-check" style="margin:0 0 0 auto">
-                    <input type="checkbox" name="print_labels" value="1">
-                    <span>Print serial labels after adding</span>
-                </label>
-            </div>
-        </form>
-    </div>
-    <?php endif; ?>
-</div>
 <?php else: ?>
-<div class="grid-2" style="margin-top:0">
-    <?php if (Auth::isAdmin()): ?>
-    <div class="card">
-        <h3>Adjust stock</h3>
-        <p class="sub">Positive adds stock, negative removes it.</p>
-        <form method="post" action="<?= e(url('products/' . $product['id'] . '/adjust')) ?>" class="form">
-            <?= csrf_field() ?>
-            <div class="form-row">
-                <div class="field">
-                    <span>Adjustment (+/−)</span>
-                    <input type="number" name="delta" step="1" required placeholder="e.g. +5 or -2">
-                </div>
-                <div class="field">
-                    <span>Reason</span>
-                    <input type="text" name="reason" placeholder="e.g. stock count">
-                </div>
-            </div>
-            <div><button class="btn btn-primary btn-sm" type="submit">Apply adjustment</button></div>
-        </form>
+    <div class="product-overview-grid">
+        <?php if(Auth::isAdmin()): ?><article class="card"><div class="product-panel-head"><div><div class="section-kicker">Controlled adjustment</div><h2>Adjust quantity</h2><p>Use goods receiving for supplier deliveries. Adjust only for counts, damage, or corrections.</p></div></div><form method="post" action="<?= e(url('products/'.$product['id'].'/adjust')) ?>" class="form"><?= csrf_field() ?><label class="field" for="stock-delta"><span>Adjustment</span><input id="stock-delta" type="number" name="delta" step="1" required placeholder="e.g. +5 or -2"></label><label class="field" for="stock-reason"><span>Reason</span><input id="stock-reason" type="text" name="reason" required minlength="3" maxlength="255" placeholder="Stock count correction"></label><button class="btn btn-primary" type="submit">Review and apply</button></form></article><?php endif; ?>
+        <article class="card"><div class="product-panel-head"><div><div class="section-kicker">Current position</div><h2><?= number_format($stock) ?> units available</h2></div></div><dl class="product-facts"><div><dt>Reorder level</dt><dd><?= (int)$product['reorder_level'] ?></dd></div><?php if(Auth::isAdmin()): ?><div><dt>Stock value</dt><dd><?= money($stock*(float)$product['cost_price']) ?></dd></div><?php endif; ?><div><dt>Tracking</dt><dd>Quantity ledger</dd></div></dl><button class="btn btn-outline btn-block" type="button" data-show-tab="movements">View movement history</button></article>
     </div>
-    <?php endif; ?>
-
-    <div class="card">
-        <h3>Stock movements</h3>
-        <table class="table">
-            <thead><tr><th>Type</th><th class="num">Qty</th><th>When</th><th>Ref</th></tr></thead>
-            <tbody>
-            <?php if (!$movements): ?>
-                <tr><td colspan="4" class="muted" style="text-align:center;padding:18px">No movements yet.</td></tr>
-            <?php endif; ?>
-            <?php foreach ($movements as $m): ?>
-                <tr>
-                    <td><?= e(str_replace('_', ' ', $m['type'])) ?></td>
-                    <td class="num" style="<?= $m['quantity'] < 0 ? 'color:var(--red)' : 'color:var(--green)' ?>">
-                        <?= $m['quantity'] > 0 ? '+' : '' ?><?= (int) $m['quantity'] ?>
-                    </td>
-                    <td class="cell-sub"><?= e(substr($m['created_at'], 0, 16)) ?></td>
-                    <td class="cell-sub"><?= e($m['reference'] ?? '') ?></td>
-                </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-</div>
 <?php endif; ?>
+</section>
 
-<?php if (!$serialized): ?>
-<div class="card" style="margin-top:18px">
-    <h3>Stock movements</h3>
-    <table class="table">
-        <thead><tr><th>Type</th><th class="num">Qty</th><th>When</th><th>Ref</th><th>By</th></tr></thead>
-        <tbody>
-        <?php if (!$movements): ?>
-            <tr><td colspan="5" class="muted" style="text-align:center;padding:18px">No movements yet.</td></tr>
-        <?php endif; ?>
-        <?php foreach ($movements as $m): ?>
-            <tr>
-                <td><?= e(str_replace('_', ' ', $m['type'])) ?></td>
-                <td class="num" style="<?= $m['quantity'] < 0 ? 'color:var(--red)' : 'color:var(--green)' ?>">
-                    <?= $m['quantity'] > 0 ? '+' : '' ?><?= (int) $m['quantity'] ?>
-                </td>
-                <td class="cell-sub"><?= e(substr($m['created_at'], 0, 16)) ?></td>
-                <td class="cell-sub"><?= e($m['reference'] ?? '') ?></td>
-                <td class="cell-sub"><?= e($m['user_name'] ?? '—') ?></td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
-<?php endif; ?>
+<section class="product-tab-panel" id="movements" data-product-panel role="tabpanel" hidden><div class="card"><div class="product-panel-head"><div><div class="section-kicker">Audit trail</div><h2>Stock movements</h2><p>Latest 100 entries from receiving, sales, returns, voids, and adjustments.</p></div></div><?php if(!$movements): ?><div class="inline-empty"><b>No stock movements yet</b><span>Receive or adjust stock to begin the ledger.</span></div><?php else: ?><div class="table-wrap"><table class="table"><thead><tr><th>Type</th><th class="num">Quantity</th><th>Date and time</th><th>Reference</th><th>Recorded by</th></tr></thead><tbody><?php foreach($movements as $m): ?><tr><td><span class="badge badge-gray"><?= e(ucwords(str_replace('_',' ',$m['type']))) ?></span></td><td class="num <?= $m['quantity']<0?'text-danger':'text-success' ?>"><?= $m['quantity']>0?'+':'' ?><?= (int)$m['quantity'] ?></td><td><?= e(date('d M Y · h:i A',strtotime($m['created_at']))) ?></td><td><?= e($m['reference']??'—') ?></td><td><?= e($m['user_name']??'System') ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?></div></section>
+
+<?php if(Auth::isAdmin()): ?><section class="product-tab-panel" id="labels" data-product-panel role="tabpanel" hidden><div class="product-overview-grid"><article class="card label-choice-card"><div class="label-choice-preview">▥</div><div><div class="section-kicker">Price and barcode</div><h2>Shelf labels</h2><p>Choose quantity and print on A4 sheets or 60×40mm thermal rolls.</p><a class="btn btn-primary" href="<?= e(url('products/'.$product['id'].'/labels')) ?>">Open shelf labels</a></div></article><?php if($serialized): ?><article class="card label-choice-card"><div class="label-choice-preview">#</div><div><div class="section-kicker">Individual stock</div><h2>Serial labels</h2><p>Print one barcode label for every currently available unit.</p><a class="btn btn-outline" href="<?= e(url('products/'.$product['id'].'/labels?kind=serials')) ?>">Open serial labels</a></div></article><?php endif; ?></div></section><?php endif; ?>
+
+<script>
+(function(){
+  var tabs=Array.from(document.querySelectorAll('[data-product-tab]')), panels=Array.from(document.querySelectorAll('[data-product-panel]'));
+  panels.forEach(function(panel){panel.setAttribute('aria-labelledby','tab-'+panel.id);});
+  function show(name,focus){if(!document.getElementById(name))name='overview';tabs.forEach(function(t){var on=t.dataset.productTab===name;t.setAttribute('aria-selected',on?'true':'false');t.tabIndex=on?0:-1;});panels.forEach(function(p){p.hidden=p.id!==name;});history.replaceState(null,'','#'+name);if(focus)document.querySelector('[data-product-tab="'+name+'"]').focus();}
+  tabs.forEach(function(tab,i){tab.addEventListener('click',function(){show(tab.dataset.productTab);});tab.addEventListener('keydown',function(e){if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();var next=(i+(e.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;show(tabs[next].dataset.productTab,true);});});
+  document.querySelectorAll('[data-show-tab]').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.showTab);scrollTo({top:0,behavior:'smooth'});});});
+  show(location.hash.slice(1)||'overview');
+  var all=document.querySelector('[data-select-all]'), checks=Array.from(document.querySelectorAll('[data-unit-select]')), count=document.querySelector('[data-selected-count]'), bulk=document.getElementById('bulk-unit-form');
+  function selection(){var n=checks.filter(function(c){return c.checked;}).length;if(count)count.textContent=n;if(bulk)bulk.querySelector('button[type=submit]').disabled=n===0;if(all)all.checked=n>0&&n===checks.length;}
+  if(all)all.addEventListener('change',function(){checks.forEach(function(c){c.checked=all.checked;});selection();});checks.forEach(function(c){c.addEventListener('change',selection);});
+  var upload=document.getElementById('image-upload-form');
+  if(upload){
+    var input=document.getElementById('product-images'),zone=upload.querySelector('.image-drop-zone'),list=document.getElementById('image-file-list'),button=upload.querySelector('button[type=submit]'),progress=document.getElementById('upload-progress');
+    function validFile(file){return /^image\/(jpeg|png|webp)$/.test(file.type)&&file.size<=3*1024*1024;}
+    function files(){
+      var accepted=Array.from(input.files||[]);list.replaceChildren();
+      accepted.forEach(function(file){var ok=validFile(file),item=document.createElement('span');item.className=ok?'':'invalid';item.textContent=file.name+' · '+(file.size/1024/1024).toFixed(1)+' MB'+(ok?'':' · unsupported');list.appendChild(item);});
+      button.disabled=!accepted.length||accepted.some(function(file){return !validFile(file);});
+    }
+    input.addEventListener('change',files);
+    ['dragenter','dragover'].forEach(function(name){zone.addEventListener(name,function(event){event.preventDefault();zone.classList.add('dragging');});});
+    ['dragleave','drop'].forEach(function(name){zone.addEventListener(name,function(event){event.preventDefault();zone.classList.remove('dragging');});});
+    zone.addEventListener('drop',function(event){input.files=event.dataTransfer.files;files();});
+    upload.addEventListener('submit',function(event){event.preventDefault();var xhr=new XMLHttpRequest();xhr.open('POST',upload.action);progress.hidden=false;button.disabled=true;xhr.upload.onprogress=function(ev){if(ev.lengthComputable)progress.firstElementChild.style.width=Math.round(ev.loaded/ev.total*100)+'%';};xhr.onload=function(){location.reload();};xhr.onerror=function(){progress.hidden=true;button.disabled=false;window.KC.toast('Upload failed. Check your connection and try again.','error');};xhr.send(new FormData(upload));});
+  }
+})();
+</script>

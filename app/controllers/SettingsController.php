@@ -19,6 +19,28 @@ class SettingsController
         Auth::requireLogin();
         Csrf::checkOrFail();
 
+        $shopEmail = strtolower(trim((string) ($_POST['shop_email'] ?? '')));
+        $mailFrom = strtolower(trim((string) ($_POST['mail_from'] ?? '')));
+        $alertRecipient = strtolower(trim((string) ($_POST['low_stock_recipient'] ?? '')));
+        $emailErrors = [];
+        foreach ([['Shop email', $shopEmail], ['Sender email', $mailFrom], ['Low-stock recipient', $alertRecipient]] as [$label, $value]) {
+            if ($value !== '' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                $emailErrors[] = $label . ' must be a valid email address.';
+            }
+        }
+        $rawVat = trim((string) ($_POST['vat_rate'] ?? ''));
+        $pin = (string) ($_POST['discount_pin'] ?? '');
+        if ($pin !== '' && strlen($pin) < 4) {
+            $emailErrors[] = 'Discount PIN must be at least 4 characters.';
+        }
+        if (!preg_match('/^\d+(?:\.\d{1,2})?$/', $rawVat) || (float) $rawVat > 100) {
+            $emailErrors[] = 'VAT rate must be a number from 0 to 100 with at most two decimal places.';
+        }
+        if ($emailErrors) {
+            flash('error', implode(' ', $emailErrors));
+            redirect('settings');
+        }
+
         foreach (['shop_name', 'shop_tagline', 'shop_phone', 'shop_email', 'shop_address', 'receipt_footer'] as $f) {
             Setting::set($f, trim((string) ($_POST[$f] ?? '')));
         }
@@ -30,9 +52,9 @@ class SettingsController
         foreach (['mail_from_name', 'mail_from', 'low_stock_recipient'] as $f) {
             Setting::set($f, trim((string) ($_POST[$f] ?? '')));
         }
-        Setting::set('mail_from', strtolower(trim((string) ($_POST['mail_from'] ?? ''))));
+        Setting::set('mail_from', $mailFrom);
         Setting::set('smtp_host', trim((string) ($_POST['smtp_host'] ?? '')));
-        Setting::set('smtp_port', (string) max(1, (int) ($_POST['smtp_port'] ?? 587)));
+        Setting::set('smtp_port', (string) max(1, min(65535, (int) ($_POST['smtp_port'] ?? 587))));
         Setting::set('smtp_username', trim((string) ($_POST['smtp_username'] ?? '')));
         if (($_POST['smtp_password'] ?? '') !== '') {
             Setting::set('smtp_password', (string) $_POST['smtp_password']);
@@ -50,7 +72,7 @@ class SettingsController
             Setting::set('mpesa_consumer_secret', (string) $_POST['mpesa_consumer_secret']);
         }
 
-        $vat = (float) ($_POST['vat_rate'] ?? vat_rate());
+        $vat = (float) $rawVat;
         $vat = max(0.0, min(100.0, $vat));
         Setting::set('vat_rate', (string) round($vat, 2));
 
@@ -60,12 +82,7 @@ class SettingsController
         if (!empty($_POST['discount_pin_clear'])) {
             Setting::set('discount_pin_hash', '');
         } else {
-            $pin = (string) ($_POST['discount_pin'] ?? '');
             if ($pin !== '') {
-                if (strlen($pin) < 4) {
-                    flash('error', 'Discount PIN must be at least 4 characters.');
-                    redirect('settings');
-                }
                 Setting::set('discount_pin_hash', password_hash($pin, PASSWORD_BCRYPT, ['cost' => (int) config('security.bcrypt_rounds', 12)]));
             }
         }
