@@ -2,12 +2,13 @@
 $vat = vat_rate();
 $pinActive = Setting::get('discount_pin_hash', '') !== '';
 $pinThreshold = (float) Setting::get('discount_pin_threshold', '1000');
+$recentEnquiries = $recentWhatsappEnquiries ?? [];
 ?>
 <div class="pos-workspace-head">
     <div>
         <span class="section-kicker">Cashier workspace</span>
         <h1>New sale</h1>
-        <p>Scan a barcode or search the catalogue. Your active cart is saved on this device.</p>
+        <p>Scan a barcode or search the catalogue. Your active cart is saved on this device. Use Sale Source to track WhatsApp / walk-in / phone enquiries.</p>
     </div>
     <div class="pos-status" aria-label="Register status">
         <span id="conn-badge" class="conn-badge online">● Online</span>
@@ -15,6 +16,29 @@ $pinThreshold = (float) Setting::get('discount_pin_threshold', '1000');
         <button id="sync-now" class="btn btn-outline btn-sm" style="display:none" type="button">Sync now</button>
     </div>
 </div>
+
+<?php if (!empty($recentEnquiries)): ?>
+<div class="card" style="margin-bottom:14px; padding:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div><span class="section-kicker">Recent WhatsApp enquiries</span><h3 style="margin:4px 0 0;">WhatsApp leads</h3></div>
+        <button class="btn btn-ghost btn-sm" type="button" id="toggle-enquiries">Show / Hide</button>
+    </div>
+    <div id="recent-enquiries-list" style="display:none;">
+        <div style="display:grid; gap:8px; max-height:220px; overflow:auto;">
+        <?php foreach ($recentEnquiries as $enq): ?>
+            <div class="zone-card" style="padding:10px; font-size:13px;">
+                <div style="display:flex; justify-content:space-between; gap:10px;">
+                    <div><b><?= e($enq['product_name'] ?? 'Product #' . $enq['product_id']) ?></b> <?= !empty($enq['variant_label']) ? '<span class="badge badge-gray">' . e($enq['variant_label']) . '</span>' : '' ?> <?= !empty($enq['condition_type']) ? '<span class="badge badge-blue">' . e(ucfirst($enq['condition_type'])) . '</span>' : '' ?></div>
+                    <small class="muted"><?= e($enq['created_at']) ?></small>
+                </div>
+                <div class="muted" style="margin-top:4px;"><?= e($enq['customer_phone'] ?? '') ?> · <?= e($enq['customer_name'] ?? '') ?> · <?= e($enq['product_url'] ?? '') ?></div>
+                <div style="margin-top:6px;"><button class="btn btn-outline btn-sm" type="button" data-enquiry-id="<?= (int)$enq['id'] ?>" data-enquiry-product="<?= (int)$enq['product_id'] ?>" data-enquiry-variant="<?= (int)($enq['variant_id'] ?? 0) ?>">Use in POS</button></div>
+            </div>
+        <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="pos-layout">
     <!-- Left: search + product grid -->
@@ -56,6 +80,23 @@ $pinThreshold = (float) Setting::get('discount_pin_threshold', '1000');
                     <label class="field">
                         <span>Phone</span>
                         <input type="tel" id="cust-phone" placeholder="07…" autocomplete="tel" inputmode="tel">
+                    </label>
+                </div>
+                <div class="pos-customer-row" style="margin-top:10px;">
+                    <label class="field">
+                        <span>Sale source</span>
+                        <select id="sale-source">
+                            <option value="walk-in" selected>Walk-in</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="phone">Phone</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <small class="hint">Tracks whether sale originated from WhatsApp enquiry, phone, etc.</small>
+                    </label>
+                    <label class="field">
+                        <span>WhatsApp enquiry ID <em class="hint">optional</em></span>
+                        <input type="number" id="whatsapp-enquiry-id" placeholder="Link to enquiry if applicable" min="1" step="1">
+                        <small class="hint">Fill when completing a WhatsApp order from catalogue.</small>
                     </label>
                 </div>
             </details>
@@ -238,11 +279,31 @@ window.KC_OFFLINE = {
   var $clearCart = document.getElementById('clear-cart');
   var $cartCountLabel = document.getElementById('cart-count-label');
 
+  var $saleSource = document.getElementById('sale-source');
+  var $waEnquiryId = document.getElementById('whatsapp-enquiry-id');
+
+  /* WhatsApp enquiries toggle */
+  var $toggleEnq = document.getElementById('toggle-enquiries');
+  var $recentList = document.getElementById('recent-enquiries-list');
+  if ($toggleEnq && $recentList) {
+    $toggleEnq.addEventListener('click', function(){ $recentList.style.display = $recentList.style.display === 'none' ? '' : 'none'; });
+    document.querySelectorAll('[data-enquiry-id]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = parseInt(btn.getAttribute('data-enquiry-id'),10);
+        if ($waEnquiryId) { $waEnquiryId.value = String(id); $saleSource.value = 'whatsapp'; }
+        document.getElementById('customer-details').open = true;
+        if ($recentList) $recentList.style.display = 'none';
+        saveDraft();
+        window.KC && KC.toast && KC.toast('Linked to WhatsApp enquiry #' + id + ' (source set to WhatsApp). Search product to add.', 'success');
+      });
+    });
+  }
+
   /* ---------------- search ---------------- */
   var timer = null;
-  var searchSeq = 0;        // ignore responses that arrive out of order
-  var lastResultsQuery = ''; // query the current `results` correspond to
-  var enterBusy = false;     // a fast-add search is already in flight
+  var searchSeq = 0;
+  var lastResultsQuery = '';
+  var enterBusy = false;
 
   function runSearch(q) {
     q = q || '';
@@ -257,7 +318,7 @@ window.KC_OFFLINE = {
       })
       .then(function (data) {
         setConn(true);
-        KCPosOffline.mergeCatalog(data); // keep the offline cache warm
+        KCPosOffline.mergeCatalog(data);
         return { list: data, source: 'online' };
       })
       .catch(function () {
@@ -272,7 +333,7 @@ window.KC_OFFLINE = {
     if (!q) { renderStart(); return; }
     renderSearchLoading();
     runSearch(q).then(function (result) {
-      if (my !== searchSeq) { return; } // superseded by a newer query
+      if (my !== searchSeq) { return; }
       lastResultsQuery = q;
       renderResults(result.list || [], result, q);
     });
@@ -289,16 +350,16 @@ window.KC_OFFLINE = {
       e.preventDefault();
       var q = $search.value.trim();
       if (!q) { return; }
-      clearTimeout(timer); // scan landed within the debounce window — act now
+      clearTimeout(timer);
       if (results.length && lastResultsQuery === q) { addProduct(results[0]); return; }
-      if (enterBusy) { return; } // ignore double-Enter while a fast-add is pending
+      if (enterBusy) { return; }
       enterBusy = true;
       var box = $search;
       runSearch(q).then(function (result) {
         enterBusy = false;
         var list = result.list || [];
         if (!list.length) { return; }
-        if (box.value.trim() !== q) { return; } // query changed — don't add a stale hit
+        if (box.value.trim() !== q) { return; }
         addProduct(list[0]);
       });
     }
@@ -326,7 +387,7 @@ window.KC_OFFLINE = {
       '<div class="pos-start-main"><span class="pos-ready">Scanner and catalogue ready</span><h2>Start the next sale</h2>' +
       '<p class="muted">Scan a barcode or serial number for the fastest checkout, or choose a frequently used item.</p>' +
       '<div class="pos-quick-title">Quick picks</div><div class="pos-quick-grid">' + (quick || '<span class="muted">Catalogue is loading…</span>') + '</div>' +
-      '<div class="pos-category-shortcuts">' + categories.slice(0, 6).map(function (category) { return '<button type="button" data-category="' + esc(category) + '">' + esc(category) + '</button>'; }).join('') + '</div></div>' +
+      '<div class="pos-category-shortcuts">' + categories.slice(0, 6).map(function (category) { return '<button type="button" data-category="' + esc(category) + '\">' + esc(category) + '</button>'; }).join('') + '</div></div>' +
       '<div class="pos-start-side"><h3>Keyboard shortcuts</h3><dl class="pos-shortcuts">' +
       '<div><dt>Focus search</dt><dd><kbd>/</kbd></dd></div><div><dt>Add first result</dt><dd><kbd>Enter</kbd></dd></div>' +
       '<div><dt>Review sale</dt><dd><kbd>F2</kbd></dd></div><div><dt>Clear search</dt><dd><kbd>Esc</kbd></dd></div>' +
@@ -447,7 +508,7 @@ window.KC_OFFLINE = {
       chosen.forEach(function (u) {
         if (!existing.units.some(function (x) { return x.id === u.id; })) { existing.units.push(u); }
       });
-      existing.qty = existing.units.length; // keep qty in step with the chosen units
+      existing.qty = existing.units.length;
     } else {
       cart.push({ id: pendingSerial.id, name: pendingSerial.name, sku: pendingSerial.sku, price: pendingSerial.sell_price, serialized: true, qty: chosen.length, units: chosen });
     }
@@ -465,6 +526,8 @@ window.KC_OFFLINE = {
         checkout_ref: checkoutRef,
         customer_name: document.getElementById('cust-name').value,
         customer_phone: document.getElementById('cust-phone').value,
+        sale_source: $saleSource ? $saleSource.value : 'walk-in',
+        whatsapp_enquiry_id: $waEnquiryId ? $waEnquiryId.value : '',
         discount: $discount.value,
         discount_type: $discountType.value,
         payment_method: $payMethod.value,
@@ -483,12 +546,14 @@ window.KC_OFFLINE = {
       checkoutRef = draft.checkout_ref || '';
       document.getElementById('cust-name').value = draft.customer_name || '';
       document.getElementById('cust-phone').value = draft.customer_phone || '';
+      if ($saleSource) $saleSource.value = draft.sale_source || 'walk-in';
+      if ($waEnquiryId) $waEnquiryId.value = draft.whatsapp_enquiry_id || '';
       $discount.value = draft.discount || '0';
       $discountType.value = draft.discount_type || 'flat';
       $payMethod.value = draft.payment_method || 'cash';
       document.getElementById('pay-ref').value = draft.payment_ref || '';
       $cashReceived.value = draft.cash_received || '';
-      document.getElementById('customer-details').open = !!(draft.customer_name || draft.customer_phone);
+      document.getElementById('customer-details').open = !!(draft.customer_name || draft.customer_phone || draft.sale_source || draft.whatsapp_enquiry_id);
       refreshPaymentFields();
       return true;
     } catch (e) {
@@ -576,8 +641,6 @@ window.KC_OFFLINE = {
   }
   function needsPin() {
     if (!DISCOUNT_PIN_ACTIVE) { return false; }
-    // Compare against the discount that will actually be applied (capped at the
-    // subtotal), matching the server's authorisation logic in SaleService.
     var d = Math.min(discountAmount(), subtotal());
     return d > 0 && d >= DISCOUNT_PIN_THRESHOLD;
   }
@@ -632,7 +695,8 @@ window.KC_OFFLINE = {
     refreshPaymentFields();
   });
 
-  [$discount, $discountType, $cashReceived, $payMethod, document.getElementById('pay-ref'), document.getElementById('cust-name'), document.getElementById('cust-phone')].forEach(function (control) {
+  [$discount, $discountType, $cashReceived, $payMethod, document.getElementById('pay-ref'), document.getElementById('cust-name'), document.getElementById('cust-phone'), $saleSource, $waEnquiryId].forEach(function (control) {
+    if (!control) return;
     control.addEventListener('input', saveDraft);
     control.addEventListener('change', saveDraft);
   });
@@ -669,12 +733,13 @@ window.KC_OFFLINE = {
       cash_received: parseFloat($cashReceived.value) || 0,
       customer_name: document.getElementById('cust-name').value,
       customer_phone: document.getElementById('cust-phone').value,
+      sale_source: $saleSource ? $saleSource.value : 'walk-in',
+      whatsapp_enquiry_id: $waEnquiryId && $waEnquiryId.value ? parseInt($waEnquiryId.value,10) : null,
       device_id: KCPosOffline.deviceId(),
       client_ref: ensureCheckoutRef()
     };
   }
   function buildOfflinePayload() {
-    // Offline: send serial *numbers*, not unit ids (ids can go stale).
     return {
       lines: cart.map(function (l) {
         if (l.serialized) {
@@ -688,7 +753,9 @@ window.KC_OFFLINE = {
       payment_ref: document.getElementById('pay-ref').value,
       cash_received: parseFloat($cashReceived.value) || 0,
       customer_name: document.getElementById('cust-name').value,
-      customer_phone: document.getElementById('cust-phone').value
+      customer_phone: document.getElementById('cust-phone').value,
+      sale_source: $saleSource ? $saleSource.value : 'walk-in',
+      whatsapp_enquiry_id: $waEnquiryId && $waEnquiryId.value ? parseInt($waEnquiryId.value,10) : null
     };
   }
 
@@ -727,10 +794,12 @@ window.KC_OFFLINE = {
     var itemCount = cart.reduce(function (sum, line) { return sum + line.qty; }, 0);
     var customer = document.getElementById('cust-name').value.trim() || 'Walk-in customer';
     var payment = $payMethod.options[$payMethod.selectedIndex].text;
+    var source = $saleSource ? $saleSource.options[$saleSource.selectedIndex].text : 'Walk-in';
     document.getElementById('review-summary').innerHTML =
       '<div class="review-row"><span>Items</span><b>' + itemCount + '</b></div>' +
       '<div class="review-row"><span>Customer</span><b>' + esc(customer) + '</b></div>' +
       '<div class="review-row"><span>Payment</span><b>' + esc(payment) + '</b></div>' +
+      '<div class="review-row"><span>Source</span><b>' + esc(source) + '</b></div>' +
       '<div class="review-row total"><span>Total</span><b>' + money(saleTotal()) + '</b></div>';
     reviewModal.style.display = 'flex';
     document.getElementById('review-confirm').focus();
@@ -919,18 +988,18 @@ window.KC_OFFLINE = {
   function setError(msg) { $error.textContent = msg; }
   function setInfo(msg) { $info.textContent = msg; }
   function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    return String(s == null ? '' : s).replace(/[&<>\"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
   /* ---------------- reset / modal helpers ---------------- */
   function resetSale() {
-    // Clear every field from the previous sale so the next one starts clean
-    // (customer details, discount, payment method, cash tendered…).
     document.getElementById('cust-name').value = '';
     document.getElementById('cust-phone').value = '';
     document.getElementById('pay-ref').value = '';
+    if ($saleSource) $saleSource.value = 'walk-in';
+    if ($waEnquiryId) $waEnquiryId.value = '';
     $discount.value = '0';
     $discountType.value = 'flat';
     if ($authPin) { $authPin.value = ''; $authPin.style.display = 'none'; }
@@ -945,7 +1014,7 @@ window.KC_OFFLINE = {
     cart = [];
     checkoutRef = '';
     document.getElementById('customer-details').open = false;
-    renderCart(); // recalculates totals with the cleared values
+    renderCart();
   }
 
   function closeSerialModal() {
@@ -963,11 +1032,9 @@ window.KC_OFFLINE = {
   var serialModalEl  = document.getElementById('serial-modal');
   var offlineModalEl = document.getElementById('offline-modal');
 
-  // Close the serial modal by clicking its backdrop.
   serialModalEl.addEventListener('mousedown', function (e) {
     if (e.target === serialModalEl) { closeSerialModal(); }
   });
-  // "New sale" (with a full reset) by clicking the offline modal's backdrop.
   offlineModalEl.addEventListener('mousedown', function (e) {
     if (e.target === offlineModalEl) { closeOfflineModal(); }
   });
@@ -989,7 +1056,6 @@ window.KC_OFFLINE = {
 
   reviewModal.addEventListener('mousedown', function (e) { if (e.target === reviewModal && !checkoutBusy) closeReview(); });
 
-  // Escape closes whichever modal is open (serial first, then the offline one).
   document.addEventListener('keydown', function (e) {
     var overlayOpen = serialModalEl.style.display !== 'none' || offlineModalEl.style.display !== 'none' ||
       reviewModal.style.display !== 'none' || queueBackdrop.style.display !== 'none';

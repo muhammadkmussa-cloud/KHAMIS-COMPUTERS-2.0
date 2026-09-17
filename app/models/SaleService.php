@@ -89,6 +89,11 @@ class SaleService
         }
         $deviceId  = $opts['device_id'] ?? null;
         $clientRef = $opts['client_ref'] ?? null;
+        $saleSource = strtolower(trim((string)($opts['sale_source'] ?? 'walk-in')));
+        $allowedSources = ['walk-in','whatsapp','phone','other','online'];
+        if (!in_array($saleSource, $allowedSources, true)) {
+            $saleSource = 'walk-in';
+        }
         return [
             'channel'             => $channel,
             'discount'            => max(0.0, round((float) ($opts['discount'] ?? 0), 2)),
@@ -110,6 +115,8 @@ class SaleService
             'auto_assign_serials' => !empty($opts['auto_assign_serials']),
             'created_at'          => $opts['created_at'] ?? null,
             'discount_pin'        => (string) ($opts['discount_pin'] ?? ''),
+            'sale_source'         => $saleSource,
+            'whatsapp_enquiry_id' => isset($opts['whatsapp_enquiry_id']) ? (int)$opts['whatsapp_enquiry_id'] : null,
         ];
     }
 
@@ -133,6 +140,8 @@ class SaleService
         $clientRef     = $o['client_ref'];
         $status        = $o['status'];
         $discountPin   = $o['discount_pin'];
+        $saleSource    = $o['sale_source'];
+        $waEnquiryId   = $o['whatsapp_enquiry_id'];
 
         $number = self::nextNumber();
         $now    = $o['created_at'] ?? null;
@@ -275,7 +284,7 @@ class SaleService
                 }
             }
 
-            $saleId = Database::insert('sales', [
+            $insertData = [
                 'sale_number'     => $number,
                 'channel'         => $channel,
                 'customer_name'   => $customerName !== '' ? $customerName : null,
@@ -297,7 +306,15 @@ class SaleService
                 'client_ref'      => $clientRef,
                 'user_id'         => $userId,
                 'created_at'      => $now,
-            ]);
+            ];
+            // Add sale_source if column exists (forward-compatible)
+            if (Schema::columnExists('sales', 'sale_source')) {
+                $insertData['sale_source'] = $saleSource;
+            }
+            if (Schema::columnExists('sales', 'whatsapp_enquiry_id') && $waEnquiryId) {
+                $insertData['whatsapp_enquiry_id'] = $waEnquiryId;
+            }
+            $saleId = Database::insert('sales', $insertData);
 
             foreach ($items as $item) {
                 $item['sale_id'] = $saleId;

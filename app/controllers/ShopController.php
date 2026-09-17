@@ -2,19 +2,26 @@
 declare(strict_types=1);
 
 /**
- * Online storefront — public pages + guest checkout.
+ * Online storefront — public pages.
+ * Now supports Catalogue + WhatsApp mode via feature flags.
  * Shares the same inventory and the same SaleService as the POS.
+ * Checkout is disabled by default but code remains for future activation.
  */
 class ShopController
 {
     public function home(): void
     {
+        $checkoutEnabled = is_online_checkout_enabled();
+        $whatsappEnabled = is_whatsapp_ordering_enabled();
         View::render('shop/home', [
             'title'      => config('app.name') . ' — ' . Setting::get('shop_tagline', 'Shop online or in store'),
             'shopName'   => Setting::get('shop_name', config('app.name')),
-            'featured'   => Product::featured(4),
+            'featured'   => Product::featured(8),
             'categories' => Category::all(true),
             'slides'     => HeroSlide::active(),
+            'checkoutEnabled' => $checkoutEnabled,
+            'whatsappEnabled' => $whatsappEnabled,
+            'whatsappNumber' => whatsapp_number(),
         ], 'shop');
     }
 
@@ -34,6 +41,8 @@ class ShopController
             'cat'        => $cat,
             'brand'      => $brand,
             'sort'       => $sort,
+            'checkoutEnabled' => is_online_checkout_enabled(),
+            'whatsappEnabled' => is_whatsapp_ordering_enabled(),
         ], 'shop');
     }
 
@@ -46,28 +55,92 @@ class ShopController
             return;
         }
 
+        $images = Product::images($id);
+        $stock = Product::stock($id);
+        $variants = Product::variants($id, true);
+        $checkoutEnabled = is_online_checkout_enabled();
+        $whatsappEnabled = is_whatsapp_ordering_enabled();
+        $whatsappNumber = whatsapp_number();
+        $shopName = Setting::get('shop_name', config('app.name'));
+
+        // Open Graph metadata
+        $primaryImage = null;
+        if (!empty($images)) {
+            foreach ($images as $img) {
+                if (($img['filename'] ?? '') === ($product['image'] ?? '')) {
+                    $primaryImage = $img;
+                    break;
+                }
+            }
+            if (!$primaryImage) $primaryImage = $images[0];
+        }
+        $ogImage = $primaryImage ? url('uploads/p/' . rawurlencode($primaryImage['filename'])) : url('assets/favicon.svg');
+        // Ensure absolute HTTPS URL for OG in production - base_url already absolute
+        $ogUrl = url('shop/product/' . $id);
+        $variantSummary = '';
+        if (!empty($variants)) {
+            $sample = $variants[0];
+            $parts = [];
+            if (!empty($sample['ram'])) $parts[] = $sample['ram'] . ' RAM';
+            if (!empty($sample['storage'])) $parts[] = $sample['storage'];
+            if (!empty($sample['colour'])) $parts[] = $sample['colour'];
+            $variantSummary = $parts ? implode(', ', $parts) . ' - ' : '';
+        }
+        $ogDescription = $variantSummary . ($product['description'] ? substr(trim($product['description']), 0, 160) : 'Available at ' . $shopName);
+        $ogTitle = $product['name'] . ' | ' . $shopName;
+
         View::render('shop/product', [
             'title'   => $product['name'] . ' — ' . config('app.name'),
             'product' => $product,
-            'images'  => Product::images($id),
-            'stock'   => Product::stock($id),
+            'images'  => $images,
+            'stock'   => $stock,
             'related' => Product::related($id, $product['category_id'] ? (int) $product['category_id'] : null, 4),
+            'variants' => $variants,
+            'checkoutEnabled' => $checkoutEnabled,
+            'whatsappEnabled' => $whatsappEnabled,
+            'whatsappNumber' => $whatsappNumber,
+            'shopName' => $shopName,
+            'ogTitle' => $ogTitle,
+            'ogDescription' => $ogDescription,
+            'ogImage' => $ogImage,
+            'ogUrl' => $ogUrl,
         ], 'shop');
     }
 
     public function cart(): void
     {
+        // If checkout disabled, redirect to shop with message or show unavailable page
+        if (!is_online_checkout_enabled()) {
+            View::render('shop/cart', [
+                'title' => 'Online checkout unavailable — ' . config('app.name'),
+                'zones' => [],
+                'mpesaEnabled' => false,
+                'recommendations' => Product::featured(4),
+                'checkoutEnabled' => false,
+                'whatsappEnabled' => is_whatsapp_ordering_enabled(),
+                'checkoutDisabledMessage' => true,
+            ], 'shop');
+            return;
+        }
+
         View::render('shop/cart', [
             'title' => 'Your cart — ' . config('app.name'),
             'zones' => DeliveryZone::active(),
-            'mpesaEnabled' => MpesaService::enabled(),
+            'mpesaEnabled' => is_mpesa_online_enabled(),
             'recommendations' => Product::featured(4),
+            'checkoutEnabled' => true,
+            'whatsappEnabled' => is_whatsapp_ordering_enabled(),
         ], 'shop');
     }
 
     /** JSON: live product info + stock for the ids currently in the cart. */
     public function apiCart(): void
     {
+        // If checkout disabled, return empty or 403 but keep endpoint alive for future
+        if (!is_online_checkout_enabled()) {
+            json_response(['ok' => false, 'error' => 'Online checkout is currently unavailable.'], 403);
+        }
+
         $ids = array_filter(array_map('intval', explode(',', (string) ($_GET['ids'] ?? ''))));
         $out = [];
         foreach ($ids as $id) {
@@ -88,9 +161,14 @@ class ShopController
         json_response($out);
     }
 
-    /** Guest checkout (JSON API). */
+    /** Guest checkout (JSON API). Disabled in catalogue mode. */
     public function checkout(): void
     {
+        // Server-side enforcement of feature flag
+        if (!is_online_checkout_enabled()) {
+            json_response(['ok' => false, 'error' => 'Online checkout is currently unavailable. Please contact us via WhatsApp to place your order.'], 403);
+        }
+
         if (!Csrf::validate($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? ''))) {
             json_response(['ok' => false, 'error' => 'Your session expired. Please refresh and try again.'], 419);
         }
@@ -105,8 +183,9 @@ class ShopController
         $email       = trim((string) ($data['email'] ?? ''));
         $fulfillment = (($data['fulfillment'] ?? 'pickup') === 'delivery') ? 'delivery' : 'pickup';
         $address     = trim((string) ($data['address'] ?? ''));
+        $mpesaOnlineEnabled = is_mpesa_online_enabled();
         try {
-            [$payment, $payNow] = self::checkoutPaymentIntent($data, MpesaService::enabled());
+            [$payment, $payNow] = self::checkoutPaymentIntent($data, $mpesaOnlineEnabled);
         } catch (InvalidArgumentException $e) {
             json_response(['ok' => false, 'error' => $e->getMessage()], 422);
         }
@@ -129,8 +208,7 @@ class ShopController
             json_response(['ok' => false, 'error' => 'Please enter your delivery address.'], 422);
         }
 
-        // Delivery fee: resolved server-side from the chosen zone so a client
-        // can never set its own price. Snapshotted (name + fee) onto the sale.
+        // Delivery fee: resolved server-side
         $deliveryFee  = 0.0;
         $deliveryZone = '';
         if ($fulfillment === 'delivery') {
@@ -173,6 +251,7 @@ class ShopController
                 'user_id'             => null,
                 'client_ref'          => $clientRef,
                 'device_id'           => $deviceId,
+                'sale_source'         => 'online',
             ]);
         } catch (Throwable $e) {
             json_response(['ok' => false, 'error' => $e->getMessage()], 422);
@@ -185,9 +264,16 @@ class ShopController
             }
         }
 
-        // M-PESA STK push: prompt the customer's phone now. If the request
-        // itself fails, void the reserved stock and ask them to retry.
+        // M-PESA STK push: only if online M-Pesa enabled
         if ($payNow && empty($sale['duplicate'])) {
+            if (!is_mpesa_online_enabled()) {
+                try {
+                    SaleService::void((int) $sale['id'], null);
+                } catch (Throwable $e) {
+                    error_log('[mpesa] could not void disabled online order: ' . $e->getMessage());
+                }
+                json_response(['ok' => false, 'reset_ref' => true, 'error' => 'M-PESA online payments are currently unavailable.'], 403);
+            }
             $full = SaleService::find((int) $sale['id']);
             $push = MpesaService::stkPush($phone, (float) $full['total'], (string) $full['sale_number'], (int) $sale['id']);
             if (!$push['ok']) {
@@ -202,8 +288,6 @@ class ShopController
 
         $_SESSION['last_order_id'] = $sale['id'];
 
-        // Order-confirmation email (best-effort — a mail failure must never
-        // block checkout).
         if ($email !== '' && Mailer::enabled()) {
             try {
                 $full  = SaleService::find((int) $sale['id']);
@@ -221,6 +305,52 @@ class ShopController
         }
 
         json_response(['ok' => true, 'redirect' => url('shop/order/' . $sale['id'])]);
+    }
+
+    /** Lightweight WhatsApp enquiry tracking (optional, no personal data). */
+    public function whatsappEnquiry(): void
+    {
+        if (!Csrf::validate($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrf_token'] ?? ''))) {
+            json_response(['ok' => false, 'error' => 'Invalid CSRF'], 419);
+        }
+        $data = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            json_response(['ok' => false, 'error' => 'Invalid request'], 400);
+        }
+        $productId = (int)($data['product_id'] ?? 0);
+        $variantId = isset($data['variant_id']) ? (int)$data['variant_id'] : null;
+        $productName = trim((string)($data['product_name'] ?? ''));
+        $variantLabel = trim((string)($data['variant_label'] ?? ''));
+        $priceShown = isset($data['price_shown']) ? (float)$data['price_shown'] : null;
+        $sourcePage = trim((string)($data['source_page'] ?? ''));
+        $productUrl = trim((string)($data['product_url'] ?? $sourcePage));
+        $conditionType = trim((string)($data['condition_type'] ?? ''));
+
+        if (!Schema::tableExists('whatsapp_enquiries')) {
+            json_response(['ok' => true]);
+        }
+
+        try {
+            $row = [
+                'product_id' => $productId > 0 ? $productId : null,
+                'variant_id' => $variantId,
+                'product_name' => $productName !== '' ? substr($productName, 0, 190) : null,
+                'variant_label' => $variantLabel !== '' ? substr($variantLabel, 0, 190) : null,
+                'price_shown' => $priceShown,
+                'source_page' => $sourcePage !== '' ? substr($sourcePage, 0, 255) : null,
+                'created_at' => Database::now(),
+            ];
+            if (Schema::columnExists('whatsapp_enquiries','product_url')) {
+                $row['product_url'] = $productUrl !== '' ? substr($productUrl,0,255) : null;
+            }
+            if (Schema::columnExists('whatsapp_enquiries','condition_type')) {
+                $row['condition_type'] = $conditionType !== '' ? substr($conditionType,0,20) : null;
+            }
+            Database::insert('whatsapp_enquiries', $row);
+        } catch (Throwable $e) {
+            error_log('[whatsapp] enquiry tracking failed: ' . $e->getMessage());
+        }
+        json_response(['ok' => true]);
     }
 
     /** JSON status for the order-confirmation page's payment poll. */
@@ -245,29 +375,32 @@ class ShopController
     {
         if (!MpesaService::validCallbackToken((string) ($_GET['token'] ?? ''))) {
             http_response_code(404);
-            echo '{"ResultCode":1,"ResultDesc":"Not found"}';
+            echo '{\"ResultCode\":1,\"ResultDesc\":\"Not found\"}';
             return;
         }
         $raw  = (string) file_get_contents('php://input');
         $body = json_decode($raw, true);
         if (!is_array($body)) {
             http_response_code(400);
-            echo '{"ResultCode":1,"ResultDesc":"Bad payload"}';
+            echo '{\"ResultCode\":1,\"ResultDesc\":\"Bad payload\"}';
             return;
         }
 
         $ok = MpesaService::processCallback($body);
         header('Content-Type: application/json');
-        // Always acknowledge so Safaricom does not retry indefinitely.
         echo $ok
-            ? '{"ResultCode":0,"ResultDesc":"Accepted"}'
-            : '{"ResultCode":1,"ResultDesc":"Unknown transaction"}';
+            ? '{\"ResultCode\":0,\"ResultDesc\":\"Accepted\"}'
+            : '{\"ResultCode\":1,\"ResultDesc\":\"Unknown transaction\"}';
     }
 
     /** Customer order lookup — GET form. */
     public function track(): void
     {
-        View::render('shop/track', ['title' => 'Track your order — ' . config('app.name')], 'shop');
+        // Hide tracking when checkout disabled? Keep for historical orders but show message.
+        View::render('shop/track', [
+            'title' => 'Track your order — ' . config('app.name'),
+            'checkoutEnabled' => is_online_checkout_enabled(),
+        ], 'shop');
     }
 
     /** Customer order lookup — POST (session rate-limited). */
@@ -278,7 +411,6 @@ class ShopController
             redirect('shop/track');
         }
 
-        // Slow down brute-force guessing (10 tries per 10 minutes per session).
         $key   = 'order_lookup';
         $now   = time();
         $state = $_SESSION[$key] ?? ['count' => 0, 'window' => $now];
@@ -304,6 +436,7 @@ class ShopController
                 'lookupError' => 'We could not find an order with those details. Check both entries and try again.',
                 'orderNumber' => $number,
                 'phone'       => $phone,
+                'checkoutEnabled' => is_online_checkout_enabled(),
             ], 'shop');
             return;
         }
@@ -313,6 +446,7 @@ class ShopController
             'title' => 'Order ' . e($sale['sale_number']) . ' — ' . config('app.name'),
             'sale'  => $sale,
             'items' => SaleService::items((int) $sale['id']),
+            'checkoutEnabled' => is_online_checkout_enabled(),
         ], 'shop');
     }
 
@@ -359,6 +493,7 @@ class ShopController
             'title' => ($sale['status'] === 'pending' ? 'Complete M-PESA payment' : (in_array($sale['status'], ['cancelled', 'voided'], true) ? 'Order not completed' : 'Order confirmed')) . ' — ' . config('app.name'),
             'sale'  => $sale,
             'items' => SaleService::items($id),
+            'checkoutEnabled' => is_online_checkout_enabled(),
         ], 'shop');
     }
 }

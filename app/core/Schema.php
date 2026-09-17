@@ -59,6 +59,12 @@ class Schema
             ['mpesa_consumer_key', ''],
             ['mpesa_consumer_secret', ''],
             ['mpesa_shortcode_type', 'paybill'],
+            // Catalogue + WhatsApp mode feature flags
+            ['online_checkout_enabled', '0'],
+            ['mpesa_online_enabled', '0'],
+            ['whatsapp_ordering_enabled', '1'],
+            ['whatsapp_sales_number', ''],
+            ['whatsapp_message_template', ''],
         ];
         foreach ($rows as [$key, $value]) {
             $exists = (int) Database::fetchValue('SELECT COUNT(*) FROM shop_settings WHERE setting_key = ?', [$key]);
@@ -215,6 +221,75 @@ class Schema
         }
     }
 
+    /** Create product_variants table for catalogue variant support. */
+    public static function ensureProductVariants(): void
+    {
+        if (self::tableExists('product_variants')) {
+            return;
+        }
+        $sql = <<<SQL
+CREATE TABLE IF NOT EXISTS product_variants (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    sku VARCHAR(80) NULL,
+    label VARCHAR(190) NULL,
+    ram VARCHAR(40) NULL,
+    storage VARCHAR(40) NULL,
+    colour VARCHAR(60) NULL,
+    condition_type VARCHAR(20) NULL,
+    grade VARCHAR(40) NULL,
+    price_override DECIMAL(12,2) NULL,
+    is_active TINYINT NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL;
+        Database::pdo()->exec(self::translate($sql));
+    }
+
+    /** Create whatsapp_enquiries table for lightweight lead tracking. */
+    public static function ensureWhatsappEnquiries(): void
+    {
+        if (self::tableExists('whatsapp_enquiries')) {
+            // Ensure additional columns exist on already-installed DBs
+            $extra = [
+                'product_url' => 'VARCHAR(255) NULL',
+                'condition_type' => 'VARCHAR(20) NULL',
+                'customer_phone' => 'VARCHAR(30) NULL',
+                'customer_name' => 'VARCHAR(120) NULL',
+                'message' => 'TEXT NULL',
+            ];
+            foreach ($extra as $col => $def) {
+                if (!self::columnExists('whatsapp_enquiries', $col)) {
+                    try {
+                        Database::pdo()->exec("ALTER TABLE whatsapp_enquiries ADD COLUMN {$col} {$def}");
+                    } catch (Throwable $e) {
+                        error_log('[schema] whatsapp_enquiries add column failed: ' . $e->getMessage());
+                    }
+                }
+            }
+            return;
+        }
+        $sql = <<<SQL
+CREATE TABLE IF NOT EXISTS whatsapp_enquiries (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    product_id INTEGER NULL REFERENCES products(id) ON DELETE SET NULL,
+    variant_id INTEGER NULL,
+    product_name VARCHAR(190) NULL,
+    variant_label VARCHAR(190) NULL,
+    price_shown DECIMAL(12,2) NULL,
+    source_page VARCHAR(255) NULL,
+    product_url VARCHAR(255) NULL,
+    condition_type VARCHAR(20) NULL,
+    customer_phone VARCHAR(30) NULL,
+    customer_name VARCHAR(120) NULL,
+    message TEXT NULL,
+    created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+SQL;
+        Database::pdo()->exec(self::translate($sql));
+    }
+
     /**
      * Seed four demo hero slides (all inactive) if the table is empty. Idempotent.
      * Product/category links are left NULL because this runs before demo
@@ -267,6 +342,8 @@ class Schema
     public static function migrateColumns(): void
     {
         self::ensureHeroSlides();
+        self::ensureProductVariants();
+        self::ensureWhatsappEnquiries();
         $backfillSaleItemCosts = !self::columnExists('sale_items', 'unit_cost');
         $columns = [
             'sales' => [
@@ -274,6 +351,8 @@ class Schema
                 'delivery_address' => 'TEXT NULL',
                 'delivery_fee'     => 'DECIMAL(12,2) NOT NULL DEFAULT 0',
                 'delivery_zone'    => 'VARCHAR(120) NULL',
+                'sale_source'      => "VARCHAR(20) NOT NULL DEFAULT 'walk-in'",
+                'whatsapp_enquiry_id' => 'INT NULL',
             ],
             'sale_items' => [
                 'unit_cost' => 'DECIMAL(12,2) NOT NULL DEFAULT 0',
@@ -281,6 +360,10 @@ class Schema
             'products' => [
                 'warranty_months' => 'INT NULL',
                 'image'           => 'VARCHAR(255) NULL',
+                'condition_type'  => "VARCHAR(20) NULL",
+                'condition_grade' => 'VARCHAR(40) NULL',
+                'condition_notes' => 'TEXT NULL',
+                'battery_notes'   => 'VARCHAR(255) NULL',
             ],
             'product_images' => [
                 'alt_text' => 'VARCHAR(255) NULL',
@@ -288,6 +371,7 @@ class Schema
             'inventory_units' => [
                 'warranty_expires' => 'DATE NULL',
                 'grn_item_id' => 'INT NULL',
+                'variant_id' => 'INT NULL',
             ],
             'goods_received' => [
                 'supplier_id' => 'INT NULL',

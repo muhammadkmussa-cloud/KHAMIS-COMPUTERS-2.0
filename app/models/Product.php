@@ -337,4 +337,43 @@ class Product
         }
         return $errors;
     }
+
+    /** Variants for a product (active only for shop). */
+    public static function variants(int $productId, bool $activeOnly = true): array
+    {
+        if (!Schema::tableExists('product_variants')) {
+            return [];
+        }
+        return ProductVariant::allForProduct($productId, $activeOnly);
+    }
+
+    /** Lowest price among variants + base product for "From" display. */
+    public static function fromPrice(array $product): float
+    {
+        $base = (float)($product['sell_price'] ?? 0);
+        if (!Schema::tableExists('product_variants')) {
+            return $base;
+        }
+        $variants = self::variants((int)$product['id'], true);
+        if (!$variants) {
+            return $base;
+        }
+        $prices = [$base];
+        foreach ($variants as $v) {
+            if (isset($v['price_override']) && $v['price_override'] !== null && (float)$v['price_override'] > 0) {
+                $prices[] = (float)$v['price_override'];
+            }
+        }
+        return min($prices);
+    }
+
+    /** Condition display helpers */
+    public static function conditionLabel(array $product): string
+    {
+        $type = strtolower(trim((string)($product['condition_type'] ?? '')));
+        if ($type === '') {
+            return 'New';
+        }
+        return ucfirst($type);
+    }
 }

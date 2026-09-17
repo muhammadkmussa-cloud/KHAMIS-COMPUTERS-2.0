@@ -1,9 +1,13 @@
+<?php
+$checkoutEnabled = $checkoutEnabled ?? is_online_checkout_enabled();
+$whatsappEnabled = $whatsappEnabled ?? is_whatsapp_ordering_enabled();
+?>
 <div class="shop-section">
     <div class="shop-section-head browse-head">
         <div>
             <div class="section-kicker">Shop catalogue</div>
             <h1><?= $cat !== '' ? e(ucwords(str_replace('-', ' ', $cat))) : 'All products' ?></h1>
-            <p class="muted"><b><?= count($products) ?></b> <?= count($products) === 1 ? 'product' : 'products' ?> available · prices include VAT</p>
+            <p class="muted"><b><?= count($products) ?></b> <?= count($products) === 1 ? 'product' : 'products' ?> available · prices include VAT<?= !$checkoutEnabled ? ' · WhatsApp ordering' : '' ?></p>
         </div>
     </div>
 

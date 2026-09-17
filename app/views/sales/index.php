@@ -5,7 +5,7 @@ $filterUrl = function (array $changes = []) use ($f): string {
     unset($next['page']);
     return url('sales') . query_string($next);
 };
-$hasFilters = $f['q'] !== '' || $f['channel'] !== '' || $f['status'] !== '' || $f['payment'] !== '' || $f['from'] !== '' || $f['to'] !== '';
+$hasFilters = $f['q'] !== '' || $f['channel'] !== '' || $f['status'] !== '' || $f['payment'] !== '' || $f['from'] !== '' || $f['to'] !== '' || ($f['source'] ?? '') !== '';
 ?>
 <div class="page-head sales-page-head">
     <div><div class="section-kicker">Revenue workspace</div><h1>Sales</h1><p class="lede">Find orders, resolve payment exceptions, and open receipts.</p></div>
@@ -26,6 +26,7 @@ $hasFilters = $f['q'] !== '' || $f['channel'] !== '' || $f['status'] !== '' || $
         <label for="sales-channel"><span>Channel</span><select id="sales-channel" name="channel" aria-label="Channel"><option value="">All channels</option><option value="pos" <?= $f['channel'] === 'pos' ? 'selected' : '' ?>>In store</option><option value="online" <?= $f['channel'] === 'online' ? 'selected' : '' ?>>Online</option></select></label>
         <label for="sales-status"><span>Status</span><select id="sales-status" name="status" aria-label="Status"><option value="">All statuses</option><option value="completed" <?= $f['status'] === 'completed' ? 'selected' : '' ?>>Completed</option><option value="pending" <?= $f['status'] === 'pending' ? 'selected' : '' ?>>Pending payment</option><option value="cancelled" <?= $f['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled</option><option value="offline" <?= $f['status'] === 'offline' ? 'selected' : '' ?>>Created offline</option></select></label>
         <label for="sales-payment"><span>Payment</span><select id="sales-payment" name="payment" aria-label="Payment"><option value="">All payments</option><?php foreach (['cash'=>'Cash','mpesa'=>'M-PESA','card'=>'Card','bank'=>'Bank'] as $value=>$label): ?><option value="<?= $value ?>" <?= $f['payment'] === $value ? 'selected' : '' ?>><?= $label ?></option><?php endforeach; ?></select></label>
+        <label for="sales-source"><span>Source</span><select id="sales-source" name="source" aria-label="Source"><option value="">All sources</option><option value="walk-in" <?= ($f['source'] ?? '') === 'walk-in' ? 'selected' : '' ?>>Walk-in</option><option value="whatsapp" <?= ($f['source'] ?? '') === 'whatsapp' ? 'selected' : '' ?>>WhatsApp</option><option value="phone" <?= ($f['source'] ?? '') === 'phone' ? 'selected' : '' ?>>Phone</option><option value="other" <?= ($f['source'] ?? '') === 'other' ? 'selected' : '' ?>>Other</option></select></label>
         <label for="sales-from"><span>From</span><input id="sales-from" type="date" name="from" aria-label="From date" value="<?= e($f['from']) ?>"></label>
         <label for="sales-to"><span>To</span><input id="sales-to" type="date" name="to" aria-label="To date" value="<?= e($f['to']) ?>"></label>
         <div class="sales-filter-actions"><button class="btn btn-primary" type="submit">Show results</button><?php if ($hasFilters): ?><a class="btn btn-ghost" href="<?= e(url('sales')) ?>">Clear all</a><?php endif; ?></div>
@@ -38,6 +39,7 @@ $hasFilters = $f['q'] !== '' || $f['channel'] !== '' || $f['status'] !== '' || $
     <?php if ($f['channel'] !== ''): ?><a href="<?= e($filterUrl(['channel'=>''])) ?>"><?= e($f['channel'] === 'pos' ? 'In store' : 'Online') ?> <b>×</b></a><?php endif; ?>
     <?php if ($f['status'] !== ''): ?><a href="<?= e($filterUrl(['status'=>''])) ?>"><?= e(ucfirst($f['status'])) ?> <b>×</b></a><?php endif; ?>
     <?php if ($f['payment'] !== ''): ?><a href="<?= e($filterUrl(['payment'=>''])) ?>"><?= e(strtoupper($f['payment'])) ?> <b>×</b></a><?php endif; ?>
+    <?php if (($f['source'] ?? '') !== ''): ?><a href="<?= e($filterUrl(['source'=>''])) ?>"><?= e(ucfirst($f['source'])) ?> <b>×</b></a><?php endif; ?>
     <?php if ($f['from'] !== ''): ?><a href="<?= e($filterUrl(['from'=>''])) ?>">From <?= e($f['from']) ?> <b>×</b></a><?php endif; ?>
     <?php if ($f['to'] !== ''): ?><a href="<?= e($filterUrl(['to'=>''])) ?>">To <?= e($f['to']) ?> <b>×</b></a><?php endif; ?>
 </div>
@@ -50,14 +52,15 @@ $hasFilters = $f['q'] !== '' || $f['channel'] !== '' || $f['status'] !== '' || $
 <?php else: ?>
 <div class="table-wrap sales-table-wrap">
     <table class="table sales-table mobile-cards">
-        <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Channel</th><th>Payment</th><th class="num">Items</th><th class="num">Total</th><th>Status</th><th><span class="sr-only">Action</span></th></tr></thead>
+        <thead><tr><th>Order</th><th>Date</th><th>Customer</th><th>Channel</th><th>Source</th><th>Payment</th><th class="num">Items</th><th class="num">Total</th><th>Status</th><th><span class="sr-only">Action</span></th></tr></thead>
         <tbody>
-        <?php foreach ($rows as $s): [$statusLabel, $statusClass] = status_badge($s['status']); ?>
+        <?php foreach ($rows as $s): [$statusLabel, $statusClass] = status_badge($s['status']); $src = $s['sale_source'] ?? 'walk-in'; ?>
             <tr>
-                <td data-label="Order"><div class="cell-main"><a href="<?= e(url('sales/' . $s['id'])) ?>"><?= e($s['sale_number']) ?></a></div><div class="cell-sub"><?php if ((int) $s['offline_created'] === 1): ?><span class="badge badge-blue">Saved offline</span><?php elseif ((int) $s['return_count'] > 0): ?><?= (int) $s['return_count'] ?> return record<?= (int) $s['return_count'] === 1 ? '' : 's' ?><?php endif; ?></div></td>
+                <td data-label="Order"><div class="cell-main"><a href="<?= e(url('sales/' . $s['id'])) ?>"><?= e($s['sale_number']) ?></a></div><div class="cell-sub"><?php if ((int) $s['offline_created'] === 1): ?><span class="badge badge-blue">Saved offline</span><?php elseif ((int) $s['return_count'] > 0): ?><?= (int) $s['return_count'] ?> return record<?= (int) $s['return_count'] === 1 ? '' : 's' ?><?php endif; ?><?php if (!empty($s['whatsapp_enquiry_id'])): ?> <span class="badge badge-green">WA #<?= (int)$s['whatsapp_enquiry_id'] ?></span><?php endif; ?></div></td>
                 <td data-label="Date"><div class="cell-main"><?= e(date('d M Y', strtotime($s['created_at']))) ?></div><div class="cell-sub"><?= e(date('h:i A', strtotime($s['created_at']))) ?></div></td>
                 <td data-label="Customer"><div class="cell-main"><?= $s['customer_name'] ? e($s['customer_name']) : 'Walk-in' ?></div><?php if ($s['customer_phone']): ?><div class="cell-sub"><?= e($s['customer_phone']) ?></div><?php endif; ?></td>
                 <td data-label="Channel"><span class="badge badge-<?= $s['channel'] === 'online' ? 'blue' : 'gray' ?>"><?= $s['channel'] === 'online' ? 'Online' : 'In store' ?></span></td>
+                <td data-label="Source"><span class="badge badge-<?= $src === 'whatsapp' ? 'green' : ($src === 'phone' ? 'blue' : 'gray') ?>"><?= e(ucfirst($src)) ?></span></td>
                 <td data-label="Payment"><div class="cell-main"><?= e(strtoupper($s['payment_method'])) ?></div><?php if ($s['payment_ref']): ?><div class="cell-sub"><?= e($s['payment_ref']) ?></div><?php endif; ?></td>
                 <td data-label="Items" class="num"><?= (int) $s['item_count'] ?></td>
                 <td data-label="Total" class="num"><strong><?= money($s['total']) ?></strong></td>

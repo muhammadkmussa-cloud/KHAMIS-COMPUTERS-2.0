@@ -12,6 +12,7 @@ class SaleController
             'channel' => (string) ($_GET['channel'] ?? ''),
             'status'  => (string) ($_GET['status'] ?? ''),
             'payment' => (string) ($_GET['payment'] ?? ''),
+            'source'  => strtolower(trim((string) ($_GET['source'] ?? ''))),
             'from'    => (string) ($_GET['from'] ?? ''),
             'to'      => (string) ($_GET['to'] ?? ''),
             'page'    => (int) ($_GET['page'] ?? 1),
@@ -40,17 +41,19 @@ class SaleController
             'channel' => (string) ($_GET['channel'] ?? ''),
             'status'  => (string) ($_GET['status'] ?? ''),
             'payment' => (string) ($_GET['payment'] ?? ''),
+            'source'  => strtolower(trim((string) ($_GET['source'] ?? ''))),
             'from'    => (string) ($_GET['from'] ?? ''),
             'to'      => (string) ($_GET['to'] ?? ''),
         ];
 
         $rows = Sale::exportAll($filters);
-        $csv  = [['Sale #', 'Date', 'Channel', 'Customer', 'Phone', 'Payment', 'Items', 'Subtotal (KSh)', 'Discount (KSh)', 'VAT (KSh)', 'Total (KSh)', 'Status']];
+        $csv  = [['Sale #', 'Date', 'Channel', 'Source', 'Customer', 'Phone', 'Payment', 'Items', 'Subtotal (KSh)', 'Discount (KSh)', 'VAT (KSh)', 'Total (KSh)', 'Status', 'WhatsApp Enquiry ID']];
         foreach ($rows as $s) {
             $csv[] = [
                 $s['sale_number'],
                 $s['created_at'],
                 $s['channel'],
+                $s['sale_source'] ?? 'walk-in',
                 $s['customer_name'] ?? '',
                 $s['customer_phone'] ?? '',
                 $s['payment_method'],
@@ -60,6 +63,7 @@ class SaleController
                 number_format((float) $s['tax_amount'], 2, '.', ''),
                 number_format((float) $s['total'], 2, '.', ''),
                 $s['status'],
+                $s['whatsapp_enquiry_id'] ?? '',
             ];
         }
 

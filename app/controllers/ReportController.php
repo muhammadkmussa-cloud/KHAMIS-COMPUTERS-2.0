@@ -10,9 +10,9 @@ class ReportController
         $date   = self::validDate($_GET['date'] ?? '', date('Y-m-d'));
         $userId = isset($_GET['user']) ? (int) $_GET['user'] : null;
         if (!Auth::isAdmin()) {
-            $userId = Auth::id(); // cashiers only see their own day
+            $userId = Auth::id();
         } elseif ($userId === 0) {
-            $userId = null; // "All staff"
+            $userId = null;
         }
 
         View::render('reports/z', [
@@ -84,8 +84,6 @@ class ReportController
         $previousFrom= date('Y-m-d', strtotime($previousTo . ' -' . ($periodDays-1) . ' days'));
         $previous    = self::metrics($previousFrom, $previousTo);
 
-        // Aggregate longer periods into weekly points instead of rendering a
-        // wall of thin daily bars.
         $chartFrom = $from;
         $dayDiff   = $periodDays - 1;
         $days = [];
@@ -124,6 +122,8 @@ class ReportController
             'grossProfit' => $m['revenue'] - $m['cogs'],
             'net'         => $m['revenue'] - $m['cogs'] - $m['refunds'] - $m['expenses'],
             'channels'    => $m['channels'],
+            'saleSources' => $m['saleSources'] ?? [],
+            'whatsappEnquiries' => $m['whatsappEnquiries'] ?? ['total'=>0,'converted'=>0],
             'days'        => $days,
             'chart'       => $chart,
             'chartMode'   => $periodDays > 31 ? 'Weekly' : 'Daily',
@@ -139,7 +139,6 @@ class ReportController
         ]);
     }
 
-    /** Export the report summary + top products for the same date window. */
     public function export(): void
     {
         Auth::requireLogin();
@@ -163,9 +162,25 @@ class ReportController
             ['Gross profit (KSh)', number_format($gross, 2, '.', '')],
             ['Net result (KSh)', number_format($net, 2, '.', '')],
             [],
-            ['Top products'],
-            ['Product', 'SKU', 'Qty sold', 'Revenue (KSh)'],
+            ['Channels'],
+            ['Channel', 'Orders', 'Revenue'],
         ];
+        foreach ($m['channels'] as $ch) {
+            $csv[] = [$ch['channel'], $ch['n'], number_format((float)$ch['rev'],2,'.','')];
+        }
+        $csv[] = [];
+        $csv[] = ['Sale sources (POS)'];
+        $csv[] = ['Source', 'Orders', 'Revenue'];
+        foreach (($m['saleSources'] ?? []) as $src) {
+            $csv[] = [$src['sale_source'] ?? 'walk-in', $src['n'], number_format((float)$src['rev'],2,'.','')];
+        }
+        $csv[] = [];
+        $csv[] = ['WhatsApp enquiries'];
+        $csv[] = ['Total enquiries', $m['whatsappEnquiries']['total'] ?? 0];
+        $csv[] = ['Converted to sales', $m['whatsappEnquiries']['converted'] ?? 0];
+        $csv[] = [];
+        $csv[] = ['Top products'];
+        $csv[] = ['Product', 'SKU', 'Qty sold', 'Revenue (KSh)'];
         foreach ($m['topProducts'] as $p) {
             $csv[] = [
                 $p['name'], $p['sku'], (int) $p['qty'], number_format((float) $p['rev'], 2, '.', ''),
@@ -174,8 +189,6 @@ class ReportController
 
         csv_response($csv, 'report-' . $from . '-to-' . $to . '.csv');
     }
-
-    /* --------------------------- VAT report (KRA) --------------------------- */
 
     public function vatReport(): void
     {
@@ -254,13 +267,11 @@ class ReportController
         csv_response($csv, 'vat-report-' . $from . '-to-' . $to . '.csv');
     }
 
-    /** Output vs input VAT for a date window (KRA-style). */
     private static function vatData(string $from, string $to): array
     {
         $params   = ['from' => $from, 'to' => $to];
         $rangeSql = 'DATE(created_at) >= :from AND DATE(created_at) <= :to';
 
-        // Output VAT — the VAT actually charged, stored per completed sale.
         $output = (float) Database::fetchValue(
             "SELECT COALESCE(SUM(tax_amount), 0) FROM sales WHERE status = 'completed' AND {$rangeSql}",
             $params
@@ -270,9 +281,6 @@ class ReportController
             $params
         );
 
-        // VAT reversed by completed returns. Refunds are VAT-exclusive, so each
-        // is re-taxed at the parent sale's effective rate — accurate even if the
-        // configured VAT rate changed between the sale and the return.
         $returnVat = (float) Database::fetchValue(
             "SELECT COALESCE(SUM(r.refund_amount * ((s.tax_amount * 1.0) / NULLIF(s.subtotal - s.discount, 0))), 0)
                FROM returns r
@@ -281,8 +289,6 @@ class ReportController
             $params
         );
 
-        // Input VAT — estimated from goods received. Purchase costs are stored
-        // VAT-exclusive; estimated at the current configured rate.
         $purchaseNet = (float) Database::fetchValue(
             "SELECT COALESCE(SUM(i.unit_cost * i.quantity), 0)
                FROM goods_received_items i
@@ -291,10 +297,8 @@ class ReportController
             $params
         );
         $input = round($purchaseNet * vat_rate() / 100, 2);
-
         $net = round($output - $returnVat - $input, 2);
 
-        // Daily series for the breakdown table.
         $dayKeys = [];
         for ($t = strtotime($from); $t <= strtotime($to); $t += 86400) {
             $dayKeys[date('Y-m-d', $t)] = ['out' => 0.0, 'returned' => 0.0, 'in' => 0.0];
@@ -377,8 +381,6 @@ class ReportController
         ];
     }
 
-    /* --------------------- Purchases by supplier --------------------- */
-
     public function purchases(): void
     {
         Auth::requireLogin();
@@ -459,7 +461,6 @@ class ReportController
         csv_response($csv, 'purchases-by-supplier-' . $from . '-to-' . $to . '.csv');
     }
 
-    /** Purchases grouped by supplier for a date window (linked + free-text names). */
     private static function purchasesData(string $from, string $to, string $filter = ''): array
     {
         $params = ['from' => $from, 'to' => $to];
@@ -475,7 +476,6 @@ class ReportController
             $params
         );
 
-        // Item lines for every GRN in the window (for drill-down + export).
         $byGrn = [];
         foreach (Database::fetchAll(
             "SELECT i.grn_id, p.name AS product_name, p.sku, i.quantity, i.unit_cost,
@@ -490,13 +490,11 @@ class ReportController
             $byGrn[(int) $it['grn_id']][] = $it;
         }
 
-        // Current names for linked suppliers.
         $names = [];
         foreach (Supplier::all() as $s) {
             $names[(int) $s['id']] = $s['name'];
         }
 
-        // Group GRNs: linked suppliers by id, free-text snapshots by name.
         $groups = [];
         foreach ($grns as $r) {
             $sid = $r['supplier_id'] !== null ? (int) $r['supplier_id'] : null;
@@ -516,7 +514,6 @@ class ReportController
             $groups[$key]['grns'][] = $r;
         }
 
-        // Optional supplier filter (numeric id, or name:... for a free-text supplier).
         if ($filter !== '') {
             if (str_starts_with($filter, 'name:')) {
                 $wanted = substr($filter, 5);
@@ -570,13 +567,11 @@ class ReportController
         ];
     }
 
-    /** Human label for the active supplier filter. */
     private static function purchasesFilterLabel(array $d): string
     {
         return $d['summary'][0]['name'] ?? '';
     }
 
-    /** Parse + normalise the date window. */
     private static function validDate(string $raw, string $fallback): string
     {
         $raw = trim($raw);
@@ -603,7 +598,6 @@ class ReportController
         return [trim($rawFrom), trim($rawTo)];
     }
 
-    /** Core metrics for a date window (completed sales only). */
     private static function metrics(string $from, string $to): array
     {
         $rangeSql    = 'DATE(created_at) >= :from AND DATE(created_at) <= :to';
@@ -628,6 +622,40 @@ class ReportController
             $rangeParams
         );
 
+        // Sale source breakdown (walk-in, whatsapp, phone, other) - only if column exists
+        $saleSources = [];
+        if (Schema::columnExists('sales','sale_source')) {
+            $saleSources = Database::fetchAll(
+                "SELECT COALESCE(sale_source,'walk-in') AS sale_source, SUM(subtotal-discount) AS rev, COUNT(*) AS n
+                   FROM sales WHERE status = 'completed' AND {$rangeSql}
+                  GROUP BY COALESCE(sale_source,'walk-in')",
+                $rangeParams
+            );
+        }
+
+        // WhatsApp enquiries metrics
+        $whatsappEnquiries = ['total'=>0,'converted'=>0];
+        if (Schema::tableExists('whatsapp_enquiries')) {
+            $totalEnq = (int) Database::fetchValue(
+                "SELECT COUNT(*) FROM whatsapp_enquiries WHERE DATE(created_at) >= :from AND DATE(created_at) <= :to",
+                $rangeParams
+            );
+            $converted = 0;
+            if (Schema::columnExists('sales','whatsapp_enquiry_id')) {
+                $converted = (int) Database::fetchValue(
+                    "SELECT COUNT(*) FROM sales WHERE status='completed' AND whatsapp_enquiry_id IS NOT NULL AND DATE(created_at) >= :from AND DATE(created_at) <= :to",
+                    $rangeParams
+                );
+            } else {
+                // fallback: sales with source whatsapp
+                $converted = (int) Database::fetchValue(
+                    "SELECT COUNT(*) FROM sales WHERE status='completed' AND sale_source='whatsapp' AND {$rangeSql}",
+                    $rangeParams
+                );
+            }
+            $whatsappEnquiries = ['total'=>$totalEnq,'converted'=>$converted];
+        }
+
         $topProducts = Database::fetchAll(
             "SELECT p.name, p.sku, SUM(si.quantity) AS qty, SUM(si.line_total) AS rev
                FROM sale_items si
@@ -639,6 +667,6 @@ class ReportController
             ['from' => $from, 'to' => $to]
         );
 
-        return compact('revenue', 'orders', 'refunds', 'expenses', 'cogs', 'channels', 'topProducts');
+        return compact('revenue', 'orders', 'refunds', 'expenses', 'cogs', 'channels', 'saleSources', 'whatsappEnquiries', 'topProducts');
     }
 }
