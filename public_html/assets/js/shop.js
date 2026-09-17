@@ -374,12 +374,10 @@
     if (count > 1) {
       var index = 0;
       var timer = null;
-      var hovering = false;
-      var focused = false;
-      var paused = false;
       var interval = parseInt(carousel.dataset.autoplay, 10) || 6500;
       var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
       var reduced = motionQuery ? motionQuery.matches : false;
+      var paused = reduced;
 
       var supportsInert = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
 
@@ -400,14 +398,13 @@
       }
       function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
       function start() {
-        if (reduced || paused || hovering || focused) return;
+        if (paused) return;
         stop();
         timer = window.setInterval(function () { show(index + 1); }, interval);
       }
       function go(i) { show(i); start(); }
       function updatePauseBtn() {
         if (!pauseBtn) return;
-        if (reduced) { pauseBtn.hidden = true; return; }
         pauseBtn.hidden = false;
         pauseBtn.textContent = paused ? 'Play' : 'Pause';
         pauseBtn.setAttribute('aria-label', paused ? 'Play slideshow' : 'Pause slideshow');
@@ -426,12 +423,6 @@
         });
       }
 
-      carousel.addEventListener('mouseenter', function () { hovering = true; stop(); });
-      carousel.addEventListener('mouseleave', function () { hovering = false; start(); });
-      carousel.addEventListener('focusin', function () { focused = true; stop(); });
-      carousel.addEventListener('focusout', function (e) {
-        if (!carousel.contains(e.relatedTarget)) { focused = false; start(); }
-      });
       carousel.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
         else if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
@@ -466,8 +457,9 @@
       if (motionQuery && motionQuery.addEventListener) {
         motionQuery.addEventListener('change', function (e) {
           reduced = e.matches;
+          paused = reduced;
           updatePauseBtn();
-          if (reduced) { stop(); } else { start(); }
+          if (paused) { stop(); } else { start(); }
         });
       }
 

@@ -74,6 +74,20 @@ async function deleteAllTestSlides(page) {
   }
 }
 
+async function getActiveSlideIds(page) {
+  await gotoHeroAdmin(page);
+  return page
+    .locator('.slide-card:has(.slide-status.is-active)')
+    .evaluateAll((cards) => cards.map((c) => c.getAttribute('data-slide-id')));
+}
+
+async function setSlideActive(page, id, active) {
+  await gotoHeroAdmin(page);
+  const card = page.locator(`.slide-card[data-slide-id="${id}"]`);
+  await card.locator(`button:has-text("${active ? 'Enable' : 'Disable'}")`).first().click();
+  await page.waitForURL(/settings\?tab=online-shop/);
+}
+
 test.describe('Hero carousel', () => {
   test.beforeEach(async ({}, testInfo) => {
     test.skip(!PROJECTS.includes(testInfo.project.name), 'hero spec runs on desktop/tablet/mobile projects');
@@ -186,10 +200,20 @@ test.describe('Hero carousel', () => {
   test('zero active slides fall back to the branded hero', async ({ page }) => {
     await loginAs(page, ADMIN);
     await deleteAllTestSlides(page);
-    await page.goto('/shop');
-    await expect(page.locator('.hero-carousel')).toHaveCount(0);
-    await expect(page.locator('.shop-hero')).toBeVisible();
-    await expect(page.locator('h1')).toContainText('Technology you can buy with confidence.');
+    const activeIds = await getActiveSlideIds(page);
+    try {
+      for (const id of activeIds) {
+        await setSlideActive(page, id, false);
+      }
+      await page.goto('/shop');
+      await expect(page.locator('.hero-carousel')).toHaveCount(0);
+      await expect(page.locator('.shop-hero')).toBeVisible();
+      await expect(page.locator('h1')).toContainText('Technology you can buy with confidence.');
+    } finally {
+      for (const id of activeIds) {
+        await setSlideActive(page, id, true);
+      }
+    }
   });
 
   test('storefront hero has no horizontal overflow', async ({ page }) => {

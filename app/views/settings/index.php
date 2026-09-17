@@ -375,7 +375,7 @@ $waDisplay = $waNorm !== '' ? '+' . $waNorm : ($waRaw !== '' ? $waRaw : '');
             </div>
             <?php endif; ?>
 
-            <div class="form-actions settings-form-actions">
+            <div class="form-actions settings-form-actions"<?= $activeTab === 'online-shop' ? ' style="display:none"' : '' ?>>
                 <button class="btn btn-primary" type="submit">Save all settings</button>
             </div>
         </form>
@@ -393,10 +393,12 @@ $waDisplay = $waNorm !== '' ? '+' . $waNorm : ($waRaw !== '' ? $waRaw : '');
     var panels = document.querySelectorAll('[data-panel]');
     var form = document.getElementById('settings-form');
     var activeInput = document.getElementById('active-tab-input');
+    var saveActions = document.querySelector('.settings-form-actions');
 
     function switchTab(tabName) {
         tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tabName); t.setAttribute('aria-selected', t.dataset.tab === tabName); });
         panels.forEach(function(p) { p.style.display = p.dataset.panel === tabName ? '' : 'none'; });
+        if (saveActions) saveActions.style.display = tabName === 'online-shop' ? 'none' : '';
         if (activeInput) activeInput.value = tabName;
         history.replaceState(null, '', '?tab=' + tabName);
     }

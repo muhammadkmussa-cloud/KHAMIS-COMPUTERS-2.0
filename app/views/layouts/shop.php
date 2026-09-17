@@ -25,7 +25,7 @@
 <meta property="og:site_name" content="<?= e(Setting::get('shop_name', config('app.name'))) ?>">
 <link rel="icon" href="<?= e(url('assets/favicon.svg')) ?>" type="image/svg+xml">
 <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>">
-<link rel="stylesheet" href="<?= e(url('assets/css/shop.css')) ?>">
+<link rel="stylesheet" href="<?= e(url('assets/css/shop.css?v=' . filemtime(PUBLIC_PATH . '/assets/css/shop.css'))) ?>">
 </head>
 <body class="layout-shop">
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -126,6 +126,6 @@ window.KC_SHOP_CONFIG = {
 };
 </script>
 <script src="<?= e(url('assets/js/app.js')) ?>"></script>
-<script src="<?= e(url('assets/js/shop.js')) ?>"></script>
+<script src="<?= e(url('assets/js/shop.js?v=' . filemtime(PUBLIC_PATH . '/assets/js/shop.js'))) ?>"></script>
 </body>
 </html>
