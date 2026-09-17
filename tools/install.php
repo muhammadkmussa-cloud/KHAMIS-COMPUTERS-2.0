@@ -48,6 +48,7 @@ Schema::migrateColumns();
 Schema::createIndexes();
 Schema::seedBaseline();
 Schema::seedDeliveryZones();
+Schema::seedHeroSlides();
 cli_out('  schema applied');
 
 // Default admin account (admin@khamis.local / admin1234) ---------------------

@@ -13,3 +13,8 @@ storage/uploads/*
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Playwright test output / agent artifacts
+test-results/
+playwright-report/
+.playwright-mcp/

@@ -321,3 +321,139 @@ function db_ready(): bool
         return false;
     }
 }
+
+/* ---------------------------------------------------------------------------
+ * Hero image upload, optimization and streaming
+ * ------------------------------------------------------------------------ */
+
+const HERO_IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+const HERO_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const HERO_IMAGE_MAX_WIDTH = 2560;
+const HERO_IMAGE_QUALITY = 82;
+
+/**
+ * Validate an uploaded hero image. Returns '' on success or an error string.
+ * Uses getimagesize() for real MIME detection (not the browser-provided ext).
+ */
+function hero_image_validate(string $tmpName, string $origName, int $size): string
+{
+    if ($size > HERO_IMAGE_MAX_BYTES) {
+        return basename($origName) . ' is over ' . (HERO_IMAGE_MAX_BYTES / 1024 / 1024) . ' MB.';
+    }
+    $imageInfo = @getimagesize((string) $tmpName);
+    if (!is_array($imageInfo)) {
+        return basename($origName) . ' is not a valid image file.';
+    }
+    $mime = $imageInfo['mime'] ?? '';
+    $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    if (!isset($allowed[$mime])) {
+        return basename($origName) . ' is not a JPG, PNG or WebP image.';
+    }
+    return '';
+}
+
+/**
+ * Safe extension derived from the real image MIME (never the browser filename).
+ * Returns '' when the file is not a supported image.
+ */
+function hero_image_ext(string $tmpName): string
+{
+    $info = @getimagesize((string) $tmpName);
+    if (!is_array($info)) {
+        return '';
+    }
+    return ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][$info['mime'] ?? ''] ?? '';
+}
+
+/**
+ * Optimize a hero image in place: downscale to max width and re-encode at a
+ * sensible quality, preserving the existing extension. Best-effort — if GD is
+ * unavailable or any step fails, the original file is left untouched.
+ */
+function hero_image_optimize(string $path): void
+{
+    if (!function_exists('imagecreatefromstring')) {
+        return;
+    }
+    $info = @getimagesize($path);
+    if (!is_array($info)) {
+        return;
+    }
+    // Guard against decompression bombs before decoding into memory (~40 MP cap).
+    if (((int) $info[0] * (int) $info[1]) > 40000000) {
+        return;
+    }
+    $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+    $data = @file_get_contents($path);
+    if ($data === false) {
+        return;
+    }
+    $src = @imagecreatefromstring($data);
+    if ($src === false) {
+        return;
+    }
+    $ow = imagesx($src);
+    $oh = imagesy($src);
+    $w = $ow;
+    $h = $oh;
+    if ($w > HERO_IMAGE_MAX_WIDTH) {
+        $h = (int) round($h * HERO_IMAGE_MAX_WIDTH / $w);
+        $w = HERO_IMAGE_MAX_WIDTH;
+    }
+    $canvas = imagecreatetruecolor($w, $h);
+    if ($ext === 'png' || $ext === 'webp') {
+        imagealphablending($canvas, false);
+        imagesavealpha($canvas, true);
+    }
+    imagecopyresampled($canvas, $src, 0, 0, 0, 0, $w, $h, $ow, $oh);
+    imagedestroy($src);
+    if ($ext === 'webp' && function_exists('imagewebp')) {
+        @imagewebp($canvas, $path, HERO_IMAGE_QUALITY);
+    } elseif ($ext === 'png' && function_exists('imagepng')) {
+        @imagepng($canvas, $path, 7);
+    } elseif (function_exists('imagejpeg')) {
+        @imagejpeg($canvas, $path, HERO_IMAGE_QUALITY);
+    }
+    imagedestroy($canvas);
+}
+
+/**
+ * Normalize a datetime-local value ("2026-09-17T10:00") for storage so it
+ * compares correctly against DATETIME columns on both MySQL and SQLite.
+ */
+function hero_datetime($value): ?string
+{
+    $v = trim((string) $value);
+    if ($v === '') {
+        return null;
+    }
+    $v = str_replace('T', ' ', $v);
+    return preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2})?$/', $v) ? $v : null;
+}
+
+/**
+ * Stream a hero image to the browser. Public — the online shop needs it without auth.
+ */
+function stream_hero_image(string $filename): void
+{
+    if (!preg_match('/^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|webp)$/', $filename)) {
+        http_response_code(404);
+        exit;
+    }
+    $dir  = BASE_PATH . '/storage/uploads/hero';
+    $real = realpath($dir);
+    $path = realpath($dir . '/' . $filename);
+    if ($real === false || $path === false || strpos($path, $real . DIRECTORY_SEPARATOR) !== 0 || !is_file($path)) {
+        http_response_code(404);
+        exit;
+    }
+    $mime = [
+        'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp',
+    ][strtolower((string) pathinfo($filename, PATHINFO_EXTENSION))] ?? 'application/octet-stream';
+    header('Content-Type: ' . $mime);
+    header('X-Content-Type-Options: nosniff');
+    header('Cache-Control: public, max-age=31536000, immutable');
+    header('Content-Length: ' . (string) filesize($path));
+    readfile($path);
+    exit;
+}

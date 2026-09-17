@@ -556,5 +556,91 @@ Database::delete('sales', 'id = ?', [$financeSaleId]);
 Database::delete('products', 'id = ?', [$financePid]);
 check(true, 'finance report reconciliation data cleaned up');
 
+/* --- Online-shop hero carousel ---------------------------------------- */
+echo "\n[99] hero carousel model\n";
+$heroIds = [];
+$heroNow = Database::now();
+$heroPrior = [];
+foreach (Database::fetchAll('SELECT id, is_active FROM hero_slides') as $row) {
+    $heroPrior[(int) $row['id']] = (int) $row['is_active'];
+}
+// Park every existing slide so active() only reflects the test fixtures.
+Database::run('UPDATE hero_slides SET is_active = 0');
+
+$mkHero = function (array $over) use (&$heroIds, $heroNow) {
+    $base = [
+        'desktop_image' => 'zz_hero_test.jpg', 'mobile_image' => '',
+        'eyebrow' => 'TEST', 'headline' => 'ZZ Hero Test', 'description' => 'd',
+        'product_id' => null, 'category_id' => null,
+        'cta_text' => 'Shop', 'cta_type' => 'shop', 'cta_target' => null,
+        'secondary_cta_text' => '', 'secondary_cta_type' => 'shop', 'secondary_cta_target' => null,
+        'text_position' => 'left', 'image_position' => 'center', 'overlay_strength' => 45,
+        'display_order' => 0, 'is_active' => 1, 'starts_at' => null, 'ends_at' => null,
+        'created_at' => $heroNow, 'updated_at' => $heroNow,
+    ];
+    $id = Database::insert('hero_slides', array_merge($base, $over));
+    $heroIds[] = $id;
+    return $id;
+};
+
+$activeId   = $mkHero(['headline' => 'ZZ Active', 'display_order' => 5]);
+$inactiveId = $mkHero(['headline' => 'ZZ Inactive', 'display_order' => 1, 'is_active' => 0]);
+$orderId    = $mkHero(['headline' => 'ZZ Earlier', 'display_order' => 3]);
+$futureId   = $mkHero(['headline' => 'ZZ Future', 'display_order' => 2, 'starts_at' => date('Y-m-d H:i:s', strtotime('+1 day'))]);
+$pastId     = $mkHero(['headline' => 'ZZ Past', 'display_order' => 2, 'ends_at' => date('Y-m-d H:i:s', strtotime('-1 day'))]);
+$noImageId  = $mkHero(['headline' => 'ZZ No Image', 'desktop_image' => '', 'display_order' => 2]);
+
+$activeIds = array_map(fn ($s) => (int) $s['id'], HeroSlide::active());
+check(in_array($activeId, $activeIds, true), 'active slide is shown');
+check(!in_array($inactiveId, $activeIds, true), 'inactive slide is hidden');
+check(!in_array($futureId, $activeIds, true), 'slide scheduled in the future is hidden');
+check(!in_array($pastId, $activeIds, true), 'slide whose end date has passed is hidden');
+check(!in_array($noImageId, $activeIds, true), 'slide without an image is hidden');
+$order = array_values(array_filter($activeIds, fn ($id) => in_array($id, [$activeId, $orderId], true)));
+check($order === [$orderId, $activeId], 'slides are ordered by display_order');
+
+$prod = Database::fetch('SELECT id, sell_price FROM products WHERE is_active = 1 AND sell_price > 0 ORDER BY id LIMIT 1');
+$prodSlide = HeroSlide::find($mkHero([
+    'headline' => 'ZZ Product', 'cta_type' => 'product', 'cta_target' => (string) $prod['id'], 'product_id' => (int) $prod['id'],
+]));
+$cta = HeroSlide::resolveCta($prodSlide);
+check($cta['url'] === url('shop/product/' . (int) $prod['id']), 'product CTA resolves to the product page');
+check(HeroSlide::fromPrice($prodSlide) === money(gross_of((float) $prod['sell_price'])), 'hero price uses the live VAT-inclusive product price');
+
+$cat = Database::fetch('SELECT id, slug FROM categories ORDER BY id LIMIT 1');
+$catSlide = HeroSlide::find($mkHero([
+    'headline' => 'ZZ Category', 'cta_type' => 'category', 'cta_target' => (string) $cat['id'], 'category_id' => (int) $cat['id'],
+]));
+$catCta = HeroSlide::resolveCta($catSlide);
+check(str_contains($catCta['url'], 'category=' . $cat['slug']), 'category CTA resolves to the category filter');
+
+$shopSlide = HeroSlide::find($activeId);
+check(HeroSlide::resolveCta($shopSlide)['url'] === url('shop/products'), 'shop CTA resolves to the catalogue');
+check(HeroSlide::resolveSecondaryCta(HeroSlide::find($mkHero(['headline' => 'ZZ Sec', 'secondary_cta_text' => '', 'secondary_cta_type' => 'product', 'secondary_cta_target' => '1']))) === [], 'empty secondary CTA text produces no button');
+
+check(hero_image_validate(__FILE__, 'code.php', filesize(__FILE__)) !== '', 'non-image upload is rejected by hero validation');
+$tmpImg = tempnam(sys_get_temp_dir(), 'hero') . '.jpg';
+$gd = imagecreatetruecolor(10, 10);
+imagejpeg($gd, $tmpImg, 80);
+imagedestroy($gd);
+check(hero_image_validate($tmpImg, 'ok.jpg', filesize($tmpImg)) === '', 'valid JPEG upload passes hero validation');
+check(hero_image_validate($tmpImg, 'huge.jpg', HERO_IMAGE_MAX_BYTES + 1) !== '', 'oversized hero upload is rejected');
+
+$heroDir = HeroSlide::imageDir();
+$orphan = 'zz_hero_orphan.jpg';
+copy($tmpImg, $heroDir . '/' . $orphan);
+$delId = $mkHero(['headline' => 'ZZ Delete', 'desktop_image' => $orphan]);
+HeroSlide::delete($delId);
+check(!is_file($heroDir . '/' . $orphan), 'deleting a slide removes its image file');
+@unlink($tmpImg);
+
+foreach ($heroIds as $id) {
+    Database::delete('hero_slides', 'id = ?', [$id]);
+}
+foreach ($heroPrior as $id => $active) {
+    Database::update('hero_slides', ['is_active' => $active], 'id = :id', ['id' => $id]);
+}
+check((int) Database::fetchValue('SELECT COUNT(*) FROM hero_slides WHERE headline LIKE ?', ['ZZ %']) === 0, 'hero test fixtures cleaned up');
+
 echo "\nRESULT: $pass passed, $fail failed\n";
 exit($fail === 0 ? 0 : 1);

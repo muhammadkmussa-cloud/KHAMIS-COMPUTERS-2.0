@@ -31,5 +31,12 @@ if ($path !== '/' && is_file(__DIR__ . $path)) {
     return false; // let the built-in server serve the static file
 }
 
+// Emulate Apache's front-controller: production routes every request through
+// index.php, so SCRIPT_NAME is always "/index.php" and base_path resolves to "".
+// The built-in server instead sets SCRIPT_NAME to the request path, which
+// corrupts base_path for nested routes (e.g. /shop/product/1 -> base "/shop/product").
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+$_SERVER['PHP_SELF']    = '/index.php';
+
 require __DIR__ . '/index.php';
 

@@ -291,6 +291,33 @@ CREATE TABLE IF NOT EXISTS throttle (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- @@kc@@
+CREATE TABLE IF NOT EXISTS hero_slides (
+    id               INTEGER PRIMARY KEY AUTO_INCREMENT,
+    desktop_image    VARCHAR(255) NOT NULL,
+    mobile_image     VARCHAR(255) NULL,
+    eyebrow          VARCHAR(120) NULL,
+    headline         VARCHAR(190) NOT NULL,
+    description      VARCHAR(500) NULL,
+    product_id       INTEGER NULL REFERENCES products(id) ON DELETE SET NULL,
+    category_id      INTEGER NULL REFERENCES categories(id) ON DELETE SET NULL,
+    cta_text         VARCHAR(60) NULL,
+    cta_type         VARCHAR(20) NOT NULL DEFAULT 'shop',
+    cta_target       VARCHAR(255) NULL,
+    secondary_cta_text VARCHAR(60) NULL,
+    secondary_cta_type VARCHAR(20) NULL,
+    secondary_cta_target VARCHAR(255) NULL,
+    text_position    VARCHAR(10) NOT NULL DEFAULT 'left',
+    image_position   VARCHAR(10) NOT NULL DEFAULT 'center',
+    overlay_strength TINYINT NOT NULL DEFAULT 45,
+    display_order    INTEGER NOT NULL DEFAULT 0,
+    is_active        TINYINT NOT NULL DEFAULT 1,
+    starts_at        DATETIME NULL,
+    ends_at          DATETIME NULL,
+    created_at       DATETIME NOT NULL,
+    updated_at       DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- @@kc@@
 CREATE TABLE IF NOT EXISTS activity_log (
     id            INTEGER PRIMARY KEY AUTO_INCREMENT,
     user_id       INTEGER NULL,

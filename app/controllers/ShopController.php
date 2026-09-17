@@ -14,6 +14,7 @@ class ShopController
             'shopName'   => Setting::get('shop_name', config('app.name')),
             'featured'   => Product::featured(4),
             'categories' => Category::all(true),
+            'slides'     => HeroSlide::active(),
         ], 'shop');
     }
 

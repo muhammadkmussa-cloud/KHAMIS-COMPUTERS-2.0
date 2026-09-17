@@ -42,6 +42,7 @@ for p in "/login" "/shop" "/shop/products" "/shop/product/1" "/shop/cart" "/shop
 done
 check "public /install (already installed -> redirect)" /tmp/kc_none.jar 302 "/install"
 check "public /uploads/p/nonexistent.png (404)" /tmp/kc_none.jar 404 "/uploads/p/nonexistent.png"
+check "public /uploads/h/nonexistent.png (404)" /tmp/kc_none.jar 404 "/uploads/h/nonexistent.png"
 
 # --- admin session ---
 A=/tmp/kc_admin.jar; rm -f "$A"
@@ -51,9 +52,13 @@ for p in "/dashboard" "/products" "/products/new" "/products/1" "/products/1/edi
          "/pos" "/pos/search?q=hp" "/pos/catalog" "/pos/receipt/1" \
          "/sales" "/sales/1" "/sales/1/pdf" "/sales/export" \
          "/returns" "/returns/new" "/returns/1" "/expenses" \
-         "/reports" "/reports/export" "/reports/z" "/reports/vat" "/reports/vat/export" "/reports/purchases" "/reports/purchases/export" "/settings" "/staff"; do
+         "/reports" "/reports/export" "/reports/z" "/reports/vat" "/reports/vat/export" "/reports/purchases" "/reports/purchases/export" "/settings" "/settings?tab=online-shop" "/staff"; do
   check "admin $p" "$A" 200 "$p"
 done
+contains "admin hero manager renders" "$A" "/settings?tab=online-shop" "Hero Carousel"
+contains "admin hero manager shows the add form" "$A" "/settings?tab=online-shop" "Add Slide"
+CODE=$(curl -s -b "$A" -o /dev/null -w "%{http_code}" --data-urlencode "headline=no csrf" "$BASE/settings/hero")
+if [ "$CODE" = "419" ]; then ok "hero create without CSRF token is rejected [419]"; else bad "hero create without CSRF" "got $CODE want 419"; fi
 contains "admin shelf label shows VAT-inclusive customer price" "$A" "/products/1/labels" "KSh 75,400.00"
 contains "admin dashboard shows finance KPI" "$A" "/dashboard" "Gross profit"
 contains "admin reports explain net result" "$A" "/reports" "Net result"

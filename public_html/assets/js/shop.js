@@ -330,3 +330,133 @@
   updateBadge();
   renderCartPage();
 })();
+
+/* Khamis Computers storefront: full-screen hero carousel + transparent nav. */
+(function () {
+  'use strict';
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  var carousel = document.getElementById('hero-carousel');
+  if (carousel) {
+    var slides = Array.prototype.slice.call(carousel.querySelectorAll('.hero-slide'));
+    var dots = Array.prototype.slice.call(carousel.querySelectorAll('.hero-dot'));
+    var prev = carousel.querySelector('.hero-prev');
+    var next = carousel.querySelector('.hero-next');
+    var counter = carousel.querySelector('.hero-counter-current');
+    var pauseBtn = carousel.querySelector('[data-hero-pause]');
+    var count = slides.length;
+
+    if (count > 1) {
+      var index = 0;
+      var timer = null;
+      var hovering = false;
+      var focused = false;
+      var paused = false;
+      var interval = parseInt(carousel.dataset.autoplay, 10) || 6500;
+      var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+      var reduced = motionQuery ? motionQuery.matches : false;
+
+      var supportsInert = typeof HTMLElement !== 'undefined' && 'inert' in HTMLElement.prototype;
+
+      function show(i) {
+        index = ((i % count) + count) % count;
+        slides.forEach(function (slide, n) {
+          var active = n === index;
+          slide.classList.toggle('is-active', active);
+          if (active) { slide.removeAttribute('aria-hidden'); } else { slide.setAttribute('aria-hidden', 'true'); }
+          if (supportsInert) { slide.inert = !active; }
+        });
+        dots.forEach(function (dot, n) {
+          var active = n === index;
+          dot.classList.toggle('is-active', active);
+          dot.setAttribute('aria-current', active ? 'true' : 'false');
+        });
+        if (counter) counter.textContent = pad2(index + 1);
+      }
+      function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
+      function start() {
+        if (reduced || paused || hovering || focused) return;
+        stop();
+        timer = window.setInterval(function () { show(index + 1); }, interval);
+      }
+      function go(i) { show(i); start(); }
+      function updatePauseBtn() {
+        if (!pauseBtn) return;
+        if (reduced) { pauseBtn.hidden = true; return; }
+        pauseBtn.hidden = false;
+        pauseBtn.textContent = paused ? 'Play' : 'Pause';
+        pauseBtn.setAttribute('aria-label', paused ? 'Play slideshow' : 'Pause slideshow');
+        pauseBtn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+      }
+
+      if (next) next.addEventListener('click', function () { go(index + 1); });
+      if (prev) prev.addEventListener('click', function () { go(index - 1); });
+      dots.forEach(function (dot, n) { dot.addEventListener('click', function () { go(n); }); });
+
+      if (pauseBtn) {
+        pauseBtn.addEventListener('click', function () {
+          paused = !paused;
+          updatePauseBtn();
+          if (paused) { stop(); } else { start(); }
+        });
+      }
+
+      carousel.addEventListener('mouseenter', function () { hovering = true; stop(); });
+      carousel.addEventListener('mouseleave', function () { hovering = false; start(); });
+      carousel.addEventListener('focusin', function () { focused = true; stop(); });
+      carousel.addEventListener('focusout', function (e) {
+        if (!carousel.contains(e.relatedTarget)) { focused = false; start(); }
+      });
+      carousel.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
+      });
+
+      var startX = null;
+      var startY = null;
+      var swiping = false;
+      carousel.addEventListener('touchstart', function (e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        swiping = false;
+      }, { passive: true });
+      carousel.addEventListener('touchmove', function (e) {
+        if (startX === null) return;
+        var dx = e.touches[0].clientX - startX;
+        var dy = e.touches[0].clientY - startY;
+        if (!swiping && Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) { swiping = true; }
+      }, { passive: true });
+      carousel.addEventListener('touchend', function (e) {
+        if (startX === null) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        if (swiping && Math.abs(dx) > 45) { go(dx < 0 ? index + 1 : index - 1); }
+        startX = null; startY = null; swiping = false;
+      });
+      carousel.addEventListener('touchcancel', function () { startX = null; startY = null; swiping = false; });
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { stop(); } else { start(); }
+      });
+
+      if (motionQuery && motionQuery.addEventListener) {
+        motionQuery.addEventListener('change', function (e) {
+          reduced = e.matches;
+          updatePauseBtn();
+          if (reduced) { stop(); } else { start(); }
+        });
+      }
+
+      updatePauseBtn();
+      show(0);
+      start();
+    }
+  }
+
+  var nav = document.querySelector('.shop-nav.nav-over-hero');
+  if (nav) {
+    var onScroll = function () { nav.classList.toggle('is-scrolled', window.scrollY > 40); };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+})();

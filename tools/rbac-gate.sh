@@ -117,6 +117,16 @@ pcheck(){ local desc="$1" url="$2" code
   [ "$code" = "302" ] && ok "$desc [$code]" || bad "$desc got $code"
 }
 
+# Hero manager: the router denies an authenticated non-admin with 403.
+hcheck(){ local desc="$1" method="$2" url="$3" code
+  if [ "$method" = "POST" ]; then
+    code=$(curl -s -b "$JAR" -o /dev/null -w "%{http_code}" -X POST --data-urlencode "csrf_token=$T" "$BASE$url")
+  else
+    code=$(curl -s -b "$JAR" -o /dev/null -w "%{http_code}" "$BASE$url")
+  fi
+  [ "$code" = "403" ] && ok "$desc [$code]" || bad "$desc got $code"
+}
+
 echo "=== RBAC gate test (cashier denied) ==="
 
 T=$(login_cashier)
@@ -128,6 +138,13 @@ for p in "/reports" "/reports/export" "/reports/vat" "/reports/vat/export" \
          "/products/export" "/sales/export"; do
   gcheck "cashier blocked GET $p" "$p"
 done
+
+# --- hero carousel manager (admin only; router denies non-admins with 403) ---
+hcheck "cashier blocked GET /settings?tab=online-shop" GET "/settings?tab=online-shop"
+hcheck "cashier denied hero create" POST "/settings/hero"
+hcheck "cashier denied hero reorder" POST "/settings/hero/reorder"
+hcheck "cashier denied hero delete" POST "/settings/hero/1/delete"
+hcheck "cashier denied hero toggle" POST "/settings/hero/1/toggle"
 
 # --- pick fixture targets ---
 # void target: completed POS sale with no returns at all, so the SaleService

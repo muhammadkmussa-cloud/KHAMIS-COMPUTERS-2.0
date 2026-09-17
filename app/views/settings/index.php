@@ -23,6 +23,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
         <a class="settings-tab <?= $activeTab === 'notifications' ? 'active' : '' ?>" href="?tab=notifications" role="tab" aria-selected="<?= $activeTab === 'notifications' ?>" data-tab="notifications">Notifications</a>
         <a class="settings-tab <?= $activeTab === 'mpesa' ? 'active' : '' ?>" href="?tab=mpesa" role="tab" aria-selected="<?= $activeTab === 'mpesa' ?>" data-tab="mpesa">M-PESA</a>
         <a class="settings-tab <?= $activeTab === 'delivery' ? 'active' : '' ?>" href="?tab=delivery" role="tab" aria-selected="<?= $activeTab === 'delivery' ?>" data-tab="delivery">Delivery</a>
+        <a class="settings-tab <?= $activeTab === 'online-shop' ? 'active' : '' ?>" href="?tab=online-shop" role="tab" aria-selected="<?= $activeTab === 'online-shop' ?>" data-tab="online-shop">Online Shop</a>
         <?php if (!$isProd): ?><a class="settings-tab <?= $activeTab === 'deploy' ? 'active' : '' ?>" href="?tab=deploy" role="tab" aria-selected="<?= $activeTab === 'deploy' ?>" data-tab="deploy">Deploy</a><?php endif; ?>
     </div>
 
@@ -316,6 +317,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
                 <button class="btn btn-primary" type="submit">Save all settings</button>
             </div>
         </form>
+        <div class="settings-tab-content" id="panel-online-shop" data-panel="online-shop" style="<?= $activeTab !== 'online-shop' ? 'display:none' : '' ?>">
+            <?php include APP_PATH . '/views/settings/hero.php'; ?>
+        </div>
     </div>
 </div>
 

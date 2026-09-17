@@ -6,12 +6,14 @@ class SettingsController
     public function index(): void
     {
         Auth::requireLogin();
+        $migrated = Schema::tableExists('hero_slides');
         View::render('settings/index', [
             'title' => 'Settings',
             'settings' => Setting::all(),
             'zones' => DeliveryZone::all(),
             'vat'      => vat_rate(),
-            'activity' => Activity::recent(20),
+            'slides'   => HeroSlide::all(),
+            'migrated' => $migrated,
         ]);
     }
 

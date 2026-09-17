@@ -58,6 +58,7 @@ class SetupController
             Schema::createIndexes();
             Schema::seedBaseline();
             Schema::seedDeliveryZones();
+            Schema::seedHeroSlides();
             Database::insert('users', [
                 'name'          => $name,
                 'email'         => $email,

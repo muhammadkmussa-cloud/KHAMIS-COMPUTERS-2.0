@@ -16,8 +16,9 @@ $shopName = Setting::get('shop_name', config('app.name'));
 $navCats = array_values(array_filter(Category::all(), fn ($c) => (int) $c['is_active'] === 1));
 $navCats = array_slice($navCats, 0, 5);
 $current = Router::currentPath();
+$isHomeHero = ($current === 'shop') && !empty($slides ?? []);
 ?>
-<header class="global-nav shop-nav">
+<header class="global-nav shop-nav<?= $isHomeHero ? ' nav-over-hero' : '' ?>">
     <div class="nav-inner">
         <a class="nav-brand" href="<?= e(url('shop')) ?>" aria-label="<?= e($shopName) ?> home">
             <?= brand_mark(24) ?>

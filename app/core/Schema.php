@@ -14,14 +14,19 @@ class Schema
         $stmts  = array_values(array_filter(array_map('trim', preg_split('/--\s*@@kc@@/', $sql))));
 
         foreach ($stmts as $stmt) {
-            if (Database::driver() === 'sqlite') {
-                // Translate MySQL-specific syntax into SQLite-compatible SQL.
-                $stmt = str_replace('INTEGER PRIMARY KEY AUTO_INCREMENT', 'INTEGER PRIMARY KEY AUTOINCREMENT', $stmt);
-                $stmt = str_replace('ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci', '', $stmt);
-                $stmt = str_replace('NOW()', 'CURRENT_TIMESTAMP', $stmt);
-            }
-            $pdo->exec($stmt);
+            $pdo->exec(self::translate($stmt));
         }
+    }
+
+    /** Translate MySQL-specific syntax into SQLite-compatible SQL when needed. */
+    private static function translate(string $stmt): string
+    {
+        if (Database::driver() === 'sqlite') {
+            $stmt = str_replace('INTEGER PRIMARY KEY AUTO_INCREMENT', 'INTEGER PRIMARY KEY AUTOINCREMENT', $stmt);
+            $stmt = str_replace('ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci', '', $stmt);
+            $stmt = str_replace('NOW()', 'CURRENT_TIMESTAMP', $stmt);
+        }
+        return $stmt;
     }
 
     /** Seed baseline settings rows (idempotent, per key). */
@@ -103,6 +108,7 @@ class Schema
             // [name, table, columns, unique]
             ['idx_products_category', 'products', 'category_id', false],
             ['idx_products_active',   'products', 'is_active', false],
+            ['idx_hero_active',       'hero_slides', 'is_active, display_order', false],
             ['idx_units_product',     'inventory_units', 'product_id', false],
             ['idx_units_status',      'inventory_units', 'status', false],
             ['idx_sales_created',     'sales', 'created_at', false],
@@ -177,6 +183,68 @@ class Schema
         }
     }
 
+/** True if a table exists (portable MySQL / SQLite). */
+    public static function tableExists(string $table): bool
+    {
+        if (Database::driver() === 'sqlite') {
+            foreach (Database::fetchAll("SELECT name FROM sqlite_master WHERE type='table' AND name=?", [$table]) as $row) {
+                return true;
+            }
+            return false;
+        }
+        return (int) Database::fetchValue(
+            "SELECT COUNT(*) FROM information_schema.tables
+              WHERE table_schema = DATABASE() AND table_name = ?",
+            [$table]
+        ) > 0;
+    }
+
+    /** Create the hero_slides table if it does not yet exist (forward migration). */
+    public static function ensureHeroSlides(): void
+    {
+        if (self::tableExists('hero_slides')) {
+            return;
+        }
+        $sql = file_get_contents(BASE_PATH . '/schema/schema.sql');
+        $parts = array_values(array_filter(array_map('trim', preg_split('/--\s*@@kc@@/', $sql))));
+        foreach ($parts as $stmt) {
+            if (str_contains($stmt, 'CREATE TABLE IF NOT EXISTS hero_slides')) {
+                Database::pdo()->exec(self::translate($stmt));
+                return;
+            }
+        }
+    }
+
+    /**
+     * Seed four demo hero slides (all inactive) if the table is empty. Idempotent.
+     * Product/category links are left NULL because this runs before demo
+     * categories/products are seeded (and must not violate foreign keys).
+     */
+    public static function seedHeroSlides(): void
+    {
+        if ((int) Database::fetchValue('SELECT COUNT(*) FROM hero_slides') > 0) {
+            return;
+        }
+        $slides = [
+            ['OUR BEST SELLER', 'Samsung Galaxy A15', 'More power. More possibilities.', 'shop now', 'view product', 4],
+            ['LAPTOPS', 'Work Without Limits', 'Laptops built for work, school and everything between.', 'explore laptops', '', 5],
+            ['ENTERTAINMENT', 'Bring Entertainment Home', 'Bigger screens. Better sound.', 'shop entertainment', '', 6],
+            ['SPECIAL OFFERS', "This Week's Deals", 'Great technology. Better prices.', 'view offers', '', 7],
+        ];
+        foreach ($slides as [$eyebrow, $headline, $desc, $ctaText, $secCtaText, $order]) {
+            Database::insert('hero_slides', [
+                'desktop_image' => '', 'mobile_image' => '',
+                'eyebrow' => $eyebrow, 'headline' => $headline, 'description' => $desc,
+                'product_id' => null, 'category_id' => null,
+                'cta_text' => $ctaText, 'cta_type' => 'shop', 'cta_target' => null,
+                'secondary_cta_text' => $secCtaText, 'secondary_cta_type' => 'shop', 'secondary_cta_target' => null,
+                'text_position' => 'left', 'image_position' => 'center', 'overlay_strength' => 45,
+                'display_order' => $order, 'is_active' => 0,
+                'created_at' => Database::now(), 'updated_at' => Database::now(),
+            ]);
+        }
+    }
+
     /** True if a column exists on a table (portable MySQL / SQLite). */
     public static function columnExists(string $table, string $column): bool
     {
@@ -198,6 +266,7 @@ class Schema
     /** Lightweight forward migrations for already-installed databases. */
     public static function migrateColumns(): void
     {
+        self::ensureHeroSlides();
         $backfillSaleItemCosts = !self::columnExists('sale_items', 'unit_cost');
         $columns = [
             'sales' => [

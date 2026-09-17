@@ -1,3 +1,64 @@
+<?php if (!empty($slides)): $slideCount = count($slides); ?>
+<section class="hero-carousel" id="hero-carousel" aria-roledescription="carousel" aria-label="Featured promotions" data-autoplay="6500">
+    <h1 class="sr-only"><?= e($shopName ?? Setting::get('shop_name', config('app.name'))) ?> online shop</h1>
+    <div class="hero-slides">
+        <?php foreach ($slides as $i => $slide):
+            $cta       = HeroSlide::resolveCta($slide);
+            $secondary = HeroSlide::resolveSecondaryCta($slide);
+            $price     = HeroSlide::fromPrice($slide);
+            $desktop   = (string) $slide['desktop_image'];
+            $mobile    = !empty($slide['mobile_image']) ? (string) $slide['mobile_image'] : $desktop;
+            $overlay   = max(0, min(90, (int) ($slide['overlay_strength'] ?? 45))) / 100;
+            $textPos   = in_array($slide['text_position'] ?? 'left', ['left', 'center', 'right'], true) ? $slide['text_position'] : 'left';
+            $imgPos    = in_array($slide['image_position'] ?? 'center', ['left', 'center', 'right'], true) ? $slide['image_position'] : 'center';
+            $first     = $i === 0;
+        ?>
+        <div class="hero-slide text-<?= e($textPos) ?><?= $first ? ' is-active' : '' ?>" data-index="<?= $i ?>" role="group" aria-roledescription="slide" aria-label="<?= $i + 1 ?> of <?= $slideCount ?>"<?= $first ? '' : ' aria-hidden="true"' ?>>
+            <picture>
+                <?php if (!empty($slide['mobile_image'])): ?>
+                <source media="(max-width: 700px)" srcset="<?= e(url('uploads/h/' . rawurlencode($mobile))) ?>">
+                <?php endif; ?>
+                <img class="hero-slide-img" src="<?= e(url('uploads/h/' . rawurlencode($desktop))) ?>" alt=""
+                     style="object-position: <?= e($imgPos) ?>"
+                     <?= $first ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"' ?>>
+            </picture>
+            <div class="hero-slide-overlay" style="--overlay: <?= $overlay ?>"></div>
+            <div class="hero-slide-content">
+                <div class="hero-inner">
+                    <?php if (!empty($slide['eyebrow'])): ?><p class="hero-eyebrow"><?= e($slide['eyebrow']) ?></p><?php endif; ?>
+                    <h2 class="hero-headline"><?= e($slide['headline']) ?></h2>
+                    <?php if (!empty($slide['description'])): ?><p class="hero-description"><?= e($slide['description']) ?></p><?php endif; ?>
+                    <?php if ($price !== null): ?><p class="hero-price"><span>From</span> <strong><?= e($price) ?></strong></p><?php endif; ?>
+                    <div class="hero-ctas">
+                        <a class="hero-btn hero-btn-primary" href="<?= e($cta['url']) ?>"><?= e($cta['label']) ?><span aria-hidden="true">→</span></a>
+                        <?php if ($secondary): ?><a class="hero-btn hero-btn-secondary" href="<?= e($secondary['url']) ?>"><?= e($secondary['label']) ?></a><?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <?php if ($slideCount > 1): ?>
+    <button class="hero-arrow hero-prev" type="button" aria-label="Previous slide"><span aria-hidden="true">‹</span></button>
+    <button class="hero-arrow hero-next" type="button" aria-label="Next slide"><span aria-hidden="true">›</span></button>
+    <div class="hero-controls">
+        <div class="hero-progress" role="group" aria-label="Choose slide">
+            <?php foreach ($slides as $i => $s): ?>
+            <button class="hero-dot<?= $i === 0 ? ' is-active' : '' ?>" type="button" aria-current="<?= $i === 0 ? 'true' : 'false' ?>" aria-label="Slide <?= $i + 1 ?>">
+                <span class="hero-dot-num"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span>
+                <span class="hero-dot-bar" aria-hidden="true"></span>
+            </button>
+            <?php endforeach; ?>
+        </div>
+        <div class="hero-meta">
+            <button class="hero-pause" type="button" data-hero-pause aria-label="Pause slideshow">Pause</button>
+            <div class="hero-counter" aria-hidden="true"><span class="hero-counter-current">01</span> / <?= str_pad((string) $slideCount, 2, '0', STR_PAD_LEFT) ?></div>
+        </div>
+    </div>
+    <?php endif; ?>
+</section>
+<?php else: ?>
 <section class="shop-hero">
     <div class="hero-copy">
         <div class="section-kicker">Nairobi technology store</div>
@@ -22,6 +83,7 @@
         <?php endforeach; ?>
     </div>
 </section>
+<?php endif; ?>
 
 <div class="service-strip">
     <div><span class="service-icon">⌁</span><b>Pickup in Nairobi</b><small>Reserve online, collect in store</small></div>

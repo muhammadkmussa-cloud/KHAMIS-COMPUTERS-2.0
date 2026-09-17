@@ -50,6 +50,7 @@ $router->post('products/{id}/images/{imageId}/primary', [ProductController::clas
 $router->post('products/{id}/images/{imageId}/delete', [ProductController::class, 'deleteImage'], ['auth' => true, 'admin' => true]);
 $router->get('products/{id}/labels', [ProductController::class, 'labels'], ['auth' => true, 'admin' => true]);
 $router->get('uploads/p/{filename}', [ProductController::class, 'image']); // public (shop)
+$router->get('uploads/h/{filename}', [HeroSlideController::class, 'image']); // public (shop)
 
 /* ---- Inventory: categories & brands (admin only) ---- */
 $router->get('categories', [CategoryController::class, 'index'], ['auth' => true, 'admin' => true]);
@@ -139,6 +140,11 @@ $router->get('settings', [SettingsController::class, 'index'], ['auth' => true, 
 $router->post('settings', [SettingsController::class, 'update'], ['auth' => true, 'admin' => true]);
 $router->post('settings/test-email', [SettingsController::class, 'testEmail'], ['auth' => true, 'admin' => true]);
 $router->post('settings/test-mpesa', [SettingsController::class, 'testMpesa'], ['auth' => true, 'admin' => true]);
+$router->post('settings/hero', [HeroSlideController::class, 'create'], ['auth' => true, 'admin' => true]);
+$router->post('settings/hero/{id}/edit', [HeroSlideController::class, 'edit'], ['auth' => true, 'admin' => true]);
+$router->post('settings/hero/{id}/delete', [HeroSlideController::class, 'delete'], ['auth' => true, 'admin' => true]);
+$router->post('settings/hero/{id}/toggle', [HeroSlideController::class, 'toggle'], ['auth' => true, 'admin' => true]);
+$router->post('settings/hero/reorder', [HeroSlideController::class, 'reorder'], ['auth' => true, 'admin' => true]);
 
 /* ---- Staff management (admins) ---- */
 $router->get('staff', [StaffController::class, 'index'], ['auth' => true, 'admin' => true]);
