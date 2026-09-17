@@ -323,13 +323,15 @@ class ShopController
         $variantLabel = trim((string)($data['variant_label'] ?? ''));
         $priceShown = isset($data['price_shown']) ? (float)$data['price_shown'] : null;
         $sourcePage = trim((string)($data['source_page'] ?? ''));
+        $productUrl = trim((string)($data['product_url'] ?? $sourcePage));
+        $conditionType = trim((string)($data['condition_type'] ?? ''));
 
         if (!Schema::tableExists('whatsapp_enquiries')) {
             json_response(['ok' => true]);
         }
 
         try {
-            Database::insert('whatsapp_enquiries', [
+            $row = [
                 'product_id' => $productId > 0 ? $productId : null,
                 'variant_id' => $variantId,
                 'product_name' => $productName !== '' ? substr($productName, 0, 190) : null,
@@ -337,7 +339,14 @@ class ShopController
                 'price_shown' => $priceShown,
                 'source_page' => $sourcePage !== '' ? substr($sourcePage, 0, 255) : null,
                 'created_at' => Database::now(),
-            ]);
+            ];
+            if (Schema::columnExists('whatsapp_enquiries','product_url')) {
+                $row['product_url'] = $productUrl !== '' ? substr($productUrl,0,255) : null;
+            }
+            if (Schema::columnExists('whatsapp_enquiries','condition_type')) {
+                $row['condition_type'] = $conditionType !== '' ? substr($conditionType,0,20) : null;
+            }
+            Database::insert('whatsapp_enquiries', $row);
         } catch (Throwable $e) {
             error_log('[whatsapp] enquiry tracking failed: ' . $e->getMessage());
         }

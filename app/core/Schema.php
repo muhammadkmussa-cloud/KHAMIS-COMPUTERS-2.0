@@ -251,6 +251,23 @@ SQL;
     public static function ensureWhatsappEnquiries(): void
     {
         if (self::tableExists('whatsapp_enquiries')) {
+            // Ensure additional columns exist on already-installed DBs
+            $extra = [
+                'product_url' => 'VARCHAR(255) NULL',
+                'condition_type' => 'VARCHAR(20) NULL',
+                'customer_phone' => 'VARCHAR(30) NULL',
+                'customer_name' => 'VARCHAR(120) NULL',
+                'message' => 'TEXT NULL',
+            ];
+            foreach ($extra as $col => $def) {
+                if (!self::columnExists('whatsapp_enquiries', $col)) {
+                    try {
+                        Database::pdo()->exec("ALTER TABLE whatsapp_enquiries ADD COLUMN {$col} {$def}");
+                    } catch (Throwable $e) {
+                        error_log('[schema] whatsapp_enquiries add column failed: ' . $e->getMessage());
+                    }
+                }
+            }
             return;
         }
         $sql = <<<SQL
@@ -262,6 +279,11 @@ CREATE TABLE IF NOT EXISTS whatsapp_enquiries (
     variant_label VARCHAR(190) NULL,
     price_shown DECIMAL(12,2) NULL,
     source_page VARCHAR(255) NULL,
+    product_url VARCHAR(255) NULL,
+    condition_type VARCHAR(20) NULL,
+    customer_phone VARCHAR(30) NULL,
+    customer_name VARCHAR(120) NULL,
+    message TEXT NULL,
     created_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 SQL;

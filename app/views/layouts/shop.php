@@ -121,7 +121,8 @@ window.KC_SHOP_CONFIG = {
     shopName: <?= json_encode($shopName) ?>,
     baseUrl: <?= json_encode(url('')) ?>,
     csrf: <?= json_encode(Csrf::token()) ?>,
-    whatsappEnquiryUrl: <?= json_encode(url('shop/whatsapp-enquiry')) ?>
+    whatsappEnquiryUrl: <?= json_encode(url('shop/whatsapp-enquiry')) ?>,
+    currency: <?= json_encode(config('app.currency', 'KSh')) ?>
 };
 </script>
 <script src="<?= e(url('assets/js/app.js')) ?>"></script>

@@ -438,7 +438,7 @@ $initialSku = $defaultVariant['sku'] ?? $product['sku'];
         });
     }
 
-    // WhatsApp click tracking
+    // WhatsApp click tracking (lightweight lead)
     function trackWhatsapp(){
         try {
             var cfg = window.KC_SHOP_CONFIG || {};
@@ -448,7 +448,9 @@ $initialSku = $defaultVariant['sku'] ?? $product['sku'];
                 product_name: product.name,
                 variant_label: displayVariantLabel(selected),
                 price_shown: selected ? (selected.price_override ? parseFloat(selected.price_override) : product.sell_price) : product.sell_price,
-                source_page: window.location.href
+                product_url: product.url || window.location.href,
+                source_page: window.location.href,
+                condition_type: selected ? (selected.condition_type || product.condition_type || '') : (product.condition_type || '')
             };
             fetch(cfg.whatsappEnquiryUrl || '/shop/whatsapp-enquiry', {
                 method: 'POST',
