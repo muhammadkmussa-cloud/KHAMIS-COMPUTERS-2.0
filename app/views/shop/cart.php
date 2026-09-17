@@ -1,4 +1,32 @@
-<?php $vat = vat_rate(); ?>
+<?php
+$vat = vat_rate();
+$checkoutEnabled = $checkoutEnabled ?? is_online_checkout_enabled();
+$whatsappEnabled = $whatsappEnabled ?? is_whatsapp_ordering_enabled();
+$waNumber = whatsapp_number();
+?>
+<?php if (!empty($checkoutDisabledMessage) || !$checkoutEnabled): ?>
+<div class="cart-layout">
+    <div class="page-head cart-page-head">
+        <div><div class="section-kicker">Catalogue mode</div><h1>Online checkout unavailable</h1><p class="lede">Our online shop is currently in catalogue + WhatsApp enquiry mode. Online cart checkout is disabled, but you can still browse and order via WhatsApp.</p></div>
+        <a class="continue-link" href="<?= e(url('shop/products')) ?>">← Browse catalogue</a>
+    </div>
+    <div class="card" style="padding:28px; text-align:center; max-width:640px; margin:0 auto;">
+        <div style="font-size:48px; margin-bottom:12px;">💬</div>
+        <h2 style="margin:0 0 8px;">Order on WhatsApp</h2>
+        <p class="muted" style="margin:0 auto 18px; max-width:480px; line-height:1.6;">Browse any product, select your desired variant, and click <b>Order on WhatsApp</b>. A pre-filled message with product details will be ready to send. Our team will confirm availability, price, and delivery, then complete your sale through our POS.</p>
+        <?php if ($waNumber !== ''): ?>
+            <a class="btn btn-whatsapp btn-lg" href="<?= e('https://wa.me/' . $waNumber . '?text=' . rawurlencode('Hello ' . Setting::get('shop_name', 'Khamis Computers') . ', I would like to know more about your products.')) ?>" target="_blank" rel="noopener">Chat on WhatsApp</a>
+        <?php endif; ?>
+        <div style="margin-top:18px;"><a class="btn btn-outline" href="<?= e(url('shop/products')) ?>">Browse products</a></div>
+        <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--border);">
+            <div class="shop-section-head" style="margin-bottom:12px;"><div><div class="section-kicker">Popular choices</div><h2>Keep browsing</h2></div></div>
+            <div class="product-grid compact-grid">
+                <?php foreach ($recommendations as $p): include APP_PATH . '/views/shop/_product-card.php'; endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
+<?php else: ?>
 <div class="cart-layout">
     <div class="page-head cart-page-head">
         <div><div class="section-kicker">Secure checkout</div><h1>Your cart</h1><p class="lede">Review your items, then complete four short steps.</p></div>
@@ -82,6 +110,7 @@
         </aside>
     </div>
 </div>
+<?php endif; ?>
 
 <script>
 window.KC_CART_CONFIG = {

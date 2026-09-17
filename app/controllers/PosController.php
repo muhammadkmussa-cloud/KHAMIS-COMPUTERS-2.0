@@ -6,9 +6,17 @@ class PosController
     public function index(): void
     {
         Auth::requireLogin();
+        // Provide recent WhatsApp enquiries for quick reference in POS
+        $recentEnquiries = [];
+        if (Schema::tableExists('whatsapp_enquiries')) {
+            $recentEnquiries = Database::fetchAll(
+                "SELECT * FROM whatsapp_enquiries ORDER BY created_at DESC LIMIT 15"
+            );
+        }
         View::render('pos/index', [
             'title' => 'POS Terminal',
             'wide'  => true,
+            'recentWhatsappEnquiries' => $recentEnquiries,
         ]);
     }
 
@@ -124,20 +132,29 @@ class PosController
         }
 
         $lines = is_array($data['lines'] ?? null) ? $data['lines'] : [];
+        // Sale source: walk-in, whatsapp, phone, other (catalogue mode tracking)
+        $saleSource = strtolower(trim((string)($data['sale_source'] ?? 'walk-in')));
+        $allowedSources = ['walk-in','whatsapp','phone','other','online'];
+        if (!in_array($saleSource, $allowedSources, true)) $saleSource = 'walk-in';
+        $waEnquiryId = isset($data['whatsapp_enquiry_id']) ? (int)$data['whatsapp_enquiry_id'] : null;
+        if ($waEnquiryId !== null && $waEnquiryId <= 0) $waEnquiryId = null;
+
         try {
             $sale = SaleService::create($lines, [
-                'channel'        => 'pos',
-                'discount'       => (float) ($data['discount'] ?? 0),
-                'discount_pin'   => (string) ($data['discount_pin'] ?? ''),
-                'payment_method' => (string) ($data['payment_method'] ?? 'cash'),
-                'payment_ref'    => (string) ($data['payment_ref'] ?? ''),
-                'cash_received'  => (float) ($data['cash_received'] ?? 0),
-                'customer_name'  => (string) ($data['customer_name'] ?? ''),
-                'customer_phone' => (string) ($data['customer_phone'] ?? ''),
-                'customer_email' => (string) ($data['customer_email'] ?? ''),
-                'user_id'        => Auth::id(),
-                'device_id'      => trim((string) ($data['device_id'] ?? '')),
-                'client_ref'     => trim((string) ($data['client_ref'] ?? '')),
+                'channel'             => 'pos',
+                'discount'            => (float) ($data['discount'] ?? 0),
+                'discount_pin'        => (string) ($data['discount_pin'] ?? ''),
+                'payment_method'      => (string) ($data['payment_method'] ?? 'cash'),
+                'payment_ref'         => (string) ($data['payment_ref'] ?? ''),
+                'cash_received'       => (float) ($data['cash_received'] ?? 0),
+                'customer_name'       => (string) ($data['customer_name'] ?? ''),
+                'customer_phone'      => (string) ($data['customer_phone'] ?? ''),
+                'customer_email'      => (string) ($data['customer_email'] ?? ''),
+                'user_id'             => Auth::id(),
+                'device_id'           => trim((string) ($data['device_id'] ?? '')),
+                'client_ref'          => trim((string) ($data['client_ref'] ?? '')),
+                'sale_source'         => $saleSource,
+                'whatsapp_enquiry_id' => $waEnquiryId,
             ]);
         } catch (Throwable $e) {
             json_response(['ok' => false, 'error' => $e->getMessage()], 422);
@@ -272,6 +289,8 @@ class PosController
                     'device_id'       => $deviceId,
                     'client_ref'      => $clientRef,
                     'created_at'      => (string) ($it['created_at'] ?? ''),
+                    'sale_source'     => strtolower(trim((string)($payload['sale_source'] ?? 'walk-in'))),
+                    'whatsapp_enquiry_id' => isset($payload['whatsapp_enquiry_id']) ? (int)$payload['whatsapp_enquiry_id'] : null,
                 ]);
                 $results[] = [
                     'client_ref'  => $clientRef,

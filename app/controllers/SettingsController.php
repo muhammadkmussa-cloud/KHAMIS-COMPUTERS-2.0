@@ -56,6 +56,15 @@ class SettingsController
             $errors[] = 'M-PESA passkey must be at least 8 characters.';
         }
 
+        // WhatsApp number validation
+        $waRaw = trim((string) ($_POST['whatsapp_sales_number'] ?? ''));
+        if ($waRaw !== '') {
+            $waNorm = normalize_whatsapp_number($waRaw);
+            if ($waNorm === '') {
+                $errors[] = 'WhatsApp sales number is invalid. Use formats like 07XXXXXXXX, 2547XXXXXXXX, or +2547XXXXXXXX.';
+            }
+        }
+
         if ($errors) {
             flash('error', implode(' ', $errors));
             redirect('settings');
@@ -82,7 +91,7 @@ class SettingsController
         }
         Setting::set('low_stock_threshold', (string) max(0, (int) ($_POST['low_stock_threshold'] ?? 5)));
 
-        // M-PESA STK push.
+        // M-PESA STK push (POS + online)
         Setting::set('mpesa_enabled', isset($_POST['mpesa_enabled']) ? '1' : '0');
         Setting::set('mpesa_env', ($_POST['mpesa_env'] ?? 'sandbox') === 'live' ? 'live' : 'sandbox');
         Setting::set('mpesa_shortcode_type', ($_POST['mpesa_shortcode_type'] ?? 'paybill') === 'till' ? 'till' : 'paybill');
@@ -91,6 +100,20 @@ class SettingsController
         }
         if (($_POST['mpesa_consumer_secret'] ?? '') !== '') {
             Setting::set('mpesa_consumer_secret', (string) $_POST['mpesa_consumer_secret']);
+        }
+
+        // Catalogue + WhatsApp mode flags
+        Setting::set('online_checkout_enabled', isset($_POST['online_checkout_enabled']) ? '1' : '0');
+        Setting::set('mpesa_online_enabled', isset($_POST['mpesa_online_enabled']) ? '1' : '0');
+        Setting::set('whatsapp_ordering_enabled', isset($_POST['whatsapp_ordering_enabled']) ? '1' : '0');
+        if ($waRaw !== '') {
+            Setting::set('whatsapp_sales_number', $waRaw);
+        } elseif (isset($_POST['whatsapp_sales_number'])) {
+            // Allow clearing
+            Setting::set('whatsapp_sales_number', '');
+        }
+        if (isset($_POST['whatsapp_message_template'])) {
+            Setting::set('whatsapp_message_template', trim((string) $_POST['whatsapp_message_template']));
         }
 
         // VAT rate.
@@ -109,9 +132,15 @@ class SettingsController
             }
         }
 
-        Activity::log('settings.updated', 'vat=' . round($vat, 2));
+        Activity::log('settings.updated', 'vat=' . round($vat, 2) . ' checkout=' . (isset($_POST['online_checkout_enabled']) ? '1' : '0') . ' whatsapp=' . (isset($_POST['whatsapp_ordering_enabled']) ? '1' : '0'));
         flash('success', 'Settings saved. They apply to new sales and receipts immediately.');
-        redirect('settings');
+        // Redirect back to the tab that was submitted if present
+        $tab = $_POST['active_tab'] ?? '';
+        if ($tab !== '') {
+            redirect('settings?tab=' . urlencode($tab));
+        } else {
+            redirect('settings');
+        }
     }
 
     public function testEmail(): void
@@ -135,7 +164,7 @@ class SettingsController
         } else {
             flash('error', 'Failed to send test email. Check your SMTP or PHP mail configuration.');
         }
-        redirect('settings#tab-notifications');
+        redirect('settings?tab=notifications');
     }
 
     public function testMpesa(): void
@@ -146,29 +175,26 @@ class SettingsController
         $settings = Setting::all();
         if (!isset($settings['mpesa_enabled']) || $settings['mpesa_enabled'] !== '1') {
             flash('error', 'M-PESA is not enabled. Enable it first in the M-PESA tab.');
-            redirect('settings#tab-mpesa');
+            redirect('settings?tab=mpesa');
             return;
         }
         if (empty($settings['mpesa_shortcode']) || empty($settings['mpesa_passkey']) || empty($settings['mpesa_consumer_key']) || empty($settings['mpesa_consumer_secret'])) {
             flash('error', 'Complete all M-PESA fields (shortcode, passkey, consumer key, consumer secret) before testing.');
-            redirect('settings#tab-mpesa');
+            redirect('settings?tab=mpesa');
             return;
         }
 
         try {
-            $result = MpesaService::stkPush([
-                'phone' => '254700000000',
-                'amount' => 1,
-                'reference' => 'TEST-' . date('YmdHis'),
-            ]);
-            if ($result['success']) {
+            $result = MpesaService::stkPush('254700000000', 1, 'TEST-' . date('YmdHis'), 0);
+            // stkPush now returns ['ok'=>bool,...] not ['success']
+            if (!empty($result['ok'])) {
                 flash('success', 'M-PESA connection test successful. STK push initiated (test transaction will not complete).');
             } else {
-                flash('error', 'M-PESA test failed: ' . ($result['message'] ?? 'Unknown error'));
+                flash('error', 'M-PESA test failed: ' . ($result['error'] ?? 'Unknown error'));
             }
         } catch (\Exception $e) {
             flash('error', 'M-PESA test failed: ' . $e->getMessage());
         }
-        redirect('settings#tab-mpesa');
+        redirect('settings?tab=mpesa');
     }
 }

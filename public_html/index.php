@@ -95,6 +95,7 @@ $router->get('shop/product/{id}', [ShopController::class, 'product']);
 $router->get('shop/cart', [ShopController::class, 'cart']);
 $router->get('shop/api/cart', [ShopController::class, 'apiCart']);
 $router->post('shop/checkout', [ShopController::class, 'checkout']);
+$router->post('shop/whatsapp-enquiry', [ShopController::class, 'whatsappEnquiry']); // lightweight lead tracking
 $router->get('shop/order/{id}', [ShopController::class, 'order']);
 $router->get('shop/api/order-status/{id}', [ShopController::class, 'orderStatus']);
 $router->get('shop/track', [ShopController::class, 'track']);

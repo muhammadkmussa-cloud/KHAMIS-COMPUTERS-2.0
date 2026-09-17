@@ -6,7 +6,13 @@ $isProd = config('app.env') === 'production';
 $pinSet = $s('discount_pin_hash', '') !== '';
 $mailOn = $s('mail_enabled', '0') === '1';
 $mpesaOn = $s('mpesa_enabled', '0') === '1';
+$onlineCheckoutOn = $s('online_checkout_enabled', '0') === '1';
+$mpesaOnlineOn = $s('mpesa_online_enabled', '0') === '1';
+$whatsappOn = $s('whatsapp_ordering_enabled', '1') === '1';
 $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
+$waRaw = $s('whatsapp_sales_number', '');
+$waNorm = $waRaw !== '' ? normalize_whatsapp_number($waRaw) : '';
+$waDisplay = $waNorm !== '' ? '+' . $waNorm : ($waRaw !== '' ? $waRaw : '');
 ?>
 <div class="content-narrow settings-page">
     <div class="page-head">
@@ -18,18 +24,20 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
 
     <div class="settings-tabs" role="tablist" aria-label="Settings sections">
         <a class="settings-tab <?= $activeTab === 'business' ? 'active' : '' ?>" href="?tab=business" role="tab" aria-selected="<?= $activeTab === 'business' ?>" data-tab="business">Business</a>
+        <a class="settings-tab <?= $activeTab === 'whatsapp' ? 'active' : '' ?>" href="?tab=whatsapp" role="tab" aria-selected="<?= $activeTab === 'whatsapp' ?>" data-tab="whatsapp">WhatsApp & Online</a>
         <a class="settings-tab <?= $activeTab === 'tax' ? 'active' : '' ?>" href="?tab=tax" role="tab" aria-selected="<?= $activeTab === 'tax' ?>" data-tab="tax">Tax &amp; Receipts</a>
         <a class="settings-tab <?= $activeTab === 'discounts' ? 'active' : '' ?>" href="?tab=discounts" role="tab" aria-selected="<?= $activeTab === 'discounts' ?>" data-tab="discounts">Discounts</a>
         <a class="settings-tab <?= $activeTab === 'notifications' ? 'active' : '' ?>" href="?tab=notifications" role="tab" aria-selected="<?= $activeTab === 'notifications' ?>" data-tab="notifications">Notifications</a>
         <a class="settings-tab <?= $activeTab === 'mpesa' ? 'active' : '' ?>" href="?tab=mpesa" role="tab" aria-selected="<?= $activeTab === 'mpesa' ?>" data-tab="mpesa">M-PESA</a>
         <a class="settings-tab <?= $activeTab === 'delivery' ? 'active' : '' ?>" href="?tab=delivery" role="tab" aria-selected="<?= $activeTab === 'delivery' ?>" data-tab="delivery">Delivery</a>
-        <a class="settings-tab <?= $activeTab === 'online-shop' ? 'active' : '' ?>" href="?tab=online-shop" role="tab" aria-selected="<?= $activeTab === 'online-shop' ?>" data-tab="online-shop">Online Shop</a>
+        <a class="settings-tab <?= $activeTab === 'online-shop' ? 'active' : '' ?>" href="?tab=online-shop" role="tab" aria-selected="<?= $activeTab === 'online-shop' ?>" data-tab="online-shop">Hero Carousel</a>
         <?php if (!$isProd): ?><a class="settings-tab <?= $activeTab === 'deploy' ? 'active' : '' ?>" href="?tab=deploy" role="tab" aria-selected="<?= $activeTab === 'deploy' ?>" data-tab="deploy">Deploy</a><?php endif; ?>
     </div>
 
     <div class="card">
         <form method="post" action="<?= e(url('settings')) ?>" class="form settings-form" id="settings-form">
             <?= csrf_field() ?>
+            <input type="hidden" name="active_tab" id="active-tab-input" value="<?= e($activeTab) ?>">
 
             <div class="settings-tab-content" id="panel-business" data-panel="business" style="<?= $activeTab !== 'business' ? 'display:none' : '' ?>">
                 <div class="section-kicker">Shop identity</div>
@@ -58,6 +66,59 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
                 <div class="field">
                     <label for="shop_address">Address</label>
                     <input type="text" id="shop_address" name="shop_address" value="<?= e($s('shop_address', '')) ?>" placeholder="e.g. Moi Avenue, Nairobi">
+                </div>
+            </div>
+
+            <div class="settings-tab-content" id="panel-whatsapp" data-panel="whatsapp" style="<?= $activeTab !== 'whatsapp' ? 'display:none' : '' ?>">
+                <div class="section-kicker">Catalogue + WhatsApp mode</div>
+                <p class="sub">Current public shop mode is <b><?= $onlineCheckoutOn ? 'Online Checkout + WhatsApp' : 'Catalogue + WhatsApp' ?></b>. In catalogue mode, customers browse products and order via WhatsApp; sales are completed through POS.</p>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label class="field-check" style="gap:8px">
+                            <input type="checkbox" name="whatsapp_ordering_enabled" value="1" <?= $whatsappOn ? 'checked' : '' ?>>
+                            Enable WhatsApp ordering (primary CTA on product pages)
+                        </label>
+                        <span class="hint">When enabled, product pages show "Order on WhatsApp" as primary action.</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label for="whatsapp_sales_number">WhatsApp Sales Number</label>
+                        <input type="text" id="whatsapp_sales_number" name="whatsapp_sales_number" value="<?= e($waRaw) ?>" placeholder="07XXXXXXXX or +2547XXXXXXXX">
+                        <span class="hint">Accepted: 07XX, 7XX, 2547XX, +2547XX. Normalized: <?= $waDisplay !== '' ? e($waDisplay) : 'not set' ?><?php if ($waNorm !== ''): ?> · wa.me/<?= e($waNorm) ?><?php endif; ?></span>
+                    </div>
+                    <div class="field">
+                        <label for="online_checkout_enabled">Online Checkout</label>
+                        <label class="field-check" style="gap:8px; margin-top:8px;">
+                            <input type="checkbox" name="online_checkout_enabled" value="1" <?= $onlineCheckoutOn ? 'checked' : '' ?>>
+                            Enable public online checkout (cart → checkout → M-Pesa)
+                        </label>
+                        <span class="hint">OFF = Catalogue + WhatsApp mode (recommended for now). ON = restores cart/checkout.</span>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="field">
+                        <label class="field-check" style="gap:8px">
+                            <input type="checkbox" name="mpesa_online_enabled" value="1" <?= $mpesaOnlineOn ? 'checked' : '' ?>>
+                            Enable Online M-PESA Payments (public STK push)
+                        </label>
+                        <span class="hint">When OFF, public online M-Pesa STK push is blocked server-side. POS M-Pesa remains operational via mpesa_enabled.</span>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="whatsapp_message_template">Default WhatsApp Enquiry Message (optional template)</label>
+                    <textarea id="whatsapp_message_template" name="whatsapp_message_template" rows="7" placeholder="Leave blank for default structured message. Use placeholders: {product_name} {variant} {ram} {storage} {colour} {condition} {grade} {price} {sku} {product_url} {shop_name}"><?= e($s('whatsapp_message_template', '')) ?></textarea>
+                    <span class="hint">Placeholders are replaced safely. No code execution. Example: Hello {shop_name}, I'm interested in {product_name} Variant: {variant} Price: {price} {product_url}</span>
+                </div>
+
+                <div class="card" style="background:#f8fafc; margin-top:16px;">
+                    <h3 style="margin:0 0 8px;">How it works</h3>
+                    <p class="sub" style="margin:0;">Product → Select Variant → Order on WhatsApp → WhatsApp conversation → Deal agreed → Cashier records sale in POS with source = WhatsApp → Inventory, IMEI, profit, receipt, reports as normal.</p>
+                    <p class="sub" style="margin-top:8px;">Future reactivation: set Online Checkout ON and M-Pesa Online ON. Existing checkout code is preserved and will become available again.</p>
                 </div>
             </div>
 
@@ -177,8 +238,9 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
                 <div class="field">
                     <label class="field-check" style="gap:8px">
                         <input type="checkbox" name="mpesa_enabled" value="1" <?= $mpesaOn ? 'checked' : '' ?>>
-                        Accept "Pay now" M-PESA payments at online checkout (Safaricom Daraja STK push)
+                        Enable M-PESA (POS + Online — master switch)
                     </label>
+                    <span class="hint">This is the master M-Pesa switch for both POS and online. For catalogue mode, keep this ON for POS but turn OFF Online M-Pesa in WhatsApp tab.</span>
                 </div>
                 <div class="form-row">
                     <div class="field">
@@ -308,7 +370,7 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
                         <li class="todo"><span>Change default passwords</span><em>admin + cashier demo accounts</em></li>
                         <li class="todo"><span>Enable HTTPS</span><em>via cPanel AutoSSL / Let's Encrypt</em></li>
                     </ul>
-                    <p class="sub" style="margin-top:10px">Full guide: <a href="<?= e(url('docs/cpanel-deployment.md')) ?>">docs/cpanel-deployment.md</a></p>
+                    <p class="sub" style="margin-top:10px">Full guide: docs/cpanel-deployment.md</p>
                 </div>
             </div>
             <?php endif; ?>
@@ -330,13 +392,13 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
     var tabs = document.querySelectorAll('[data-tab]');
     var panels = document.querySelectorAll('[data-panel]');
     var form = document.getElementById('settings-form');
-    var saveStatus = document.getElementById('settings-save-status');
-    var dirtySections = new Set();
+    var activeInput = document.getElementById('active-tab-input');
 
     function switchTab(tabName) {
         tabs.forEach(function(t) { t.classList.toggle('active', t.dataset.tab === tabName); t.setAttribute('aria-selected', t.dataset.tab === tabName); });
         panels.forEach(function(p) { p.style.display = p.dataset.panel === tabName ? '' : 'none'; });
-        window.location.hash = 'tab=' + tabName;
+        if (activeInput) activeInput.value = tabName;
+        history.replaceState(null, '', '?tab=' + tabName);
     }
 
     tabs.forEach(function(tab) {
@@ -346,25 +408,29 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
         });
     });
 
-    form.addEventListener('change', function() { dirtySections.add('form'); });
-    form.addEventListener('input', function() { dirtySections.add('form'); });
-
-    setInterval(function() {
-        if (dirtySections.size > 0) {
-            saveStatus.textContent = '● You have unsaved changes';
-            saveStatus.style.color = 'var(--orange)';
-        } else {
-            saveStatus.textContent = '';
-        }
-    }, 1500);
+    // Delivery zone edit toggles
+    document.querySelectorAll('.zone-edit-toggle').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var card = btn.closest('.zone-card');
+            var form = card.querySelector('.zone-edit-form');
+            if (form) form.style.display = form.style.display==='none' ? '' : 'none';
+        });
+    });
+    document.querySelectorAll('.zone-cancel-edit').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var form = btn.closest('.zone-edit-form');
+            if (form) form.style.display='none';
+        });
+    });
 
     var testEmailBtn = document.getElementById('test-email-btn');
     if (testEmailBtn) {
         testEmailBtn.addEventListener('click', function() {
+            if (!window.KC || !window.KC.confirm) return;
             KC.confirm({message: 'Send a test email to the configured sender address?', title: 'Test email', action: 'Send', tone: 'primary'}).then(function(ok) {
                 if (!ok) return;
                 var formData = new FormData();
-                formData.append('_csrf', document.querySelector('input[name="_csrf"]').value);
+                formData.append('csrf_token', document.querySelector('input[name=\"csrf_token\"]').value);
                 fetch('<?= e(url('settings/test-email')) ?>', {method:'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}})
                     .then(function(r) { return r.text(); })
                     .then(function(html) {
@@ -373,10 +439,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
                         var flash = temp.querySelector('.alert');
                         if (flash) {
                             var region = document.getElementById('settings-toast-region');
-                            region.innerHTML = '<div class="kc-toast show ' + (flash.classList.contains('alert-success') ? 'toast-success' : 'toast-error') + '" role="alert">' + flash.textContent + '</div>';
+                            region.innerHTML = '<div class=\"kc-toast show ' + (flash.classList.contains('alert-success') ? 'toast-success' : 'toast-error') + '\" role=\"alert\">' + flash.textContent + '</div>';
                             setTimeout(function() { region.innerHTML = ''; }, 4000);
                         }
-                        window.location.href = '<?= e(url('settings')) ?>#tab-notifications';
+                        window.location.href = '<?= e(url('settings')) ?>?tab=notifications';
                     })
                     .catch(function() { KC.toast('Test email request failed.', 'error'); });
             });
@@ -386,10 +452,11 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
     var testMpesaBtn = document.getElementById('test-mpesa-btn');
     if (testMpesaBtn) {
         testMpesaBtn.addEventListener('click', function() {
+            if (!window.KC || !window.KC.confirm) return;
             KC.confirm({message: 'Initiate a test M-PESA STK push? This will send a test request to the sandbox.', title: 'Test M-PESA', action: 'Send', tone: 'primary'}).then(function(ok) {
                 if (!ok) return;
                 var formData = new FormData();
-                formData.append('_csrf', document.querySelector('input[name="_csrf"]').value);
+                formData.append('csrf_token', document.querySelector('input[name=\"csrf_token\"]').value);
                 fetch('<?= e(url('settings/test-mpesa')) ?>', {method:'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}})
                     .then(function(r) { return r.text(); })
                     .then(function(html) {
@@ -398,10 +465,10 @@ $activeTab = isset($_GET['tab']) ? $_GET['tab'] : 'business';
                         var flash = temp.querySelector('.alert');
                         if (flash) {
                             var region = document.getElementById('settings-toast-region');
-                            region.innerHTML = '<div class="kc-toast show ' + (flash.classList.contains('alert-success') ? 'toast-success' : 'toast-error') + '" role="alert">' + flash.textContent + '</div>';
+                            region.innerHTML = '<div class=\"kc-toast show ' + (flash.classList.contains('alert-success') ? 'toast-success' : 'toast-error') + '\" role=\"alert\">' + flash.textContent + '</div>';
                             setTimeout(function() { region.innerHTML = ''; }, 4000);
                         }
-                        window.location.href = '<?= e(url('settings')) ?>#tab-mpesa';
+                        window.location.href = '<?= e(url('settings')) ?>?tab=mpesa';
                     })
                     .catch(function() { KC.toast('M-PESA test request failed.', 'error'); });
             });

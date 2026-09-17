@@ -5,6 +5,7 @@ $itemQuantity = array_sum(array_map(fn ($item) => (int) $item['quantity'], $item
 $paymentLabel = strtoupper((string) $sale['payment_method']);
 if ($sale['payment_ref']) $paymentLabel .= ' · ' . $sale['payment_ref'];
 $mpesaStatus = $mpesa['status'] ?? null;
+$saleSource = $sale['sale_source'] ?? 'walk-in';
 ?>
 
 <div class="sale-identity-bar">
@@ -12,7 +13,14 @@ $mpesaStatus = $mpesa['status'] ?? null;
         <a class="sale-back" href="<?= e(url('sales')) ?>">← Sales</a>
         <div><div class="section-kicker">Order record</div><h1><?= e($sale['sale_number']) ?></h1></div>
     </div>
-    <div class="sale-identity-status"><span class="badge badge-<?= $statusClass ?>"><?= e($statusLabel) ?></span><span class="badge badge-<?= $sale['channel'] === 'online' ? 'blue' : 'gray' ?>"><?= $sale['channel'] === 'online' ? 'Online' : 'In store' ?></span><?php if ((int) $sale['offline_created'] === 1): ?><span class="badge badge-blue">Saved offline</span><?php endif; ?><time><?= e(date('d M Y · h:i A', strtotime($sale['created_at']))) ?></time></div>
+    <div class="sale-identity-status">
+        <span class="badge badge-<?= $statusClass ?>"><?= e($statusLabel) ?></span>
+        <span class="badge badge-<?= $sale['channel'] === 'online' ? 'blue' : 'gray' ?>"><?= $sale['channel'] === 'online' ? 'Online' : 'In store' ?></span>
+        <span class="badge badge-<?= $saleSource === 'whatsapp' ? 'green' : ($saleSource === 'phone' ? 'blue' : 'gray') ?>"><?= e(ucfirst($saleSource)) ?></span>
+        <?php if ((int) $sale['offline_created'] === 1): ?><span class="badge badge-blue">Saved offline</span><?php endif; ?>
+        <?php if (!empty($sale['whatsapp_enquiry_id'])): ?><span class="badge badge-green">WhatsApp #<?= (int)$sale['whatsapp_enquiry_id'] ?></span><?php endif; ?>
+        <time><?= e(date('d M Y · h:i A', strtotime($sale['created_at']))) ?></time>
+    </div>
 </div>
 
 <?php if ($isPendingMpesa): ?>
@@ -63,6 +71,7 @@ $mpesaStatus = $mpesa['status'] ?? null;
         <section class="card sale-info-card"><div class="sale-section-head"><h2>Order information</h2></div><dl>
             <div><dt>Payment</dt><dd><?= e($paymentLabel) ?></dd></div>
             <div><dt>Fulfilment</dt><dd><?= e(ucfirst($sale['fulfillment'])) ?><?= $sale['delivery_zone'] ? ' · ' . e($sale['delivery_zone']) : '' ?></dd></div>
+            <div><dt>Source</dt><dd><span class="badge badge-<?= $saleSource === 'whatsapp' ? 'green' : 'gray' ?>"><?= e(ucfirst($saleSource)) ?></span><?php if (!empty($sale['whatsapp_enquiry_id'])): ?> <small>#<?= (int)$sale['whatsapp_enquiry_id'] ?></small><?php endif; ?></dd></div>
             <div><dt>Customer</dt><dd><?= e($sale['customer_name'] ?: 'Walk-in customer') ?></dd></div>
             <?php if ($sale['customer_phone']): ?><div><dt>Phone</dt><dd><a href="tel:<?= e(preg_replace('/\D+/', '', $sale['customer_phone'])) ?>"><?= e($sale['customer_phone']) ?></a></dd></div><?php endif; ?>
             <?php if ($sale['customer_email']): ?><div><dt>Email</dt><dd><a href="mailto:<?= e($sale['customer_email']) ?>"><?= e($sale['customer_email']) ?></a></dd></div><?php endif; ?>
@@ -98,12 +107,5 @@ $mpesaStatus = $mpesa['status'] ?? null;
 
 <?php if (Auth::isAdmin() && $isPendingMpesa): ?>
 <dialog class="workflow-dialog" id="mpesa-retry-dialog"><form method="post" action="<?= e(url('sales/' . $sale['id'] . '/mpesa-retry')) ?>"><?= csrf_field() ?><div class="workflow-dialog-head"><span aria-hidden="true">↻</span><div><div class="section-kicker">Payment recovery</div><h2>Send another M-PESA prompt?</h2></div></div><div class="impact-list"><div><span>Phone</span><b><?= e($sale['customer_phone'] ?: 'Missing') ?></b></div><div><span>Amount</span><b><?= money($sale['total']) ?></b></div></div><p class="dialog-copy">Ask the customer to ignore any older prompt. The system prevents another request within two minutes.</p><div class="workflow-dialog-actions"><button class="btn btn-ghost" type="button" data-close-dialog>Cancel</button><button class="btn btn-primary" type="submit">Send secure prompt</button></div></form></dialog>
-
-<dialog class="workflow-dialog" id="mpesa-paid-dialog"><form method="post" action="<?= e(url('sales/' . $sale['id'] . '/mpesa-mark-paid')) ?>"><?= csrf_field() ?><div class="workflow-dialog-head"><span aria-hidden="true">✓</span><div><div class="section-kicker">Manual verification</div><h2>Confirm payment evidence</h2></div></div><div class="alert alert-info">Use this only after checking the payment in the business M-PESA records. A customer SMS alone is not sufficient.</div><label class="field" for="manual-receipt"><span>M-PESA receipt code</span><input id="manual-receipt" name="receipt" required minlength="6" maxlength="20" pattern="[A-Za-z0-9]{6,20}" autocomplete="off" placeholder="e.g. TQH7ABC123"></label><label class="dialog-confirm-check"><input type="checkbox" name="confirm_received" value="1" required><span>I verified the receipt, amount, and business account.</span></label><div class="workflow-dialog-actions"><button class="btn btn-ghost" type="button" data-close-dialog>Cancel</button><button class="btn btn-primary" type="submit">Mark payment confirmed</button></div></form></dialog>
+<dialog class="workflow-dialog" id="mpesa-paid-dialog"><form method="post" action="<?= e(url('sales/' . $sale['id'] . '/mpesa-confirm')) ?>"><?= csrf_field() ?><div class="workflow-dialog-head"><span aria-hidden="true">✓</span><div><div class="section-kicker">Payment verification</div><h2>Mark <?= e($sale['sale_number']) ?> as paid?</h2></div></div><div class="impact-list"><div><span>Customer</span><b><?= e($sale['customer_name'] ?: 'Walk-in customer') ?></b></div><div><span>Expected</span><b><?= money($sale['total']) ?></b></div></div><label class="field" for="mpesa-receipt"><span>M-PESA receipt code</span><input id=\"mpesa-receipt\" name=\"receipt\" required minlength=\"6\" maxlength=\"32\" placeholder=\"e.g. QK…\"></label><div class=\"workflow-dialog-actions\"><button class=\"btn btn-ghost\" type=\"button\" data-close-dialog>Cancel</button><button class=\"btn btn-primary\" type=\"submit\">Mark as paid</button></div></form></dialog>
 <?php endif; ?>
-
-<script>
-document.querySelectorAll('[data-open-dialog]').forEach(function (button) { button.addEventListener('click', function () { var dialog=document.getElementById(button.dataset.openDialog); if(dialog) dialog.showModal(); }); });
-document.querySelectorAll('[data-close-dialog]').forEach(function (button) { button.addEventListener('click', function () { var dialog=button.closest('dialog'); if(dialog) dialog.close(); }); });
-document.querySelectorAll('.workflow-dialog').forEach(function (dialog) { dialog.addEventListener('click', function (event) { if(event.target===dialog) dialog.close(); }); });
-</script>

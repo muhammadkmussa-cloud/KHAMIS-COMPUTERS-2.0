@@ -1,4 +1,4 @@
-/* Khamis Computers storefront: catalogue, local cart, staged checkout and order status. */
+/* Khamis Computers storefront: catalogue, local cart, staged checkout, WhatsApp mode and hero carousel. */
 (function () {
   'use strict';
 
@@ -8,10 +8,11 @@
   var DEVICE_KEY = 'kc_shop_device';
   var REF_KEY = 'kc_shop_checkout_ref';
   var cfg = window.KC_CART_CONFIG || null;
+  var shopCfg = window.KC_SHOP_CONFIG || {checkoutEnabled:false, whatsappEnabled:true};
 
   function esc(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    return String(value == null ? '' : value).replace(/[&<>\"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;' }[c];
     });
   }
   function money(value) {
@@ -40,38 +41,55 @@
   window.KC = window.KC || {};
   window.KC.cartCount = cartCount;
 
-  document.addEventListener('click', function (event) {
-    var mobileAdd = event.target.closest('[data-mobile-add]');
-    if (mobileAdd) {
-      var primary = document.getElementById('add-to-cart');
-      if (primary) primary.click();
-      return;
-    }
-    var button = event.target.closest('[data-add]');
-    if (!button || button.disabled) return;
-    event.preventDefault();
-    var id = parseInt(button.dataset.add, 10);
-    var maximum = parseInt(button.dataset.stock, 10);
-    var qtyInput = document.getElementById('qty-input');
-    var quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
-    var cart = getCart();
-    var line = cart.find(function (item) { return item.id === id; });
-    var next = (line ? line.qty : 0) + quantity;
-    if (Number.isFinite(maximum) && next > maximum) {
-      toast('Only ' + maximum + ' available.', 'error');
-      return;
-    }
-    if (line) line.qty = next;
-    else cart.push({ id: id, qty: quantity });
-    saveCart(cart);
+  // Only enable cart interactions if checkout is enabled
+  if (shopCfg.checkoutEnabled) {
+    document.addEventListener('click', function (event) {
+      var mobileAdd = event.target.closest('[data-mobile-add]');
+      if (mobileAdd) {
+        var primary = document.getElementById('add-to-cart');
+        if (primary) primary.click();
+        return;
+      }
+      var button = event.target.closest('[data-add]');
+      if (!button || button.disabled) return;
+      event.preventDefault();
+      var id = parseInt(button.dataset.add, 10);
+      var maximum = parseInt(button.dataset.stock, 10);
+      var qtyInput = document.getElementById('qty-input');
+      var quantity = qtyInput ? Math.max(1, parseInt(qtyInput.value, 10) || 1) : 1;
+      var cart = getCart();
+      var line = cart.find(function (item) { return item.id === id; });
+      var next = (line ? line.qty : 0) + quantity;
+      if (Number.isFinite(maximum) && next > maximum) {
+        toast('Only ' + maximum + ' available.', 'error');
+        return;
+      }
+      if (line) line.qty = next;
+      else cart.push({ id: id, qty: quantity });
+      saveCart(cart);
+      updateBadge();
+      toast((button.dataset.name || 'Item') + ' added to cart', 'success');
+      if (document.getElementById('cart-lines')) renderCartPage();
+      button.classList.add('added');
+      var original = button.textContent;
+      button.textContent = 'Added ✓';
+      window.setTimeout(function () { button.classList.remove('added'); button.textContent = original; }, 1200);
+    });
+  } else {
+    // In catalogue mode, mobile add should trigger WhatsApp
+    document.addEventListener('click', function (event) {
+      var mobileAdd = event.target.closest('[data-mobile-add]');
+      if (mobileAdd) {
+        var waBtn = document.getElementById('whatsapp-order-btn') || document.getElementById('mobile-whatsapp-btn');
+        if (waBtn && waBtn.href) {
+          window.open(waBtn.href, '_blank');
+        }
+        return;
+      }
+    });
+    // Hide badge if present
     updateBadge();
-    toast((button.dataset.name || 'Item') + ' added to cart', 'success');
-    if (document.getElementById('cart-lines')) renderCartPage();
-    button.classList.add('added');
-    var original = button.textContent;
-    button.textContent = 'Added ✓';
-    window.setTimeout(function () { button.classList.remove('added'); button.textContent = original; }, 1200);
-  });
+  }
 
   document.querySelectorAll('[data-gallery-src]').forEach(function (button) {
     button.addEventListener('click', function () {
@@ -101,7 +119,7 @@
 
   function thumbHTML(product) {
     var initials = String(product.name || 'KC').trim().split(/\s+/).slice(0, 2).map(function (word) { return word.charAt(0).toUpperCase(); }).join('');
-    return '<span class="cart-thumb-initials" aria-hidden="true">' + esc(initials) + '</span>';
+    return '<span class=\"cart-thumb-initials\" aria-hidden=\"true\">' + esc(initials) + '</span>';
   }
   function setQty(id, quantity) {
     var cart = getCart();
@@ -120,7 +138,7 @@
 
   var cartState = { products: {}, subtotal: 0, vat: 0, fee: 0, total: 0 };
   function selectedFulfilment() {
-    var input = document.querySelector('input[name="fulfillment"]:checked');
+    var input = document.querySelector('input[name=\"fulfillment\"]:checked');
     return input ? input.value : 'pickup';
   }
   function currentDeliveryFee() {
@@ -142,18 +160,24 @@
   function renderCartPage() {
     var lines = document.getElementById('cart-lines');
     if (!cfg || !lines) return;
+    if (!shopCfg.checkoutEnabled) {
+      lines.innerHTML = '<div class=\"empty-cart\"><div class=\"empty-cart-icon\" aria-hidden=\"true\">💬</div><h2>Online checkout is currently unavailable</h2><p>Our online shop is in catalogue mode. Browse products and contact us on WhatsApp to place your order. Your sales will be completed through our POS.</p><a class=\"btn btn-primary btn-lg\" href=\"' + (cfg.browse || '/shop/products') + '\">Browse catalogue</a></div>';
+      var summary = document.getElementById('cart-summary');
+      if (summary) summary.hidden = true;
+      return;
+    }
     var cart = getCart();
     var summary = document.getElementById('cart-summary');
     var recommendations = document.getElementById('cart-recommendations');
     if (!cart.length) {
-      lines.innerHTML = '<div class="empty-cart"><div class="empty-cart-icon" aria-hidden="true">⌑</div><h2>Your cart is ready when you are</h2><p>Browse live store stock and add the products you want to reserve.</p><a class="btn btn-primary btn-lg" href="' + cfg.browse + '">Browse products</a></div>';
+      lines.innerHTML = '<div class=\"empty-cart\"><div class=\"empty-cart-icon\" aria-hidden=\"true\">⌑</div><h2>Your cart is ready when you are</h2><p>Browse live store stock and add the products you want to reserve.</p><a class=\"btn btn-primary btn-lg\" href=\"' + cfg.browse + '\">Browse products</a></div>';
       if (summary) summary.hidden = true;
       if (recommendations) recommendations.hidden = false;
       return;
     }
     if (summary) summary.hidden = false;
     if (recommendations) recommendations.hidden = true;
-    lines.innerHTML = '<div class="cart-loading"><span class="spinner"></span>Checking live stock and prices…</div>';
+    lines.innerHTML = '<div class=\"cart-loading\"><span class=\"spinner\"></span>Checking live stock and prices…</div>';
     fetch(cfg.api + '?ids=' + encodeURIComponent(cart.map(function (line) { return line.id; }).join(',')))
       .then(function (response) { if (!response.ok) throw new Error('cart'); return response.json(); })
       .then(function (products) {
@@ -170,12 +194,12 @@
         if (!valid.length) { renderCartPage(); return; }
         lines.innerHTML = valid.map(function (line) {
           var product = map[line.id];
-          return '<article class="cart-line-row" data-id="' + product.id + '">' +
-            '<div class="cart-line-thumb">' + thumbHTML(product) + '</div>' +
-            '<div class="cart-line-info"><b class="cart-line-name">' + esc(product.name) + '</b><span>' + esc(product.category || 'Technology') + ' · ' + esc(product.sku) + '</span><small>' + (product.serialized ? 'Serial / IMEI assigned at checkout' : product.stock + ' available') + '</small></div>' +
-            '<div class="cart-unit-price"><small>VAT included</small><b>' + money(gross(product.price)) + '</b></div>' +
-            '<div class="cart-line-actions"><div class="cart-line-qty" aria-label="Quantity"><button type="button" data-qty-change="-1" aria-label="Decrease quantity">−</button><span>' + line.qty + '</span><button type="button" data-qty-change="1" aria-label="Increase quantity">+</button></div><button type="button" class="cart-line-remove" data-remove="' + product.id + '">Remove</button></div>' +
-            '<div class="cart-line-total"><small>Line total</small><b>' + money(gross(product.price * line.qty)) + '</b></div>' +
+          return '<article class=\"cart-line-row\" data-id=\"' + product.id + '\">' +
+            '<div class=\"cart-line-thumb\">' + thumbHTML(product) + '</div>' +
+            '<div class=\"cart-line-info\"><b class=\"cart-line-name\">' + esc(product.name) + '</b><span>' + esc(product.category || 'Technology') + ' · ' + esc(product.sku) + '</span><small>' + (product.serialized ? 'Serial / IMEI assigned at checkout' : product.stock + ' available') + '</small></div>' +
+            '<div class=\"cart-unit-price\"><small>VAT included</small><b>' + money(gross(product.price)) + '</b></div>' +
+            '<div class=\"cart-line-actions\"><div class=\"cart-line-qty\" aria-label=\"Quantity\"><button type=\"button\" data-qty-change=\"-1\" aria-label=\"Decrease quantity\">−</button><span>' + line.qty + '</span><button type=\"button\" data-qty-change=\"1\" aria-label=\"Increase quantity\">+</button></div><button type=\"button\" class=\"cart-line-remove\" data-remove=\"' + product.id + '\">Remove</button></div>' +
+            '<div class=\"cart-line-total\"><small>Line total</small><b>' + money(gross(product.price * line.qty)) + '</b></div>' +
           '</article>';
         }).join('');
         updateTotals(valid, map);
@@ -192,11 +216,11 @@
         });
         lines.querySelectorAll('[data-remove]').forEach(function (button) { button.addEventListener('click', function () { removeLine(parseInt(button.dataset.remove, 10)); }); });
       })
-      .catch(function () { lines.innerHTML = '<div class="cart-load-error" role="alert"><b>We could not refresh your cart.</b><span>Check your connection and try again.</span><button class="btn btn-outline" type="button" data-cart-retry>Retry</button></div>'; var retry = lines.querySelector('[data-cart-retry]'); if (retry) retry.addEventListener('click', renderCartPage); });
+      .catch(function () { lines.innerHTML = '<div class=\"cart-load-error\" role=\"alert\"><b>We could not refresh your cart.</b><span>Check your connection and try again.</span><button class=\"btn btn-outline\" type=\"button\" data-cart-retry>Retry</button></div>'; var retry = lines.querySelector('[data-cart-retry]'); if (retry) retry.addEventListener('click', renderCartPage); });
   }
 
   var checkout = document.getElementById('checkout-form');
-  if (checkout) {
+  if (checkout && shopCfg.checkoutEnabled) {
     var step = 1;
     var next = document.getElementById('checkout-next');
     var back = document.getElementById('checkout-back');
@@ -208,7 +232,7 @@
 
     function field(id) { return document.getElementById(id); }
     function clearErrors() { checkout.querySelectorAll('.field-error').forEach(function (el) { el.textContent = ''; }); error.textContent = ''; }
-    function setError(id, message) { var el = checkout.querySelector('[data-error-for="' + id + '"]'); if (el) el.textContent = message; var input = field(id); if (input) input.focus(); }
+    function setError(id, message) { var el = checkout.querySelector('[data-error-for=\"' + id + '\"]'); if (el) el.textContent = message; var input = field(id); if (input) input.focus(); }
     function validPhone(value) {
       var digits = String(value).replace(/\D/g, '');
       return /^(?:0(?:1|7)\d{8}|254(?:1|7)\d{8}|(?:1|7)\d{8})$/.test(digits);
@@ -227,7 +251,7 @@
       return true;
     }
     function saveDraft() {
-      var draft = { name: field('co-name').value, phone: field('co-phone').value, email: field('co-email').value, fulfillment: selectedFulfilment(), zone: zone.value, address: field('co-address').value, payment: (document.querySelector('input[name="payment"]:checked') || {}).value || 'cash' };
+      var draft = { name: field('co-name').value, phone: field('co-phone').value, email: field('co-email').value, fulfillment: selectedFulfilment(), zone: zone.value, address: field('co-address').value, payment: (document.querySelector('input[name=\"payment\"]:checked') || {}).value || 'cash' };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     }
     function loadDraft() {
@@ -238,8 +262,8 @@
         field('co-email').value = draft.email || '';
         field('co-address').value = draft.address || '';
         if (draft.zone) zone.value = draft.zone;
-        var fulfil = document.querySelector('input[name="fulfillment"][value="' + (draft.fulfillment || 'pickup') + '"]'); if (fulfil) fulfil.checked = true;
-        var payment = document.querySelector('input[name="payment"][value="' + (draft.payment || 'cash') + '"]'); if (payment) payment.checked = true;
+        var fulfil = document.querySelector('input[name=\"fulfillment\"][value=\"' + (draft.fulfillment || 'pickup') + '\"]'); if (fulfil) fulfil.checked = true;
+        var payment = document.querySelector('input[name=\"payment\"][value=\"' + (draft.payment || 'cash') + '\"]'); if (payment) payment.checked = true;
       } catch (e) { /* ignore invalid local draft */ }
     }
     function refreshChoices() {
@@ -250,7 +274,7 @@
     }
     function renderReview() {
       var fulfil = selectedFulfilment();
-      var payment = (document.querySelector('input[name="payment"]:checked') || {}).value || 'cash';
+      var payment = (document.querySelector('input[name=\"payment\"]:checked') || {}).value || 'cash';
       var zoneName = zone.value ? zone.options[zone.selectedIndex].textContent.split(' · ')[0] : '';
       document.getElementById('checkout-review').innerHTML =
         '<div><span>Contact</span><b>' + esc(field('co-name').value) + '</b><small>' + esc(field('co-phone').value) + (field('co-email').value ? ' · ' + esc(field('co-email').value) : '') + '</small></div>' +
@@ -274,7 +298,7 @@
     checkout.addEventListener('submit', function (event) {
       event.preventDefault();
       if (!validateStep(1) || !validateStep(2) || !getCart().length) { error.textContent = getCart().length ? 'Check the highlighted details.' : 'Your cart is empty.'; return; }
-      var paymentChoice = (document.querySelector('input[name="payment"]:checked') || {}).value || 'cash';
+      var paymentChoice = (document.querySelector('input[name=\"payment\"]:checked') || {}).value || 'cash';
       var deviceId = localStorage.getItem(DEVICE_KEY) || makeId('shop');
       var clientRef = localStorage.getItem(REF_KEY) || makeId('order');
       localStorage.setItem(DEVICE_KEY, deviceId);

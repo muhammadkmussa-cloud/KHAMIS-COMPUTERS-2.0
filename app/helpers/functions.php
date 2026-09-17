@@ -457,3 +457,235 @@ function stream_hero_image(string $filename): void
     readfile($path);
     exit;
 }
+
+/* ---------------------------------------------------------------------------
+ * Online Shop Feature Flags (Catalogue + WhatsApp mode)
+ * ------------------------------------------------------------------------ */
+
+function is_online_checkout_enabled(): bool
+{
+    return Setting::get('online_checkout_enabled', '0') === '1';
+}
+
+function is_mpesa_online_enabled(): bool
+{
+    // Separate flag for public online M-Pesa; POS M-Pesa uses mpesa_enabled separately.
+    return Setting::get('mpesa_online_enabled', '0') === '1' && Setting::get('mpesa_enabled', '0') === '1';
+}
+
+function is_whatsapp_ordering_enabled(): bool
+{
+    // Default true for catalogue mode.
+    $val = Setting::get('whatsapp_ordering_enabled', '1');
+    return $val === '1' || $val === '';
+}
+
+/* ---------------------------------------------------------------------------
+ * WhatsApp helpers
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Normalize a Kenyan WhatsApp number into international format without plus,
+ * suitable for wa.me links.
+ * Handles: 07XXXXXXXX, 7XXXXXXXX, 2547XXXXXXXX, +2547XXXXXXXX
+ * Returns digits like 254712345678 or '' if invalid.
+ */
+function normalize_whatsapp_number(string $raw): string
+{
+    $raw = trim($raw);
+    if ($raw === '') {
+        return '';
+    }
+    // Keep only digits and leading plus
+    $hasPlus = str_starts_with($raw, '+');
+    $digits = preg_replace('/\D+/', '', $raw) ?? '';
+    if ($digits === '') {
+        return '';
+    }
+    // Kenyan normalization: 07... (10 digits) -> 2547...
+    if (strlen($digits) === 10 && str_starts_with($digits, '07')) {
+        $digits = '254' . substr($digits, 1);
+    } elseif (strlen($digits) === 10 && str_starts_with($digits, '01')) {
+        $digits = '254' . substr($digits, 1);
+    } elseif (strlen($digits) === 9 && ($digits[0] === '7' || $digits[0] === '1')) {
+        $digits = '254' . $digits;
+    } elseif (strlen($digits) === 12 && str_starts_with($digits, '254')) {
+        // already good
+    } elseif (strlen($digits) === 13 && str_starts_with($digits, '254') && $hasPlus) {
+        // 254... with plus already stripped, keep
+    } else {
+        // For non-Kenyan numbers, if it starts with 0, we can't safely guess country.
+        // Keep as-is if it looks like international (10-15 digits) and doesn't start with 0.
+        if (str_starts_with($digits, '0')) {
+            return '';
+        }
+        // Allow 10-15 digit international numbers
+        if (strlen($digits) < 10 || strlen($digits) > 15) {
+            return '';
+        }
+    }
+    // Validate length 10-15
+    if (strlen($digits) < 10 || strlen($digits) > 15) {
+        return '';
+    }
+    return $digits;
+}
+
+function whatsapp_display_number(string $raw): string
+{
+    $norm = normalize_whatsapp_number($raw);
+    if ($norm === '') {
+        return trim($raw);
+    }
+    return '+' . $norm;
+}
+
+function whatsapp_number(): string
+{
+    $raw = Setting::get('whatsapp_sales_number', Setting::get('shop_phone', ''));
+    $norm = normalize_whatsapp_number($raw);
+    if ($norm !== '') {
+        return $norm;
+    }
+    // Fallback: try shop_phone
+    $fallback = Setting::get('shop_phone', '');
+    $norm2 = normalize_whatsapp_number($fallback);
+    return $norm2;
+}
+
+function whatsapp_link(string $message, ?string $number = null): string
+{
+    $num = $number ?? whatsapp_number();
+    $num = normalize_whatsapp_number($num);
+    $encoded = rawurlencode($message);
+    if ($num !== '') {
+        return 'https://wa.me/' . $num . '?text=' . $encoded;
+    }
+    return 'https://wa.me/?text=' . $encoded;
+}
+
+/**
+ * Build a structured WhatsApp enquiry message for a product/variant.
+ * Safe placeholders, no sensitive data.
+ */
+function build_whatsapp_message(array $product, ?array $variant, string $productUrl, ?string $customTemplate = null): string
+{
+    $shopName = Setting::get('shop_name', config('app.name', 'Khamis Computers'));
+    $price = null;
+    if ($variant && isset($variant['price_override']) && $variant['price_override'] !== null && (float)$variant['price_override'] > 0) {
+        $price = gross_of((float)$variant['price_override']);
+    } else {
+        $price = gross_of((float)($product['sell_price'] ?? 0));
+    }
+    $priceStr = money($price);
+
+    $productName = $product['name'] ?? 'Product';
+    $sku = $variant['sku'] ?? $product['sku'] ?? '';
+    $condition = $variant['condition_type'] ?? $product['condition_type'] ?? 'New';
+    $condition = ucfirst((string)$condition);
+    $ram = $variant['ram'] ?? '';
+    $storage = $variant['storage'] ?? '';
+    $colour = $variant['colour'] ?? '';
+    $grade = $variant['grade'] ?? $product['condition_grade'] ?? '';
+    $variantLabel = $variant['label'] ?? '';
+
+    // Build variant string
+    $variantParts = [];
+    if ($ram !== '') $variantParts[] = $ram . ' RAM';
+    if ($storage !== '') $variantParts[] = $storage;
+    if ($colour !== '') $variantParts[] = $colour;
+    if ($variantLabel !== '' && empty($variantParts)) $variantParts[] = $variantLabel;
+    $variantStr = implode(' / ', $variantParts);
+    if ($variantStr === '' && $variantLabel !== '') $variantStr = $variantLabel;
+
+    $template = $customTemplate ?: Setting::get('whatsapp_message_template', '');
+    if (trim($template) !== '') {
+        // Safe placeholder replacement
+        $replacements = [
+            '{product_name}' => $productName,
+            '{variant}' => $variantStr ?: ($variantLabel ?: 'Standard'),
+            '{ram}' => $ram,
+            '{storage}' => $storage,
+            '{colour}' => $colour,
+            '{color}' => $colour,
+            '{condition}' => $condition,
+            '{grade}' => $grade,
+            '{price}' => $priceStr,
+            '{sku}' => $sku,
+            '{product_url}' => $productUrl,
+            '{shop_name}' => $shopName,
+        ];
+        $msg = $template;
+        foreach ($replacements as $k => $v) {
+            $msg = str_replace($k, (string)$v, $msg);
+        }
+        // Ensure URL present
+        if (!str_contains($msg, $productUrl)) {
+            $msg .= "\n\nProduct page:\n" . $productUrl;
+        }
+        return trim($msg);
+    }
+
+    // Default structured template
+    $lines = [];
+    $lines[] = 'Hello ' . $shopName . ',';
+    $lines[] = '';
+    $lines[] = "I'm interested in this product:";
+    $lines[] = '';
+    $lines[] = 'Product: ' . $productName;
+    if ($variantStr !== '') {
+        $lines[] = 'Variant: ' . $variantStr;
+    } elseif ($variantLabel !== '') {
+        $lines[] = 'Variant: ' . $variantLabel;
+    }
+    if ($colour !== '') {
+        $lines[] = 'Colour: ' . $colour;
+    }
+    if ($condition !== '') {
+        $lines[] = 'Condition: ' . $condition;
+    }
+    if ($grade !== '') {
+        $lines[] = 'Grade: ' . $grade;
+    }
+    $lines[] = 'Price shown: ' . $priceStr;
+    if ($sku !== '') {
+        $lines[] = 'Product Code: ' . $sku;
+    }
+    $lines[] = '';
+    $lines[] = 'Product page:';
+    $lines[] = $productUrl;
+    $lines[] = '';
+    $lines[] = 'Is this product currently available?';
+
+    return implode("\n", $lines);
+}
+
+/* ---------------------------------------------------------------------------
+ * Sale source helpers
+ * ------------------------------------------------------------------------ */
+
+function sale_source_options(): array
+{
+    return [
+        'walk-in' => 'Walk-in',
+        'whatsapp' => 'WhatsApp',
+        'phone' => 'Phone',
+        'other' => 'Other',
+        'online' => 'Website Checkout',
+    ];
+}
+
+function sale_source_label(string $source): string
+{
+    $opts = sale_source_options();
+    return $opts[$source] ?? ucfirst($source);
+}
+
+function condition_options(): array
+{
+    return [
+        'new' => 'New',
+        'used' => 'Used',
+        'refurbished' => 'Refurbished',
+    ];
+}

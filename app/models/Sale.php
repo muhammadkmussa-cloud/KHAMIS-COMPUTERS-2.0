@@ -25,7 +25,6 @@ class Sale
         }
         $status = (string) ($f['status'] ?? '');
         if ($status === 'offline') {
-            // Offline sales are stored with status 'completed' + offline_created=1.
             $where[] = 's.offline_created = 1';
         } elseif (in_array($status, ['completed', 'pending', 'cancelled'], true)) {
             $where[] = 's.status = :status';
@@ -35,6 +34,11 @@ class Sale
         if (in_array($payment, ['cash', 'mpesa', 'card', 'bank'], true)) {
             $where[] = 's.payment_method = :payment';
             $params['payment'] = $payment;
+        }
+        $source = strtolower(trim((string)($f['source'] ?? '')));
+        if (in_array($source, ['walk-in','whatsapp','phone','other','online'], true) && Schema::columnExists('sales','sale_source')) {
+            $where[] = "COALESCE(s.sale_source,'walk-in') = :source";
+            $params['source'] = $source;
         }
         $from = (string) ($f['from'] ?? '');
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
@@ -110,11 +114,6 @@ class Sale
         );
     }
 
-    /**
-     * Look up an online order by its number and the customer's phone number.
-     * The phone is matched on its last 9 digits so formatting differences
-     * (07xx / +2547xx) don't matter, while still preventing blind enumeration.
-     */
     public static function findByNumberAndPhone(string $number, string $phone): ?array
     {
         $number = strtoupper(trim($number));

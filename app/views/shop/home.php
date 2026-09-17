@@ -1,4 +1,8 @@
-<?php if (!empty($slides)): $slideCount = count($slides); ?>
+<?php
+$checkoutEnabled = $checkoutEnabled ?? is_online_checkout_enabled();
+$whatsappEnabled = $whatsappEnabled ?? is_whatsapp_ordering_enabled();
+$waNumber = $whatsappNumber ?? whatsapp_number();
+if (!empty($slides)): $slideCount = count($slides); ?>
 <section class="hero-carousel" id="hero-carousel" aria-roledescription="carousel" aria-label="Featured promotions" data-autoplay="6500">
     <h1 class="sr-only"><?= e($shopName ?? Setting::get('shop_name', config('app.name'))) ?> online shop</h1>
     <div class="hero-slides">
@@ -66,12 +70,18 @@
         <p class="sub"><?= e(Setting::get('shop_tagline', 'Laptops, phones and accessories with verified stock, clear pricing and local support.')) ?></p>
         <div class="ctas">
             <a class="btn btn-primary btn-lg" href="<?= e(url('shop/products')) ?>">Browse products</a>
-            <a class="btn btn-outline btn-lg" href="<?= e(url('shop/track')) ?>">Track an order</a>
+            <?php if ($checkoutEnabled): ?>
+                <a class="btn btn-outline btn-lg" href="<?= e(url('shop/track')) ?>">Track an order</a>
+            <?php elseif ($whatsappEnabled && $waNumber !== ''): ?>
+                <a class="btn btn-whatsapp btn-lg" href="<?= e('https://wa.me/' . $waNumber . '?text=' . rawurlencode('Hello ' . ($shopName ?? 'Khamis Computers') . ', I would like to browse your catalogue.')) ?>" target="_blank" rel="noopener">💬 Order on WhatsApp</a>
+            <?php else: ?>
+                <a class="btn btn-outline btn-lg" href="<?= e(url('shop/products')) ?>">View catalogue</a>
+            <?php endif; ?>
         </div>
         <div class="hero-trust" aria-label="Store benefits">
             <span><b>Live stock</b> from our store</span>
             <span><b>VAT included</b> in every price</span>
-            <span><b>Local support</b> after purchase</span>
+            <span><b>WhatsApp ordering</b> available</span>
         </div>
     </div>
     <div class="hero-showcase" aria-label="Featured technology categories">
@@ -86,15 +96,15 @@
 <?php endif; ?>
 
 <div class="service-strip">
-    <div><span class="service-icon">⌁</span><b>Pickup in Nairobi</b><small>Reserve online, collect in store</small></div>
-    <div><span class="service-icon">↗</span><b>Delivery available</b><small>Choose your area at checkout</small></div>
+    <div><span class="service-icon">⌁</span><b>Pickup in Nairobi</b><small>Reserve via WhatsApp, collect in store</small></div>
+    <div><span class="service-icon">↗</span><b>Delivery available</b><small>Confirmed on WhatsApp</small></div>
     <div><span class="service-icon">✓</span><b>Warranty recorded</b><small>Serials kept with your receipt</small></div>
 </div>
 
 <?php if ($featured): ?>
 <div class="shop-section">
     <div class="shop-section-head">
-        <h2>New arrivals</h2>
+        <h2><?= $checkoutEnabled ? 'New arrivals' : 'Featured products' ?></h2>
         <a href="<?= e(url('shop/products')) ?>">See all →</a>
     </div>
     <div class="product-grid">
@@ -130,9 +140,9 @@
 
 <div class="promo">
     <div class="promo-inner">
-        <div class="section-kicker light">Simple fulfilment</div>
-        <h3>Order online. Collect or get it delivered.</h3>
-        <p>Our online catalogue uses the same stock as our Nairobi store. Choose pickup for the quickest handover or select a delivery area during checkout.</p>
-        <a class="btn" href="<?= e(url('shop/products')) ?>">Start shopping</a>
+        <div class="section-kicker light"><?= $checkoutEnabled ? 'Simple fulfilment' : 'Catalogue + WhatsApp' ?></div>
+        <h3><?= $checkoutEnabled ? 'Order online. Collect or get it delivered.' : 'Browse our catalogue. Order on WhatsApp.' ?></h3>
+        <p><?= $checkoutEnabled ? 'Our online catalogue uses the same stock as our Nairobi store. Choose pickup for the quickest handover or select a delivery area during checkout.' : 'Our online shop is now a professional product catalogue. View product details, select your desired variant, and contact us on WhatsApp. We will confirm availability, price, and delivery, then complete your sale through our trusted POS.' ?></p>
+        <a class="btn" href="<?= e(url('shop/products')) ?>"><?= $checkoutEnabled ? 'Start shopping' : 'Browse catalogue' ?></a>
     </div>
 </div>
